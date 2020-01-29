@@ -66,7 +66,7 @@ vfe = args.vf_eval
 vfc = args.vf_cov_hmm
 check_inp = args.check_input
 
-# Check input
+### Check input
 def is_fasta(input):
     with open(input, 'r') as handle:
         fa = SeqIO.parse(handle, 'fasta')
@@ -75,22 +75,41 @@ def is_fasta(input):
 if (not is_fasta(fasta)) and check_inp:
     sys.exit('Input file is not in fasta format')
 
-# Check output
+### Check output
 out = os.path.join(out, '')
 try:
     os.mkdir(out)
 except FileExistsError:
     sys.exit('Directory '+out+' already exists')
 
-# Prodigal
+### Prodigal
 with open(out + 'prodigal.log', 'w') as prodigal_out:
     subprocess.run(['prodigal', '-i', fasta, '-a', out+'proteins.faa', '-p', prod], stdout=prodigal_out, stderr=prodigal_out)
 
-# Hmmer
-for hmms in os.listdir('Profiles/'):
-    print(hmms)
-    with open(out+'hmmer.log', 'w') as hmmer_out:
-        subprocess.run(['hmmsearch', '--domtblout', out+'hmmer.tab', 'Profiles/'+hmms, out+'proteins.faa'], stdout=hmmer_out, stderr=hmmer_out)
+### Hmmer
+os.mkdir(out+'hmmer')
+# Define function
+def hmmsearch(hmms, out):
+    hmm_name = re.sub('\.hmm', '', hmms)
+    with open(out+'hmmer.log', 'a') as hmmer_out:
+        subprocess.run(['hmmsearch', '--domtblout', os.path.join(out+'hmmer', hmm_name+'.tab'), os.path.join('Profiles', hmms), out+'proteins.faa'], stdout=hmmer_out, stderr=hmmer_out)
+# Start multiprocess
+pool = mp.Pool(threads)
+# Each HMM
+hmm_dump = [pool.apply(hmmsearch, args=(hmms, out)) for hmms in os.listdir('Profiles')]
+# Close multiprocess
+pool.close()
+
+# Extract
+hmm_lst = []
+for hmm_tab in os.listdir(out+'hmmer'):
+    try:
+        print(os.path.join(out,'hmmer',hmm_tab))
+        hmm_list.append(pd.read_csv(os.path.join(out,'hmmer',hmm_tab), sep='\t', comment='#', header=None))
+    except:
+        pass
+hmm_df = pd.concat(hmm_lst)
+print(hmm_df)
 
 sys.exit('Stop')
 
