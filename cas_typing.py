@@ -1,5 +1,12 @@
 #!/usr/bin/env python
 
+import multiprocessing as mp
+from itertools import chain
+import numpy as np
+import pandas as pd
+from scipy import ndimage
+import re
+
 def cluster_adj(data, dist):
     '''
     Cluster adjacent genes into operons
@@ -24,29 +31,10 @@ def cluster_adj(data, dist):
     return [list(data['Acc'])[0] + "@" + str(clust[x-1]) for x in positions]
 
 
-def load_cas_data(path):
-    '''
-    Load the table with the hmmer matches to cas HMMs
-    '''
-
-    # Load data
-    dat = pd.read_csv(path, sep=" ", header=None,
-                     usecols=(0,1,3,6,13,14,16,17,18,19,20,21,22,24,26),
-                     names=('Hmm','ORF','tlen','qlen','i-Eval','score','hmm_from','hmm_to','ali_from','ali_to','env_from','env_to','pprop','start','end'))
-
-    ## Acc
-    dat['Acc'] = [re.sub("_[0-9]*$","",x) for x in dat['ORF']]
-    ## Gene position
-    dat['Pos'] = [int(re.sub(".*_","",x)) for x in dat['ORF']]
-    ## Sequence coverage
-    dat['Cov_seq'] = (dat['ali_to'] - dat['ali_from'] + 1) / dat['tlen']
-    ## Profile coverage
-    dat['Cov_hmm'] = (dat['hmm_to'] - dat['hmm_from'] + 1) / dat['qlen']
-
-    return dat
-
-
 def type_operon(dat_all, operon, one_gene_eval, one_gene_cov_seq, one_gene_cov_hmm, two_gene_eval, two_gene_cov_seq, two_gene_cov_hmm, single_gene_types):
+    '''
+    Subtype of a single operon
+    '''
 
     tmp = dat_all[dat_all['operon'] == operon].sort_values('Pos')
 
@@ -82,8 +70,8 @@ def type_operon(dat_all, operon, one_gene_eval, one_gene_cov_seq, one_gene_cov_h
     elif len(tmpX) == 2:
 
         # Both somewhat good matches and score higher than 4
-        first_gene_good = float(list(tmpX['Cov_seq'])[0]) >= two_gene_cov_seq and float(list(tmpX['Cov_hmm'])[0]) >= two_gene_cov_hmm and float(list(tmpX['i-Eval'])[0]) < two_gene_eval
-        second_gene_good = float(list(tmpX['Cov_seq'])[1]) >= two_gene_cov_seq and float(list(tmpX['Cov_hmm'])[0]) >= two_gene_cov_hmm and float(list(tmpX['i-Eval'])[1]) < two_gene_eval
+        first_gene_good = float(list(tmpX['Cov_seq'])[0]) >= two_gene_cov_seq and float(list(tmpX['Cov_hmm'])[0]) >= two_gene_cov_hmm and float(list(tmpX['Eval'])[0]) < two_gene_eval
+        second_gene_good = float(list(tmpX['Cov_seq'])[1]) >= two_gene_cov_seq and float(list(tmpX['Cov_hmm'])[0]) >= two_gene_cov_hmm and float(list(tmpX['Eval'])[1]) < two_gene_eval
 
         if (first_gene_good and second_gene_good) and best_score >= 4:
             # If ties, ambiguous
@@ -107,7 +95,7 @@ def type_operon(dat_all, operon, one_gene_eval, one_gene_cov_seq, one_gene_cov_h
     else:
 
         # Only high quality
-        lonely_gene_good = float(tmpX['Cov_seq']) >= one_gene_cov_seq and float(tmpX['Cov_hmm']) >= one_gene_cov_hmm and float(tmpX['i-Eval']) < one_gene_eval
+        lonely_gene_good = float(tmpX['Cov_seq']) >= one_gene_cov_seq and float(tmpX['Cov_hmm']) >= one_gene_cov_hmm and float(tmpX['Eval']) < one_gene_eval
 
         if lonely_gene_good and best_score >= 4:
             # If ties, ambiguous
@@ -135,28 +123,25 @@ def type_operon(dat_all, operon, one_gene_eval, one_gene_cov_seq, one_gene_cov_h
                    "Best_score": best_score,
                    "Genes": list(tmp['Hmm']),
                    "Positions": list(tmp['Pos']),
-                   "E-values": ['{:0.2e}'.format(x) for x in list(tmp['i-Eval'])],
+                   "E-values": ['{:0.2e}'.format(x) for x in list(tmp['Eval'])],
                    "CoverageSeq": [round(x,3) for x in list(tmp['Cov_seq'])],
                    "CoverageHMM": [round(x,3) for x in list(tmp['Cov_hmm'])]}
     
     return outdict
 
 
-def typing(path, out, threads, dist, overall_eval, overall_cov_seq, overall_cov_hmm, one_gene_eval, one_gene_cov_seq, one_gene_cov_hmm, two_gene_eval, two_gene_cov_seq, two_gene_cov_hmm, single_gene_types, VF_eval, VF_cov_hmm):
+def typing(dat, out, threads, scoring, dist, overall_eval, overall_cov_seq, overall_cov_hmm, one_gene_eval, one_gene_cov_seq, one_gene_cov_hmm, two_gene_eval, two_gene_cov_seq, two_gene_cov_hmm, single_gene_types, VF_eval, VF_cov_hmm):
     '''
     Subtyping of putative Cas operons
     '''
 
-    # Load data
-    dat = load_cas_data(path)
-
     # Apply overall thresholds
-    dat = dat[(dat['Cov_seq'] >= overall_cov_seq) & (dat['Cov_hmm'] >= overall_cov_hmm) & (dat['i-Eval'] < overall_eval)]
+    dat = dat[(dat['Cov_seq'] >= overall_cov_seq) & (dat['Cov_hmm'] >= overall_cov_hmm) & (dat['Eval'] < overall_eval)]
 
     # V-F specific thresholds
     VF = [i for i in list(dat['Hmm']) if 'cas12f' in i or 'cas12_x' in i]
     
-    dat = dat[((dat['Cov_hmm'] >= VF_cov_hmm) & (dat['i-Eval'] < VF_eval)) |
+    dat = dat[((dat['Cov_hmm'] >= VF_cov_hmm) & (dat['Eval'] < VF_eval)) |
               ([x not in VF for x in dat['Hmm']])]
 
 
@@ -179,8 +164,8 @@ def typing(path, out, threads, dist, overall_eval, overall_cov_seq, overall_cov_
     # Close multiprocess
     pool.close()
 
-    # Save
+    # Return
     preddf = pd.DataFrame(dictlst)
-    preddf.to_csv(out + "operons.tab", sep="\t", index=False)
+    return(preddf)
 
 

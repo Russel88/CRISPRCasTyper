@@ -1,17 +1,20 @@
 #!/usr/bin/env python
 
-import multiprocessing as mp
 import numpy as np
 import pandas as pd
 import subprocess
+import glob
 import re
 import argparse
+import logging
 import os
 import sys
-from scipy import ndimage
-from itertools import chain
+import shutil
 from pathlib import Path
 from Bio import SeqIO
+import multiprocessing as mp
+
+from cas_typing import typing, type_operon, cluster_adj
 
 # For boolean arguments
 def str2bool(v):
@@ -30,19 +33,22 @@ ap.add_argument('-o', '--output', help='Output prefix', required=True)
 ap.add_argument('-t', '--threads', default=1, help='Number of parallel processes. Default 1', type=int)
 ap.add_argument('-d', '--dist', default=1, type=int, help='Max allowed distance between genes in operon. Default 1')
 ap.add_argument('-p', '--prodigal', default='single', type=str, help='Which mode to run prodigal in. Default single')
-ap.add_argument('-s', '--scores', help='Path to CasScoring table', default='/mibi/users/russel/Projects/CasPredict/CasScoring.csv')
-ap.add_argument('-oev', '--overall_eval', help='Overall E-value threshold. Defalt 0.001', default=0.001, type=float)
-ap.add_argument('-ocs', '--overall_cov_seq', help='Overall sequence coverage threshold. Default 0.5', default=0.5, type=float)
-ap.add_argument('-och', '--overall_cov_hmm', help='Overall HMM coverage threshold. Default 0.5', default=0.5, type=float)
-ap.add_argument('-tev', '--two_gene_eval', help='Two-gene operon E-value threshold. Default 1e-5', default=1e-5, type=float)
-ap.add_argument('-tcs', '--two_gene_cov_seq', help='Two-gene operon sequence coverage threshold. Default 0.8', default=0.8, type=float)
-ap.add_argument('-tch', '--two_gene_cov_hmm', help='Two-gene operon HMM coverage threshold. Default 0.8', default=0.8, type=float)
-ap.add_argument('-sev', '--single_gene_eval', help='Lonely gene E-value threshold. Default 1e-10', default=1e-10, type=float)
-ap.add_argument('-scs', '--single_gene_cov_seq', help='Lonely gene sequence coverage threshold. Default 0.9', default=0.9, type=float)
-ap.add_argument('-sch', '--single_cov_hmm', help='Lonely gene HMM coverage threshold. Default 0.9', default=0.9, type=float)
-ap.add_argument('-vfe', '--vf_eval', help='V-F Cas12 specific E-value threshold. Default 1e-75', default=1e-75, type=float)
-ap.add_argument('-vfc', '--vf_cov_hmm', help='V-F Cas12 specific HMM coverage threshold. Default 0.97', default=0.97, type=float)
-ap.add_argument('-ci', '--check_input', help='Should the input be checked. Default True', default=True, type=str2bool)
+ap.add_argument('--scores', help='Path to CasScoring table. Default same dir as CasPredict script', default='', type=str)
+ap.add_argument('--hmms', help='Path to directory with HMM profiles. Default same dir as CasPredict script', default='', type=str)
+ap.add_argument('--overall_eval', help='Overall E-value threshold. Defalt 0.001', default=0.001, type=float)
+ap.add_argument('--overall_cov_seq', help='Overall sequence coverage threshold. Default 0.5', default=0.5, type=float)
+ap.add_argument('--overall_cov_hmm', help='Overall HMM coverage threshold. Default 0.5', default=0.5, type=float)
+ap.add_argument('--two_gene_eval', help='Two-gene operon E-value threshold. Default 1e-5', default=1e-5, type=float)
+ap.add_argument('--two_gene_cov_seq', help='Two-gene operon sequence coverage threshold. Default 0.8', default=0.8, type=float)
+ap.add_argument('--two_gene_cov_hmm', help='Two-gene operon HMM coverage threshold. Default 0.8', default=0.8, type=float)
+ap.add_argument('--single_gene_eval', help='Lonely gene E-value threshold. Default 1e-10', default=1e-10, type=float)
+ap.add_argument('--single_gene_cov_seq', help='Lonely gene sequence coverage threshold. Default 0.9', default=0.9, type=float)
+ap.add_argument('--single_cov_hmm', help='Lonely gene HMM coverage threshold. Default 0.9', default=0.9, type=float)
+ap.add_argument('--vf_eval', help='V-F Cas12 specific E-value threshold. Default 1e-75', default=1e-75, type=float)
+ap.add_argument('--vf_cov_hmm', help='V-F Cas12 specific HMM coverage threshold. Default 0.97', default=0.97, type=float)
+ap.add_argument('--check_input', help='Should the input be checked. Default True', default=True, type=str2bool)
+ap.add_argument('--keep_prodigal', help='Keep prodigal output. Default False', default=False, type=str2bool)
+ap.add_argument('--version', help='Print version and exit', action='store_true')
 
 # Extract arguments
 args = ap.parse_args()
@@ -53,6 +59,7 @@ threads = args.threads
 dist = args.dist
 prod = args.prodigal
 scoring = args.scores
+profile_dir=args.hmms
 oev = args.overall_eval
 ocs = args.overall_cov_seq
 och = args.overall_cov_hmm
@@ -65,6 +72,22 @@ sch = args.single_cov_hmm
 vfe = args.vf_eval
 vfc = args.vf_cov_hmm
 check_inp = args.check_input
+keep_prodigal = args.keep_prodigal
+vers = args.version
+
+if vers:
+    print('CasPredict version 0.1.0')
+    sys.exit()
+
+# Logger
+logging.basicConfig(format='\033[36m'+'[%(asctime)s] %(levelname)s:'+'\033[0m'+' %(message)s', datefmt='%Y-%m-%d %H:%M:%S', level=logging.INFO)
+
+# Data dir
+script_dir = re.sub('CasPredict.py', '', os.path.realpath(__file__))
+if scoring == '':
+    scoring = os.path.join(script_dir+'CasScoring.csv')
+if profile_dir == '':
+    profile_dir = os.path.join(script_dir+'Profiles')
 
 ### Check input
 def is_fasta(input):
@@ -73,46 +96,119 @@ def is_fasta(input):
         return any(fa)
 
 if (not is_fasta(fasta)) and check_inp:
-    sys.exit('Input file is not in fasta format')
+    logging.critical('Input file is not in fasta format')
+    sys.exit()
 
 ### Check output
 out = os.path.join(out, '')
 try:
     os.mkdir(out)
 except FileExistsError:
-    sys.exit('Directory '+out+' already exists')
+    logging.error('Directory '+out+' already exists')
+    sys.exit()
 
 ### Prodigal
-with open(out + 'prodigal.log', 'w') as prodigal_out:
-    subprocess.run(['prodigal', '-i', fasta, '-a', out+'proteins.faa', '-p', prod], stdout=prodigal_out, stderr=prodigal_out)
+logging.info('Predicting ORFs with prodigal')
+with open(out + 'prodigal.out', 'w') as prodigal_out:
+    with open(out + 'prodigal.log', 'w') as prodigal_log:
+        subprocess.run(['prodigal', '-i', fasta, '-a', out+'proteins.faa', '-p', prod], stdout=prodigal_out, stderr=prodigal_log)
+
+# Check prodigal output
+if os.stat(out+'proteins.faa').st_size == 0:
+    logging.critical('Prodigal failed. Check prodigal log')
+    sys.exit()
+
+### Clean up function
+def clean(keep_prodigal):
+    logging.info('Removing temporary files')
+    shutil.rmtree(out+'hmmer')
+    os.remove(out+'hmmer.out')
+
+    if not keep_prodigal:
+        os.remove(out+'prodigal.out')
+        os.remove(out+'proteins.faa')
+        os.remove(out+'prodigal.log')
 
 ### Hmmer
+logging.info('Running HMMER against Cas profiles')
 os.mkdir(out+'hmmer')
 # Define function
 def hmmsearch(hmms, out):
     hmm_name = re.sub('\.hmm', '', hmms)
-    with open(out+'hmmer.log', 'a') as hmmer_out:
-        subprocess.run(['hmmsearch', '--domtblout', os.path.join(out+'hmmer', hmm_name+'.tab'), os.path.join('Profiles', hmms), out+'proteins.faa'], stdout=hmmer_out, stderr=hmmer_out)
+    with open(out+'hmmer.out', 'a') as hmmer_out:
+        with open(out+'hmmer.log', 'a') as hmmer_log:
+            subprocess.run(['hmmsearch', '--domtblout', os.path.join(out+'hmmer', hmm_name+'.tab'), os.path.join(profile_dir, hmms), out+'proteins.faa'], stdout=hmmer_out, stderr=hmmer_log)
 # Start multiprocess
 pool = mp.Pool(threads)
 # Each HMM
-hmm_dump = [pool.apply(hmmsearch, args=(hmms, out)) for hmms in os.listdir('Profiles')]
+hmm_dump = [pool.apply(hmmsearch, args=(hmms, out)) for hmms in os.listdir(profile_dir)]
 # Close multiprocess
 pool.close()
 
-# Extract
-hmm_lst = []
-for hmm_tab in os.listdir(out+'hmmer'):
-    try:
-        print(os.path.join(out,'hmmer',hmm_tab))
-        hmm_list.append(pd.read_csv(os.path.join(out,'hmmer',hmm_tab), sep='\t', comment='#', header=None))
-    except:
-        pass
-hmm_df = pd.concat(hmm_lst)
-print(hmm_df)
+# Combine
+logging.info('Parsing HMMER output')
+hmm_files = glob.glob(os.path.join(out+'hmmer', '*.tab'))
+with open(out+'hmmer.tab', 'w') as hmmer_tab:
+    subprocess.run(['grep', '-v', '^#']+hmm_files, stdout=hmmer_tab)
+    subprocess.run(['sed', '-i', 's/:/ /', out+'hmmer.tab'])
 
-sys.exit('Stop')
+hmm_df = pd.read_csv(out+'hmmer.tab', sep='\s+', header=None,
+    usecols=(0,1,3,6,7,8,16,17,18,19,20,21,22,24,26),
+    names=('Hmm','ORF','tlen','qlen','Eval','score','hmm_from','hmm_to','ali_from','ali_to','env_from','env_to','pprop','start','end'))
+
+hmm_df['Hmm'] = [re.sub('\.tab', '', re.sub(os.path.join(out, 'hmmer', ''), '', x)) for x in hmm_df['Hmm']]
+hmm_df.to_csv(out+'hmmer.tab', sep='\t', index=False)
+
+if len(hmm_df) == 0:
+    logging.info('No Cas proteins found. Exiting')
+    clean(keep_prodigal)
+    sys.exit()
+
+# Pick best hit
+hmm_df.sort_values('Eval', inplace=True)
+hmm_df.drop_duplicates('ORF', inplace=True)
+
+# Acc
+hmm_df['Acc'] = [re.sub("_[0-9]*$","",x) for x in hmm_df['ORF']]
+# Gene position
+hmm_df['Pos'] = [int(re.sub(".*_","",x)) for x in hmm_df['ORF']]
+# Sequence coverage
+hmm_df['Cov_seq'] = (hmm_df['ali_to'] - hmm_df['ali_from'] + 1) / hmm_df['tlen']
+# Profile coverage
+hmm_df['Cov_hmm'] = (hmm_df['hmm_to'] - hmm_df['hmm_from'] + 1) / hmm_df['qlen']
 
 # Typing
-typing(hmmertab, out, threads, dist, oev, ocs, och, sev, scs, sch, tev, tcs, tch, ('II-A','II-B','II-C','V-A','V-B','V-C','V-D','V-E','V-F','V-G','V-H','V-I','V-J','VI-A','VI-B1','VI-B2','VI-C','VI-D'), vfe, vfc)
+logging.info('Subtyping putative operons')
+out_df = typing(dat=hmm_df,
+    out=out,
+    threads=threads,
+    scoring=scoring,
+    dist=dist,
+    overall_eval=oev,
+    overall_cov_seq=ocs,
+    overall_cov_hmm=och,
+    one_gene_eval=sev,
+    one_gene_cov_seq=scs,
+    one_gene_cov_hmm=sch,
+    two_gene_eval=tev,
+    two_gene_cov_seq=tcs,
+    two_gene_cov_hmm=tch,
+    single_gene_types=('II-A','II-B','II-C','V-A','V-B','V-C','V-D','V-E','V-F','V-G','V-H','V-I','V-J','VI-A','VI-B1','VI-B2','VI-C','VI-D'),
+    VF_eval=vfe,
+    VF_cov_hmm=vfc)
 
+if len(out_df) == 0:
+    logging.info('No operons found. Exiting')
+    clean(keep_prodigal)
+    sys.exit()
+
+# Remove temporary hmmer files
+clean(keep_prodigal)
+
+# Output
+logging.info('Done')
+operons_good = out_df[~out_df['Prediction'].isin(['False', 'Ambiguous'])]
+operons_put = out_df[out_df['Prediction'].isin(['False', 'Ambiguous'])]
+
+operons_good.to_csv(out+'cas_operons.tab', sep='\t', index=False)
+operons_put.to_csv(out+'cas_operons_putative.tab', sep='\t', index=False)
