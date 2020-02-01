@@ -207,8 +207,8 @@ clean(keep_prodigal)
 
 # Output
 logging.info('Done')
-operons_good = out_df[~out_df['Prediction'].isin(['False', 'Ambiguous'])]
-operons_put = out_df[out_df['Prediction'].isin(['False', 'Ambiguous'])]
+operons_good = out_df[~out_df['Prediction'].isin(['False', 'Ambiguous', 'Partial'])]
+operons_put = out_df[out_df['Prediction'].isin(['False', 'Ambiguous', 'Partial'])]
 
 operons_good.to_csv(out+'cas_operons.tab', sep='\t', index=False)
 operons_put.to_csv(out+'cas_operons_putative.tab', sep='\t', index=False)

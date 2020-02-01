@@ -146,6 +146,7 @@ def typing(dat, out, threads, scoring, dist, overall_eval, overall_cov_seq, over
 
 
     # Define operons
+    dat.sort_values('Acc', inplace=True)
     dat['operon'] = list(chain.from_iterable(list(dat.groupby('Acc').apply(cluster_adj, dist))))
 
     # Load score table

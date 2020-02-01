@@ -1,3 +1,4 @@
 data/
 Profiles/
 CasScoring.csv
+__pycache__/
