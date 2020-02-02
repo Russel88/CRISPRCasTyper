@@ -75,7 +75,7 @@ vfc = args.vf_cov_hmm
 check_inp = args.check_input
 keep_prodigal = args.keep_prodigal
 lvl = args.log_lvl
-vers = args.versioni
+vers = args.version
 
 if vers:
     logging.info('CasPredict version 0.1.0')
