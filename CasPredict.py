@@ -49,7 +49,6 @@ ap.add_argument('--vf_cov_hmm', help='V-F Cas12 specific HMM coverage threshold.
 ap.add_argument('--check_input', help='Should the input be checked. Default True', default=True, type=str2bool)
 ap.add_argument('--keep_prodigal', help='Keep prodigal output. Default False', default=False, type=str2bool)
 ap.add_argument('--log_lvl', help='Logging level. Default 20', default=20, type=int)
-ap.add_argument('--version', help='Print version and exit', action='store_true')
 
 # Extract arguments
 args = ap.parse_args()
@@ -75,14 +74,12 @@ vfc = args.vf_cov_hmm
 check_inp = args.check_input
 keep_prodigal = args.keep_prodigal
 lvl = args.log_lvl
-vers = args.version
-
-if vers:
-    logging.info('CasPredict version 0.1.0')
-    sys.exit()
 
 # Logger
 logging.basicConfig(format='\033[36m'+'[%(asctime)s] %(levelname)s:'+'\033[0m'+' %(message)s', datefmt='%Y-%m-%d %H:%M:%S', level=lvl)
+
+# Version
+logging.info('Running CasPredict version 0.1.0')
 
 # Data dir
 script_dir = re.sub('CasPredict.py', '', os.path.realpath(__file__))
