@@ -29,13 +29,13 @@ conda activate caspredict
 ```
 ##### Run with a nucleotide fasta as input
 ```sh
-CasPredict.py -i genome.fa -o my_output
+./CasPredict.py -i genome.fa -o my_output
 ```
 ##### Use multiple threads
 ```sh
-CasPredict.py -i genome.fa -o my_output -t 20
+./CasPredict.py -i genome.fa -o my_output -t 20
 ```
 ##### Check the different options
 ```sh
-CasPredict.py -h
+./CasPredict.py -h
 ```
