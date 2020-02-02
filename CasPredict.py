@@ -48,6 +48,7 @@ ap.add_argument('--vf_eval', help='V-F Cas12 specific E-value threshold. Default
 ap.add_argument('--vf_cov_hmm', help='V-F Cas12 specific HMM coverage threshold. Default 0.97', default=0.97, type=float)
 ap.add_argument('--check_input', help='Should the input be checked. Default True', default=True, type=str2bool)
 ap.add_argument('--keep_prodigal', help='Keep prodigal output. Default False', default=False, type=str2bool)
+ap.add_argument('--log_lvl', help='Logging level. Default 20', default=20, type=int)
 ap.add_argument('--version', help='Print version and exit', action='store_true')
 
 # Extract arguments
@@ -73,21 +74,22 @@ vfe = args.vf_eval
 vfc = args.vf_cov_hmm
 check_inp = args.check_input
 keep_prodigal = args.keep_prodigal
-vers = args.version
+lvl = args.log_lvl
+vers = args.versioni
 
 if vers:
-    print('CasPredict version 0.1.0')
+    logging.info('CasPredict version 0.1.0')
     sys.exit()
 
 # Logger
-logging.basicConfig(format='\033[36m'+'[%(asctime)s] %(levelname)s:'+'\033[0m'+' %(message)s', datefmt='%Y-%m-%d %H:%M:%S', level=logging.INFO)
+logging.basicConfig(format='\033[36m'+'[%(asctime)s] %(levelname)s:'+'\033[0m'+' %(message)s', datefmt='%Y-%m-%d %H:%M:%S', level=lvl)
 
 # Data dir
 script_dir = re.sub('CasPredict.py', '', os.path.realpath(__file__))
 if scoring == '':
-    scoring = os.path.join(script_dir+'CasScoring.csv')
+    scoring = os.path.join(script_dir, 'CasScoring.csv')
 if profile_dir == '':
-    profile_dir = os.path.join(script_dir+'Profiles')
+    profile_dir = os.path.join(script_dir, 'Profiles')
 
 ### Check input
 def is_fasta(input):
@@ -123,6 +125,9 @@ def clean(keep_prodigal):
     logging.info('Removing temporary files')
     shutil.rmtree(out+'hmmer')
     os.remove(out+'hmmer.out')
+
+    if os.stat(out+'hmmer.out').st_size == 0:
+        os.remove(out+'hmmer.log')
 
     if not keep_prodigal:
         os.remove(out+'prodigal.out')
