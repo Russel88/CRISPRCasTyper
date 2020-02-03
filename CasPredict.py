@@ -123,7 +123,7 @@ def clean(keep_prodigal):
     shutil.rmtree(out+'hmmer')
     os.remove(out+'hmmer.out')
 
-    if os.stat(out+'hmmer.out').st_size == 0:
+    if os.stat(out+'hmmer.log').st_size == 0:
         os.remove(out+'hmmer.log')
 
     if not keep_prodigal:
