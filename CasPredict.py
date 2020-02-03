@@ -49,6 +49,7 @@ ap.add_argument('--vf_cov_hmm', help='V-F Cas12 specific HMM coverage threshold.
 ap.add_argument('--check_input', help='Should the input be checked. Default True', default=True, type=str2bool)
 ap.add_argument('--keep_prodigal', help='Keep prodigal output. Default False', default=False, type=str2bool)
 ap.add_argument('--log_lvl', help='Logging level. Default 20', default=20, type=int)
+ap.add_argument('--aa', help='Input is a protein fasta. Has to be in prodigal format', action='store_true')
 
 # Extract arguments
 args = ap.parse_args()
@@ -74,12 +75,17 @@ vfc = args.vf_cov_hmm
 check_inp = args.check_input
 keep_prodigal = args.keep_prodigal
 lvl = args.log_lvl
+aa = args.aa
+
+# Force argument consistency with protein input
+if aa:
+    keep_prodigal = True
 
 # Logger
 logging.basicConfig(format='\033[36m'+'[%(asctime)s] %(levelname)s:'+'\033[0m'+' %(message)s', datefmt='%Y-%m-%d %H:%M:%S', level=lvl)
 
 # Version
-logging.info('Running CasPredict version 0.1.0')
+logging.info('Running CasPredict version 0.1.1')
 
 # Data dir
 script_dir = re.sub('CasPredict.py', '', os.path.realpath(__file__))
@@ -107,15 +113,21 @@ except FileExistsError:
     sys.exit()
 
 ### Prodigal
-logging.info('Predicting ORFs with prodigal')
-with open(out + 'prodigal.out', 'w') as prodigal_out:
-    with open(out + 'prodigal.log', 'w') as prodigal_log:
-        subprocess.run(['prodigal', '-i', fasta, '-a', out+'proteins.faa', '-p', prod], stdout=prodigal_out, stderr=prodigal_log)
+if not aa:
+    logging.info('Predicting ORFs with prodigal')
+    with open(out + 'prodigal.out', 'w') as prodigal_out:
+        with open(out + 'prodigal.log', 'w') as prodigal_log:
+            subprocess.run(['prodigal', '-i', fasta, '-a', out+'proteins.faa', '-p', prod], stdout=prodigal_out, stderr=prodigal_log)
 
-# Check prodigal output
-if os.stat(out+'proteins.faa').st_size == 0:
-    logging.critical('Prodigal failed. Check prodigal log')
-    sys.exit()
+    # Check prodigal output
+    if os.stat(out+'proteins.faa').st_size == 0:
+        logging.critical('Prodigal failed. Check prodigal log')
+        sys.exit()
+
+    prot_path = out+'proteins.faa'
+
+else:
+    prot_path = fasta
 
 ### Clean up function
 def clean(keep_prodigal):
@@ -139,7 +151,7 @@ def hmmsearch(hmms, out):
     hmm_name = re.sub('\.hmm', '', hmms)
     with open(out+'hmmer.out', 'a') as hmmer_out:
         with open(out+'hmmer.log', 'a') as hmmer_log:
-            subprocess.run(['hmmsearch', '--domtblout', os.path.join(out+'hmmer', hmm_name+'.tab'), os.path.join(profile_dir, hmms), out+'proteins.faa'], stdout=hmmer_out, stderr=hmmer_log)
+            subprocess.run(['hmmsearch', '--domtblout', os.path.join(out+'hmmer', hmm_name+'.tab'), os.path.join(profile_dir, hmms), prot_path], stdout=hmmer_out, stderr=hmmer_log)
 # Start multiprocess
 pool = mp.Pool(threads)
 # Each HMM
