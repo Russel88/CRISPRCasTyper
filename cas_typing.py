@@ -49,7 +49,7 @@ def type_operon(dat_all, operon, one_gene_eval, one_gene_cov_seq, one_gene_cov_h
     start_operon = min(list(start)+list(end))
     end_operon = max(list(start)+list(end))
 
-    type_scores = tmpX.iloc[:,20:].sum(axis=0)
+    type_scores = tmpX.iloc[:,13:].sum(axis=0)
 
     best_score = np.amax(type_scores)
     best_type = type_scores.index.values[np.argmax(type_scores.values)]
