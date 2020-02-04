@@ -31,7 +31,7 @@ ap = argparse.ArgumentParser()
 ap.add_argument('-i', '--input', help='Input fasta file', required=True)
 ap.add_argument('-o', '--output', help='Output prefix', required=True)
 ap.add_argument('-t', '--threads', default=1, help='Number of parallel processes. Default 1', type=int)
-ap.add_argument('-d', '--dist', default=1, type=int, help='Max allowed distance between genes in operon. Default 1')
+ap.add_argument('-d', '--dist', default=3, type=int, help='Max allowed distance between genes in operon. Default 3')
 ap.add_argument('-p', '--prodigal', default='single', type=str, help='Which mode to run prodigal in. Default single')
 ap.add_argument('--scores', help='Path to CasScoring table. Default same dir as CasPredict script', default='', type=str)
 ap.add_argument('--hmms', help='Path to directory with HMM profiles. Default same dir as CasPredict script', default='', type=str)
@@ -179,7 +179,7 @@ if len(hmm_df) == 0:
     sys.exit()
 
 # Pick best hit
-hmm_df.sort_values('Eval', inplace=True)
+hmm_df.sort_values('score', ascending=False, inplace=True)
 hmm_df.drop_duplicates('ORF', inplace=True)
 
 # Acc
