@@ -28,28 +28,38 @@ def str2bool(v):
         raise argparse.ArgumentTypeError('Boolean value expected.')
 
 ap = argparse.ArgumentParser()
-ap.add_argument('-i', '--input', help='Input fasta file', required=True)
-ap.add_argument('-o', '--output', help='Output prefix', required=True)
-ap.add_argument('-t', '--threads', default=1, help='Number of parallel processes. Default 1', type=int)
-ap.add_argument('-d', '--dist', default=3, type=int, help='Max allowed distance between genes in operon. Default 3')
-ap.add_argument('-p', '--prodigal', default='single', type=str, help='Which mode to run prodigal in. Default single')
-ap.add_argument('--scores', help='Path to CasScoring table. Default same dir as CasPredict script', default='', type=str)
-ap.add_argument('--hmms', help='Path to directory with HMM profiles. Default same dir as CasPredict script', default='', type=str)
-ap.add_argument('--overall_eval', help='Overall E-value threshold. Defalt 0.001', default=0.001, type=float)
-ap.add_argument('--overall_cov_seq', help='Overall sequence coverage threshold. Default 0.5', default=0.5, type=float)
-ap.add_argument('--overall_cov_hmm', help='Overall HMM coverage threshold. Default 0.5', default=0.5, type=float)
-ap.add_argument('--two_gene_eval', help='Two-gene operon E-value threshold. Default 1e-5', default=1e-5, type=float)
-ap.add_argument('--two_gene_cov_seq', help='Two-gene operon sequence coverage threshold. Default 0.8', default=0.8, type=float)
-ap.add_argument('--two_gene_cov_hmm', help='Two-gene operon HMM coverage threshold. Default 0.8', default=0.8, type=float)
-ap.add_argument('--single_gene_eval', help='Lonely gene E-value threshold. Default 1e-10', default=1e-10, type=float)
-ap.add_argument('--single_gene_cov_seq', help='Lonely gene sequence coverage threshold. Default 0.9', default=0.9, type=float)
-ap.add_argument('--single_cov_hmm', help='Lonely gene HMM coverage threshold. Default 0.9', default=0.9, type=float)
-ap.add_argument('--vf_eval', help='V-F Cas12 specific E-value threshold. Default 1e-75', default=1e-75, type=float)
-ap.add_argument('--vf_cov_hmm', help='V-F Cas12 specific HMM coverage threshold. Default 0.97', default=0.97, type=float)
+
+# Required
+ap.add_argument('input', help='Input fasta file')
+ap.add_argument('output', help='Prefix for output directory')
+
+# Optional
+ap.add_argument('-t', '--threads', default=4, help='Number of parallel processes. Default 4', type=int)
+ap.add_argument('--prodigal', default='single', type=str, help='Which mode to run prodigal in. Default single')
+ap.add_argument('--aa', help='Input is a protein fasta. Has to be in prodigal format', action='store_true')
 ap.add_argument('--check_input', help='Should the input be checked. Default True', default=True, type=str2bool)
 ap.add_argument('--keep_prodigal', help='Keep prodigal output. Default False', default=False, type=str2bool)
 ap.add_argument('--log_lvl', help='Logging level. Default 20', default=20, type=int)
-ap.add_argument('--aa', help='Input is a protein fasta. Has to be in prodigal format', action='store_true')
+
+# Data
+apd = ap.add_argument_group('data arguments')
+apd.add_argument('--scores', help='Path to CasScoring table. Default same dir as CasPredict script', default='', type=str)
+apd.add_argument('--hmms', help='Path to directory with HMM profiles. Default same dir as CasPredict script', default='', type=str)
+
+# Thresholds
+apt = ap.add_argument_group('threshold arguments')
+apt.add_argument('--dist', default=3, type=int, help='Max allowed distance between genes in operon. Default 3')
+apt.add_argument('--overall_eval', help='Overall E-value threshold. Defalt 0.001', default=0.001, type=float)
+apt.add_argument('--overall_cov_seq', help='Overall sequence coverage threshold. Default 0.5', default=0.5, type=float)
+apt.add_argument('--overall_cov_hmm', help='Overall HMM coverage threshold. Default 0.5', default=0.5, type=float)
+apt.add_argument('--two_gene_eval', help='Two-gene operon E-value threshold. Default 1e-5', default=1e-5, type=float)
+apt.add_argument('--two_gene_cov_seq', help='Two-gene operon sequence coverage threshold. Default 0.8', default=0.8, type=float)
+apt.add_argument('--two_gene_cov_hmm', help='Two-gene operon HMM coverage threshold. Default 0.8', default=0.8, type=float)
+apt.add_argument('--single_gene_eval', help='Lonely gene E-value threshold. Default 1e-10', default=1e-10, type=float)
+apt.add_argument('--single_gene_cov_seq', help='Lonely gene sequence coverage threshold. Default 0.9', default=0.9, type=float)
+apt.add_argument('--single_cov_hmm', help='Lonely gene HMM coverage threshold. Default 0.9', default=0.9, type=float)
+apt.add_argument('--vf_eval', help='V-F Cas12 specific E-value threshold. Default 1e-75', default=1e-75, type=float)
+apt.add_argument('--vf_cov_hmm', help='V-F Cas12 specific HMM coverage threshold. Default 0.97', default=0.97, type=float)
 
 # Extract arguments
 args = ap.parse_args()
@@ -85,7 +95,7 @@ if aa:
 logging.basicConfig(format='\033[36m'+'[%(asctime)s] %(levelname)s:'+'\033[0m'+' %(message)s', datefmt='%Y-%m-%d %H:%M:%S', level=lvl)
 
 # Version
-logging.info('Running CasPredict version 0.1.2')
+logging.info('Running CasPredict version 0.1.3')
 
 # Data dir
 script_dir = re.sub('CasPredict.py', '', os.path.realpath(__file__))
