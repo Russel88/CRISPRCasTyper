@@ -40,6 +40,7 @@ ap.add_argument('--aa', help='Input is a protein fasta. Has to be in prodigal fo
 ap.add_argument('--check_input', help='Should the input be checked. Default True', default=True, type=str2bool)
 ap.add_argument('--keep_prodigal', help='Keep prodigal output. Default False', default=False, type=str2bool)
 ap.add_argument('--log_lvl', help='Logging level. Default 20', default=20, type=int)
+ap.add_argument('--redo_typing', help='Redo the typing. Skip prodigal and HMMER and load the hmmer.tab from the output dir', action='store_true')
 
 # Data
 apd = ap.add_argument_group('data arguments')
@@ -86,10 +87,16 @@ check_inp = args.check_input
 keep_prodigal = args.keep_prodigal
 lvl = args.log_lvl
 aa = args.aa
+redo = args.redo_typing
 
 # Force argument consistency with protein input
 if aa:
     keep_prodigal = True
+
+# Force arguments with redo
+if redo:
+    aa = True
+    check_inp = False
 
 # Logger
 logging.basicConfig(format='\033[36m'+'[%(asctime)s] %(levelname)s:'+'\033[0m'+' %(message)s', datefmt='%Y-%m-%d %H:%M:%S', level=lvl)
@@ -116,11 +123,12 @@ if (not is_fasta(fasta)) and check_inp:
 
 ### Check output
 out = os.path.join(out, '')
-try:
-    os.mkdir(out)
-except FileExistsError:
-    logging.error('Directory '+out+' already exists')
-    sys.exit()
+if not redo:
+    try:
+        os.mkdir(out)
+    except FileExistsError:
+        logging.error('Directory '+out+' already exists')
+        sys.exit()
 
 ### Prodigal
 if not aa:
@@ -141,47 +149,52 @@ else:
 
 ### Clean up function
 def clean(keep_prodigal):
-    logging.info('Removing temporary files')
-    shutil.rmtree(out+'hmmer')
-    os.remove(out+'hmmer.out')
+    if not redo:
+        logging.info('Removing temporary files')
+        shutil.rmtree(out+'hmmer')
+        os.remove(out+'hmmer.out')
 
-    if os.stat(out+'hmmer.log').st_size == 0:
-        os.remove(out+'hmmer.log')
+        if os.stat(out+'hmmer.log').st_size == 0:
+            os.remove(out+'hmmer.log')
 
-    if not keep_prodigal:
-        os.remove(out+'prodigal.out')
-        os.remove(out+'proteins.faa')
-        os.remove(out+'prodigal.log')
+        if not keep_prodigal:
+            os.remove(out+'prodigal.out')
+            os.remove(out+'proteins.faa')
+            os.remove(out+'prodigal.log')
 
 ### Hmmer
-logging.info('Running HMMER against Cas profiles')
-os.mkdir(out+'hmmer')
-# Define function
-def hmmsearch(hmms, out):
-    hmm_name = re.sub('\.hmm', '', hmms)
-    with open(out+'hmmer.out', 'a') as hmmer_out:
-        with open(out+'hmmer.log', 'a') as hmmer_log:
-            subprocess.run(['hmmsearch', '--domtblout', os.path.join(out+'hmmer', hmm_name+'.tab'), os.path.join(profile_dir, hmms), prot_path], stdout=hmmer_out, stderr=hmmer_log)
-# Start multiprocess
-pool = mp.Pool(threads)
-# Each HMM
-hmm_dump = [pool.apply(hmmsearch, args=(hmms, out)) for hmms in os.listdir(profile_dir)]
-# Close multiprocess
-pool.close()
+if not redo:
+    logging.info('Running HMMER against Cas profiles')
+    os.mkdir(out+'hmmer')
+    # Define function
+    def hmmsearch(hmms, out):
+        hmm_name = re.sub('\.hmm', '', hmms)
+        with open(out+'hmmer.out', 'a') as hmmer_out:
+            with open(out+'hmmer.log', 'a') as hmmer_log:
+                subprocess.run(['hmmsearch', '--domtblout', os.path.join(out+'hmmer', hmm_name+'.tab'), os.path.join(profile_dir, hmms), prot_path], stdout=hmmer_out, stderr=hmmer_log)
+    # Start multiprocess
+    pool = mp.Pool(threads)
+    # Each HMM
+    hmm_dump = [pool.apply(hmmsearch, args=(hmms, out)) for hmms in os.listdir(profile_dir)]
+    # Close multiprocess
+    pool.close()
 
-# Combine
-logging.info('Parsing HMMER output')
-hmm_files = glob.glob(os.path.join(out+'hmmer', '*.tab'))
-with open(out+'hmmer.tab', 'w') as hmmer_tab:
-    subprocess.run(['grep', '-v', '^#']+hmm_files, stdout=hmmer_tab)
-    subprocess.run(['sed', '-i', 's/:/ /', out+'hmmer.tab'])
+    # Combine
+    logging.info('Parsing HMMER output')
+    hmm_files = glob.glob(os.path.join(out+'hmmer', '*.tab'))
+    with open(out+'hmmer.tab', 'w') as hmmer_tab:
+        subprocess.run(['grep', '-v', '^#']+hmm_files, stdout=hmmer_tab)
+        subprocess.run(['sed', '-i', 's/:/ /', out+'hmmer.tab'])
 
-hmm_df = pd.read_csv(out+'hmmer.tab', sep='\s+', header=None,
-    usecols=(0,1,3,6,7,8,16,17,18,19,20,21,22,24,26),
-    names=('Hmm','ORF','tlen','qlen','Eval','score','hmm_from','hmm_to','ali_from','ali_to','env_from','env_to','pprop','start','end'))
+    hmm_df = pd.read_csv(out+'hmmer.tab', sep='\s+', header=None,
+        usecols=(0,1,3,6,7,8,16,17,18,19,20,21,22,24,26),
+        names=('Hmm','ORF','tlen','qlen','Eval','score','hmm_from','hmm_to','ali_from','ali_to','env_from','env_to','pprop','start','end'))
 
-hmm_df['Hmm'] = [re.sub('\.tab', '', re.sub(os.path.join(out, 'hmmer', ''), '', x)) for x in hmm_df['Hmm']]
-hmm_df.to_csv(out+'hmmer.tab', sep='\t', index=False)
+    hmm_df['Hmm'] = [re.sub('\.tab', '', re.sub(os.path.join(out, 'hmmer', ''), '', x)) for x in hmm_df['Hmm']]
+    hmm_df.to_csv(out+'hmmer.tab', sep='\t', index=False)
+
+else:
+    hmm_df = pd.read_csv(out+'hmmer.tab', sep='\t')
 
 if len(hmm_df) == 0:
     logging.info('No Cas proteins found. Exiting')
