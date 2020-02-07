@@ -102,7 +102,7 @@ if redo:
 logging.basicConfig(format='\033[36m'+'[%(asctime)s] %(levelname)s:'+'\033[0m'+' %(message)s', datefmt='%Y-%m-%d %H:%M:%S', level=lvl)
 
 # Version
-logging.info('Running CasPredict version 0.1.4')
+logging.info('Running CasPredict version 0.1.5')
 
 # Data dir
 script_dir = re.sub('CasPredict.py', '', os.path.realpath(__file__))
@@ -206,13 +206,15 @@ if len(hmm_df) == 0:
 hmm_df['Acc'] = [re.sub("_[0-9]*$","",x) for x in hmm_df['ORF']]
 # Gene position
 hmm_df['Pos'] = [int(re.sub(".*_","",x)) for x in hmm_df['ORF']]
-# Sequence coverage
-hmm_df['Cov_seq'] = (hmm_df['ali_to'] - hmm_df['ali_from'] + 1) / hmm_df['tlen']
-# Profile coverage
-hmm_df['Cov_hmm'] = (hmm_df['hmm_to'] - hmm_df['hmm_from'] + 1) / hmm_df['qlen']
 
-# Aggregate coverages of multiple aligments between similar HMMs and ORFs
-hmm_df = hmm_df.groupby(['Hmm','ORF','tlen','qlen','Eval','score','start','end','Acc','Pos']).agg({'Cov_seq':'sum','Cov_hmm':'sum'}).reset_index()
+# Coverages of aligments
+def covs(df_sub):
+    df_sub['Cov_seq'] = (max(df_sub['ali_to']) - min(df_sub['ali_from']) + 1) / df_sub['tlen']
+    df_sub['Cov_hmm'] = (max(df_sub['hmm_to']) - min(df_sub['hmm_from']) + 1) / df_sub['qlen']
+    df_sub = df_sub[['Hmm','ORF','tlen','qlen','Eval','score','start','end','Acc','Pos','Cov_seq','Cov_hmm']]
+    return df_sub
+
+hmm_df = hmm_df.groupby(['Hmm','ORF']).apply(covs)
 
 # Pick best hit
 hmm_df.sort_values('score', ascending=False, inplace=True)
