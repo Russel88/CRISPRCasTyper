@@ -102,7 +102,7 @@ if redo:
 logging.basicConfig(format='\033[36m'+'[%(asctime)s] %(levelname)s:'+'\033[0m'+' %(message)s', datefmt='%Y-%m-%d %H:%M:%S', level=lvl)
 
 # Version
-logging.info('Running CasPredict version 0.1.3')
+logging.info('Running CasPredict version 0.1.4')
 
 # Data dir
 script_dir = re.sub('CasPredict.py', '', os.path.realpath(__file__))
@@ -234,7 +234,7 @@ out_df = typing(dat=hmm_df,
     two_gene_eval=tev,
     two_gene_cov_seq=tcs,
     two_gene_cov_hmm=tch,
-    single_gene_types=('II-A','II-B','II-C','V-A','V-B','V-C','V-D','V-E','V-F','V-G','V-H','V-I','V-J','VI-A','VI-B1','VI-B2','VI-C','VI-D'),
+    single_gene_types=('II-A','II-B','II-C','V-A','V-B','V-C','V-D','V-E','V-F','V-G','V-H','V-I','V-J','VI-A','VI-B','VI-C','VI-D'),
     VF_eval=vfe,
     VF_cov_hmm=vfc)
 

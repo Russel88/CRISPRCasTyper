@@ -60,6 +60,7 @@ optional arguments:
   --keep_prodigal KEEP_PRODIGAL
                         Keep prodigal output. Default False
   --log_lvl LOG_LVL     Logging level. Default 20
+  --redo_typing         Redo the typing. Skip prodigal and HMMER and load the hmmer.tab from the output dir
 
 data arguments:
   --scores SCORES       Path to CasScoring table. Default same dir as CasPredict script
