@@ -16,17 +16,6 @@ import multiprocessing as mp
 
 from cas_typing import typing, type_operon, cluster_adj
 
-# For boolean arguments
-def str2bool(v):
-    if isinstance(v, bool):
-        return v
-    if v.lower() in ('yes', 'true', 't', 'y', '1'):
-        return True
-    elif v.lower() in ('no', 'false', 'f', 'n', '0'):
-        return False
-    else:
-        raise argparse.ArgumentTypeError('Boolean value expected.')
-
 ap = argparse.ArgumentParser()
 
 # Required
@@ -34,13 +23,13 @@ ap.add_argument('input', help='Input fasta file')
 ap.add_argument('output', help='Prefix for output directory')
 
 # Optional
-ap.add_argument('-t', '--threads', default=4, help='Number of parallel processes. Default 4', type=int)
-ap.add_argument('--prodigal', default='single', type=str, help='Which mode to run prodigal in. Default single')
-ap.add_argument('--aa', help='Input is a protein fasta. Has to be in prodigal format', action='store_true')
-ap.add_argument('--check_input', help='Should the input be checked. Default True', default=True, type=str2bool)
-ap.add_argument('--keep_prodigal', help='Keep prodigal output. Default False', default=False, type=str2bool)
-ap.add_argument('--log_lvl', help='Logging level. Default 20', default=20, type=int)
-ap.add_argument('--redo_typing', help='Redo the typing. Skip prodigal and HMMER and load the hmmer.tab from the output dir', action='store_true')
+ap.add_argument('-t', '--threads', help='Number of parallel processes [%(default)s].', default=4, type=int)
+ap.add_argument('--prodigal', help='Which mode to run prodigal in [%(default)s].', default='single', type=str, choices=['single','meta'])
+ap.add_argument('--aa', help='Input is a protein fasta. Has to be in prodigal format.', action='store_true')
+ap.add_argument('--skip_check', help='Skip check of input.', action='store_true',)
+ap.add_argument('--keep_prodigal', help='Keep prodigal output.', action='store_true')
+ap.add_argument('--log_lvl', help='Logging level [%(default)s].', default='INFO', type=str, choices=['INFO','ERROR'])
+ap.add_argument('--redo_typing', help='Redo the typing. Skip prodigal and HMMER and load the hmmer.tab from the output dir.', action='store_true')
 
 # Data
 apd = ap.add_argument_group('data arguments')
@@ -49,18 +38,18 @@ apd.add_argument('--hmms', help='Path to directory with HMM profiles. Default sa
 
 # Thresholds
 apt = ap.add_argument_group('threshold arguments')
-apt.add_argument('--dist', default=3, type=int, help='Max allowed distance between genes in operon. Default 3')
-apt.add_argument('--overall_eval', help='Overall E-value threshold. Defalt 0.001', default=0.001, type=float)
-apt.add_argument('--overall_cov_seq', help='Overall sequence coverage threshold. Default 0.5', default=0.5, type=float)
-apt.add_argument('--overall_cov_hmm', help='Overall HMM coverage threshold. Default 0.5', default=0.5, type=float)
-apt.add_argument('--two_gene_eval', help='Two-gene operon E-value threshold. Default 1e-5', default=1e-5, type=float)
-apt.add_argument('--two_gene_cov_seq', help='Two-gene operon sequence coverage threshold. Default 0.8', default=0.8, type=float)
-apt.add_argument('--two_gene_cov_hmm', help='Two-gene operon HMM coverage threshold. Default 0.8', default=0.8, type=float)
-apt.add_argument('--single_gene_eval', help='Lonely gene E-value threshold. Default 1e-10', default=1e-10, type=float)
-apt.add_argument('--single_gene_cov_seq', help='Lonely gene sequence coverage threshold. Default 0.9', default=0.9, type=float)
-apt.add_argument('--single_cov_hmm', help='Lonely gene HMM coverage threshold. Default 0.9', default=0.9, type=float)
-apt.add_argument('--vf_eval', help='V-F Cas12 specific E-value threshold. Default 1e-75', default=1e-75, type=float)
-apt.add_argument('--vf_cov_hmm', help='V-F Cas12 specific HMM coverage threshold. Default 0.97', default=0.97, type=float)
+apt.add_argument('--dist', help='Max allowed distance between genes in operon [%(default)s].', default=3, type=int)
+apt.add_argument('--overall_eval', help='Overall E-value threshold [%(default)s].', default=0.001, type=float)
+apt.add_argument('--overall_cov_seq', help='Overall sequence coverage threshold [%(default)s].', default=0.5, type=float)
+apt.add_argument('--overall_cov_hmm', help='Overall HMM coverage threshold [%(default)s].', default=0.5, type=float)
+apt.add_argument('--two_gene_eval', help='Two-gene operon E-value threshold [%(default)s].', default=1e-5, type=float)
+apt.add_argument('--two_gene_cov_seq', help='Two-gene operon sequence coverage threshold [%(default)s].', default=0.8, type=float)
+apt.add_argument('--two_gene_cov_hmm', help='Two-gene operon HMM coverage threshold [%(default)s].', default=0.8, type=float)
+apt.add_argument('--single_gene_eval', help='Lonely gene E-value threshold [%(default)s].', default=1e-10, type=float)
+apt.add_argument('--single_gene_cov_seq', help='Lonely gene sequence coverage threshold [%(default)s].', default=0.9, type=float)
+apt.add_argument('--single_cov_hmm', help='Lonely gene HMM coverage threshold [%(default)s].', default=0.9, type=float)
+apt.add_argument('--vf_eval', help='V-F Cas12 specific E-value threshold [%(default)s].', default=1e-75, type=float)
+apt.add_argument('--vf_cov_hmm', help='V-F Cas12 specific HMM coverage threshold [%(default)s].', default=0.97, type=float)
 
 # Extract arguments
 args = ap.parse_args()
@@ -83,7 +72,7 @@ scs = args.single_gene_cov_seq
 sch = args.single_cov_hmm
 vfe = args.vf_eval
 vfc = args.vf_cov_hmm
-check_inp = args.check_input
+check_inp = args.skip_check
 keep_prodigal = args.keep_prodigal
 lvl = args.log_lvl
 aa = args.aa
@@ -96,13 +85,13 @@ if aa:
 # Force arguments with redo
 if redo:
     aa = True
-    check_inp = False
+    check_inp = True
 
 # Logger
 logging.basicConfig(format='\033[36m'+'[%(asctime)s] %(levelname)s:'+'\033[0m'+' %(message)s', datefmt='%Y-%m-%d %H:%M:%S', level=lvl)
 
 # Version
-logging.info('Running CasPredict version 0.1.5')
+logging.info('Running CasPredict version 0.1.6')
 
 # Data dir
 script_dir = re.sub('CasPredict.py', '', os.path.realpath(__file__))
@@ -117,7 +106,7 @@ def is_fasta(input):
         fa = SeqIO.parse(handle, 'fasta')
         return any(fa)
 
-if (not is_fasta(fasta)) and check_inp:
+if (not is_fasta(fasta)) and not check_inp:
     logging.critical('Input file is not in fasta format')
     sys.exit()
 
@@ -209,8 +198,8 @@ hmm_df['Pos'] = [int(re.sub(".*_","",x)) for x in hmm_df['ORF']]
 
 # Coverages of aligments
 def covs(df_sub):
-    df_sub['Cov_seq'] = (max(df_sub['ali_to']) - min(df_sub['ali_from']) + 1) / df_sub['tlen']
-    df_sub['Cov_hmm'] = (max(df_sub['hmm_to']) - min(df_sub['hmm_from']) + 1) / df_sub['qlen']
+    df_sub['Cov_seq'] = len(set([x for sublst in [list(range(i,j)) for i,j in zip(df_sub['ali_from'], df_sub['ali_to']+1)] for x in sublst])) / df_sub['tlen']
+    df_sub['Cov_hmm'] = len(set([x for sublst in [list(range(i,j)) for i,j in zip(df_sub['hmm_from'], df_sub['hmm_to']+1)] for x in sublst])) / df_sub['qlen']
     df_sub = df_sub[['Hmm','ORF','tlen','qlen','Eval','score','start','end','Acc','Pos','Cov_seq','Cov_hmm']]
     return df_sub
 
