@@ -1,0 +1,13 @@
+README
+setup.py
+bin/caspredict
+caspredict/__init__.py
+caspredict/castyping.py
+caspredict/controller.py
+caspredict/hmmer.py
+caspredict/prodigal.py
+caspredict.egg-info/PKG-INFO
+caspredict.egg-info/SOURCES.txt
+caspredict.egg-info/dependency_links.txt
+caspredict.egg-info/requires.txt
+caspredict.egg-info/top_level.txt

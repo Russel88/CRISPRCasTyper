@@ -1,0 +1,6 @@
+numpy>=1.17.5
+pandas>=0.25.3
+scipy>=1.4.1
+biopython>=1.76
+multiprocess>=0.70.9
+setuptools
