@@ -17,7 +17,9 @@ setuptools.setup(
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
-    ],
+        "Topic :: Scientific/Engineering :: Bio-Informatics",
+        "Topic :: Software Development :: Libraries :: Python Modules",
+        "Development Status :: 4 - Beta"],
     python_requires='>=3.8',
     install_requires=[
         "numpy >= 1.17.5",

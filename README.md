@@ -3,24 +3,26 @@
 Detect CRISPR-Cas genes, group them into operons, and predict their subtype 
 
 ## Installation
-### Requirements
-##### Prodigal, hmmer, and some python3 modules
-It is advised to use [miniconda](https://docs.conda.io/en/latest/miniconda.html) or [anaconda](https://www.anaconda.com/) to manage dependencies.
-However, if you have the dependencies in your PATH it will still work.
+### Conda
+It is advised to use [miniconda](https://docs.conda.io/en/latest/miniconda.html) or [anaconda](https://www.anaconda.com/) to install.
+
 ```sh
-conda create -n caspredict python=3.8 prodigal hmmer biopython pandas scipy multiprocess
+conda create -n caspredict -c russel88 caspredict
 ```
 
-grep and sed should also be in your PATH. If you don't already have these, include them in your conda environment:
+### pip
+However, if you have the dependencies (Python >= 3.8, HMMER >= 3.2, Prodigal >= 2.6, grep, sed) in your PATH you can install with pip
+
 ```sh
-conda create -n caspredict python=3.8 prodigal hmmer biopython pandas scipy multiprocess grep sed
+pip install caspredict
 ```
 
-### CasPredict
-##### Clone git repo
-```sh
-git clone https://github.com/Russel88/CasPredict.git
-```
+## Download database
+### Conda
+Coming soon...
+
+### pip
+Coming soon...
 
 ## How to run
 ##### Activate environment
