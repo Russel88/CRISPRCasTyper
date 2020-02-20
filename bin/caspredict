@@ -53,12 +53,6 @@ apt.add_argument('--vf_cov_hmm', help='V-F Cas12 specific HMM coverage threshold
 ########## Initialize ##########
 master = Controller(ap.parse_args())
 
-# Check output
-master.check_out()
-
-# Check input
-master.check_input()
-
 ########## Prodigal ##########
 prodigal = Prodigal(master)
 

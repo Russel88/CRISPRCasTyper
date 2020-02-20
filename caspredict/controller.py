@@ -3,6 +3,8 @@ import logging
 import sys
 import shutil
 
+import pandas as pd
+
 from Bio import SeqIO
 
 class Controller(object):
@@ -35,7 +37,7 @@ class Controller(object):
 
         # Logger
         logging.basicConfig(format='\033[36m'+'[%(asctime)s] %(levelname)s:'+'\033[0m'+' %(message)s', datefmt='%Y-%m-%d %H:%M:%S', level=self.lvl)
-        logging.info('Running CasPredict version 0.2.0')
+        logging.info('Running CasPredict version 0.2.1')
 
         # Force consistency
         self.out = os.path.join(self.out, '')
@@ -51,8 +53,14 @@ class Controller(object):
             self.prot_path = self.out+'proteins.faa'
 
         # Hardcode single gene types
-        self.single_gene_types=('II-A','II-B','II-C','V-A','V-B','V-C','V-D','V-E','V-F','V-G','V-H','V-I','V-J','VI-A','VI-B','VI-C','VI-D'),
+        self.single_gene_types=('II-A','II-B','II-C','V-A','V-B','V-C','V-D','V-E','V-F','V-G','V-H','V-I','V-J','VI-A','VI-B','VI-C','VI-D')
 
+        # Check databases
+        self.check_db()
+        
+        # Check input and output
+        self.check_input()
+        self.check_out()
 
     def check_out(self):
 
@@ -66,8 +74,12 @@ class Controller(object):
     def check_input(self):
 
         if not self.check_inp:
-            if not self.is_fasta():
-                logging.critical('Input file is not in fasta format')
+            if os.path.isfile(self.fasta):
+                if not self.is_fasta():
+                    logging.error('Input file is not in fasta format')
+                    sys.exit()
+            else:
+                logging.error('Could not find input file')
                 sys.exit()
 
     def is_fasta(self):
@@ -86,4 +98,25 @@ class Controller(object):
             if not self.keep_prodigal:
                 os.remove(self.out+'proteins.faa')
                 os.remove(self.out+'prodigal.log')
+    
+    def check_db(self):
+       # Try to load CasScoring table
+        if os.path.isfile(self.scoring):
+            try:
+                dump = pd.read_csv(self.scoring, sep=",")
+            except:
+                logging.error('CasScoring table could not be loaded')
+                sys.exit()
+        else:
+            logging.error('CasScoring table could not be found')
+            sys.exit()
 
+        # Look if HMM profile dir exists
+        if os.path.isdir(self.pdir):
+            for i in os.listdir(self.pdir):
+                if not i.lower().endswith('.hmm'):
+                    logging.error('There are non-HMM profiles in the HMM profile directory')
+                    sys.exit()
+        else:
+            logging.error('Could not find HMM profile directory')
+            sys.exit()
