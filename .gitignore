@@ -1,2 +1,11 @@
 data/
 __pycache__/
+*.egg
+*.egg-info
+dist/
+build/
+sdist/
+setup.cfg
+bld.bat
+build.sh
+meta.yaml
