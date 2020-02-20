@@ -1,4 +1,5 @@
 README.md
+setup.cfg
 setup.py
 bin/caspredict
 caspredict/__init__.py

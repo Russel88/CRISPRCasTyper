@@ -14,7 +14,7 @@ conda create -n caspredict -c russel88 caspredict
 However, if you have the dependencies (Python >= 3.8, HMMER >= 3.2, Prodigal >= 2.6, grep, sed) in your PATH you can install with pip
 
 ```sh
-pip install caspredict
+python -m pip install caspredict
 ```
 
 ## Download database
