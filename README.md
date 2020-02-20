@@ -7,7 +7,7 @@ Detect CRISPR-Cas genes, group them into operons, and predict their subtype
 It is advised to use [miniconda](https://docs.conda.io/en/latest/miniconda.html) or [anaconda](https://www.anaconda.com/) to install.
 
 ```sh
-conda create -n caspredict -c russel88 caspredict
+conda create -n caspredict -c conda-forge -c bioconda -c russel88 caspredict
 ```
 
 ### pip
