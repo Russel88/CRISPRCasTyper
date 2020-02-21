@@ -41,10 +41,10 @@ caspredict genome.fa my_output -t 20
 ```sh
 caspredict -h
 
-usage: caspredict [-h] [-t THREADS] [--prodigal {single,meta}] [--aa] [--skip_check] [--keep_prodigal] [--log_lvl {DEBUG,INFO,WARNING,ERROR}] [--redo_typing] [--scores SCORES] [--hmms HMMS]
-                  [--dist DIST] [--overall_eval OVERALL_EVAL] [--overall_cov_seq OVERALL_COV_SEQ] [--overall_cov_hmm OVERALL_COV_HMM] [--two_gene_eval TWO_GENE_EVAL]
-                  [--two_gene_cov_seq TWO_GENE_COV_SEQ] [--two_gene_cov_hmm TWO_GENE_COV_HMM] [--single_gene_eval SINGLE_GENE_EVAL] [--single_gene_cov_seq SINGLE_GENE_COV_SEQ]
-                  [--single_cov_hmm SINGLE_COV_HMM] [--vf_eval VF_EVAL] [--vf_cov_hmm VF_COV_HMM]
+usage: caspredict [-h] [-t THREADS] [--prodigal {single,meta}] [--aa] [--skip_check] [--keep_prodigal] [--log_lvl {DEBUG,INFO,WARNING,ERROR}] [--redo_typing] [--db DB] [--dist DIST]
+                  [--overall_eval OVERALL_EVAL] [--overall_cov_seq OVERALL_COV_SEQ] [--overall_cov_hmm OVERALL_COV_HMM] [--two_gene_eval TWO_GENE_EVAL] [--two_gene_cov_seq TWO_GENE_COV_SEQ]
+                  [--two_gene_cov_hmm TWO_GENE_COV_HMM] [--single_gene_eval SINGLE_GENE_EVAL] [--single_gene_cov_seq SINGLE_GENE_COV_SEQ] [--single_cov_hmm SINGLE_COV_HMM] [--vf_eval VF_EVAL]
+                  [--vf_cov_hmm VF_COV_HMM]
                   input output
 
 positional arguments:
@@ -65,8 +65,7 @@ optional arguments:
   --redo_typing         Redo the typing. Skip prodigal and HMMER and load the hmmer.tab from the output dir.
 
 data arguments:
-  --scores SCORES       Path to CasScoring table.
-  --hmms HMMS           Path to directory with HMM profiles.
+  --db DB               Path to database.
 
 threshold arguments:
   --dist DIST           Max allowed distance between genes in operon [3].
@@ -91,3 +90,4 @@ threshold arguments:
   --vf_eval VF_EVAL     V-F Cas12 specific E-value threshold [1e-75].
   --vf_cov_hmm VF_COV_HMM
                         V-F Cas12 specific HMM coverage threshold [0.97].
+
