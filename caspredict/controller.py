@@ -16,8 +16,7 @@ class Controller(object):
         self.threads = args.threads
         self.dist = args.dist
         self.prod = args.prodigal
-        self.scoring = args.scores
-        self.pdir=args.hmms
+        self.db = args.db
         self.oev = args.overall_eval
         self.ocs = args.overall_cov_seq
         self.och = args.overall_cov_hmm
@@ -34,10 +33,10 @@ class Controller(object):
         self.lvl = args.log_lvl
         self.aa = args.aa
         self.redo = args.redo_typing
-
+        
         # Logger
         logging.basicConfig(format='\033[36m'+'[%(asctime)s] %(levelname)s:'+'\033[0m'+' %(message)s', datefmt='%Y-%m-%d %H:%M:%S', level=self.lvl)
-        logging.info('Running CasPredict version 0.2.1')
+        logging.info('Running CasPredict version 0.2.2')
 
         # Force consistency
         self.out = os.path.join(self.out, '')
@@ -100,7 +99,20 @@ class Controller(object):
                 os.remove(self.out+'prodigal.log')
     
     def check_db(self):
-       # Try to load CasScoring table
+        
+        if self.db == '':
+            try:
+                DB_PATH = os.environ['CASPREDICT_DB']
+                self.scoring = os.path.join(DB_PATH, 'CasScoring.csv')
+                self.pdir = os.path.join(DB_PATH, 'Profiles', '')
+            except:
+                logging.error('Could not find database directory')
+
+        else:
+            self.scoring = os.path.join(self.db, 'CasScoring.csv')
+            self.pdir = os.path.join(self.db, 'Profiles', '')
+        
+        # Try to load CasScoring table
         if os.path.isfile(self.scoring):
             try:
                 dump = pd.read_csv(self.scoring, sep=",")

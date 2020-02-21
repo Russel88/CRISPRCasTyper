@@ -28,8 +28,7 @@ ap.add_argument('--redo_typing', help='Redo the typing. Skip prodigal and HMMER 
 
 # Data
 apd = ap.add_argument_group('data arguments')
-apd.add_argument('--scores', help='Path to CasScoring table.', default='', type=str)
-apd.add_argument('--hmms', help='Path to directory with HMM profiles.', default='', type=str)
+apd.add_argument('--db', help='Path to database.', default='', type=str)
 
 # Thresholds
 apt = ap.add_argument_group('threshold arguments')
