@@ -50,18 +50,65 @@ class CRISPRCas(object):
                         'CRISPRs': list(crispr_operon['CRISPR']),
                         'Distances': [0 if x<0 else x for x in dists if x <= self.crispr_cas_dist],
                         'Prediction_Cas': list(cas_operon['Prediction'])[0],
+                        'Prediction_CRISPRs': list(crispr_operon['Prediction']),
                         'Subtype_Cas': list(cas_operon['Best_type'])[0],
                         'Subtype_CRISPRs': list(crispr_operon['Subtype'])
                         }
 
                         dicts.append(outdict)
-        
-        # Write
+
+        # Consensus 
         if len(dicts) > 0:
             crispr_cas = pd.DataFrame(dicts, columns=dicts[0].keys())
             orphan_cas = cas_1[cas_1['Operon'].isin(set(cas_1['Operon']).difference(set(crispr_cas['Operon'])))]
             orphan_crispr = crispr[crispr['CRISPR'].isin(set(crispr['CRISPR']).difference(set([x for x in crispr_cas['CRISPRs'] for x in x])))]
+        
+            pred_lst = []
+            for index, row in crispr_cas.iterrows():
+                # Choose nearest CRISPR prediction
+                Prediction_CRISPR = row['Prediction_CRISPRs'][row['Distances'].index(min(row['Distances']))]
+                
+                # Get Cas predictions
+                Prediction_Cas = row['Prediction_Cas']
+                Best_Cas = row['Subtype_Cas']
 
+                # If agree
+                if Prediction_Cas == Prediction_CRISPR:
+                    Prediction = Prediction_Cas
+                # If not agree
+                else:
+                    # If Cas ambiguous
+                    if Prediction_Cas == "Ambiguous":
+                        if Prediction_CRISPR in Best_Cas:
+                            Prediction = Prediction_CRISPR
+                        # If overall type match
+                        elif re.sub('-.*$', '', Prediction_CRISPR) in [re.sub('-.*$', '', x) for x in Best_Cas]:
+                            Prediction = re.sub('-.*$', '', Prediction_CRISPR)
+                        else:
+                            Prediction = "Unknown"
+                    # If Cas not False or Partial
+                    elif Prediction_Cas not in ('False', 'Partial'):
+                        Prediction = Prediction_Cas
+                    # If Cas False or Partial    
+                    else:
+                        if Best_Cas == Prediction_CRISPR:
+                            Prediction = Best_Cas
+                        # If overall type match
+                        elif re.sub('-.*$', '', Best_Cas) == re.sub('-.*$', '', Prediction_CRISPR):
+                            Prediction = re.sub('-.*$', '', Prediction_CRISPR)
+                        else:
+                            Prediction = "Unknown"
+                            
+                pred_lst.append(Prediction)
+
+            # Insert predictions
+            crispr_cas['Prediction'] = pred_lst
+
+            # Subset columns
+            crispr_cas = crispr_cas[['Contig', 'Operon', 'Operon_Pos', 'Prediction', 'CRISPRs', 'Distances', 'Prediction_Cas', 'Prediction_CRISPRs']]
+
+        # Write
+        if len(dicts) > 0:
             crispr_cas.to_csv(self.out+'CRISPR_Cas.tab', sep='\t', index=False)
             orphan_cas.to_csv(self.out+'cas_operons_orphan.tab', sep='\t', index=False)
             orphan_crispr.to_csv(self.out+'crisprs_orphan.tab', sep='\t', index=False)

@@ -35,6 +35,7 @@ class Controller(object):
         self.redo = args.redo_typing
         self.kmer = args.kmer
         self.crispr_cas_dist = args.ccd
+        self.pred_prob = args.pred_prob
 
         # Logger
         logging.basicConfig(format='\033[36m'+'[%(asctime)s] %(levelname)s:'+'\033[0m'+' %(message)s', datefmt='%Y-%m-%d %H:%M:%S', level=self.lvl)

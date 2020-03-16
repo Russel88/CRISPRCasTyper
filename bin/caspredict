@@ -50,7 +50,8 @@ apt.add_argument('--vf_cov_hmm', help='V-F Cas12 specific HMM coverage threshold
 
 # CRISPRs
 apc = ap.add_argument_group('crispr threshold arguments')
-apc.add_argument('--ccd', help='Distance (bp) threshold to connect Cas operons and CRISPR arrays [%(default)s].', default=1e4, type=int)
+apc.add_argument('--ccd', help='Distance (bp) threshold to connect Cas operons and CRISPR arrays [%(default)s].', default=10000, type=int)
+apc.add_argument('--pred_prob', help='Prediction probability cut-off for assigning subtype to CRISPR repeats [%(default)s].', default=0.75, type=float)
 apc.add_argument('--kmer', help='kmer size. Has to match training kmer size! [%(default)s].', default=4, type=int)
 
 # Workflow starts here

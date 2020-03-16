@@ -83,9 +83,12 @@ class XGB(object):
 
         # Add to file
         df = pd.read_csv(self.out+'crisprs_all.tab', sep='\t')
+        df['Prediction'] = z_type
         df['Subtype'] = z_type
         df['Subtype_probability'] = z_max
+        df.loc[df.Subtype_probability < self.pred_prob, 'Prediction'] = 'Unknown'
         df['Subtype_probability'] = df['Subtype_probability'].round(3)
+        
         df.to_csv(self.out+'crisprs_all.tab', sep='\t', index=False)
 
 

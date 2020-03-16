@@ -39,7 +39,7 @@ caspredict genome.fa my_output -t 20
 ```
 
 ## Output
-* **CRISPR_Cas.tab:**           CRISPR_Cas loci
+* **CRISPR_Cas.tab:**           CRISPR_Cas loci, with consensus subtype prediction
 * **cas_operons.tab:**          All certain Cas operons
 * **crisprs_all.tab:**          All CRISPR arrays
 * **crisprs_orphan.tab:**       Orphan CRISPRs (those not in CRISPR_Cas.tab)
@@ -105,6 +105,8 @@ cas threshold arguments:
 
 crispr threshold arguments:
   --ccd CCD             Distance (bp) threshold to connect Cas operons and CRISPR arrays [10000.0].
+  --pred_prob PRED_PROB
+                        Prediction probability cut-off for assigning subtype to CRISPR repeats [0.75].
   --kmer KMER           kmer size. Has to match training kmer size! [4].
 
 ```

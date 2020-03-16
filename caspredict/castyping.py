@@ -185,16 +185,10 @@ class Typer(object):
         # Merge the tables
         self.hmm_df_all = pd.merge(self.hmm_df, scores, on="Hmm")
 
-        # Start multiprocess
-        pool = mp.Pool(self.threads)
-
         # Assign subtype for each operon
         operons_unq = set(self.hmm_df_all['operon'])
-        dictlst = [pool.apply(self.type_operon, args=(operonID, )) for operonID in operons_unq]
-
-        # Close multiprocess
-        pool.close()
-
+        dictlst = [self.type_operon(operonID) for operonID in operons_unq]
+        
         # Return
         self.preddf = pd.DataFrame(dictlst)
 
