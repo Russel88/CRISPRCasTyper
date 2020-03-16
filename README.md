@@ -47,6 +47,15 @@ caspredict genome.fa my_output -t 20
 * **hmmer.tab:**                All HMM vs. ORF matches, raw unfiltered results
 * **arguments.tab:**            File with arguments given to CasPredict
 
+## Predict subtype based on repeats
+With an input of CRISPR repeats (one per line, in a simple textfile), predict the subtype
+
+```sh
+repeatType repeats.txt
+```
+
+The script prints the repeat, the predicted subtype, and the associated probability of the prediction.
+
 ## Check the different options
 ```sh
 caspredict -h

@@ -5,14 +5,14 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="caspredict", 
-    version="0.3.1",
+    version="0.3.2",
     author="Jakob Russel",
     author_email="russel2620@gmail.com",
     description="Automatic detection and subtyping of CRISPR-Cas operons",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/russel88/caspredict",
-    download_url="https://github.com/Russel88/CasPredict/archive/v0.3.1.tar.gz",
+    download_url="https://github.com/Russel88/CasPredict/archive/v0.3.2.tar.gz",
     packages=setuptools.find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",
@@ -32,5 +32,6 @@ setuptools.setup(
         "xgboost >= 0.9.0",
         "tqdm >= 4",
         "setuptools"],
-    scripts=['bin/caspredict']
+    scripts=['bin/caspredict',
+             'bin/repeatType']
 )

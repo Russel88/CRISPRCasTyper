@@ -92,10 +92,10 @@ class CRISPRCas(object):
                     # If Cas False or Partial    
                     else:
                         if Best_Cas == Prediction_CRISPR:
-                            Prediction = Best_Cas
+                            Prediction = Best_Cas+'(Partial)'
                         # If overall type match
                         elif re.sub('-.*$', '', Best_Cas) == re.sub('-.*$', '', Prediction_CRISPR):
-                            Prediction = re.sub('-.*$', '', Prediction_CRISPR)
+                            Prediction = re.sub('-.*$', '', Prediction_CRISPR)+'(Partial)'
                         else:
                             Prediction = "Unknown"
                             

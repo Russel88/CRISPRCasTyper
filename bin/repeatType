@@ -1,0 +1,24 @@
+#!/usr/bin/env python
+
+import argparse
+import os
+import sys
+
+from caspredict.xgb import XGB
+from caspredict.repeat import RepeatTyper
+
+########## Arguments ##########
+ap = argparse.ArgumentParser()
+
+# Required
+ap.add_argument('input', help='Input file')
+
+# Optional
+ap.add_argument('--kmer', help='kmer size. Has to match training kmer size! [%(default)s].', default=4, type=int)
+ap.add_argument('--db', help='Path to database.', default='', type=str)
+
+# Workflow starts here
+master = RepeatTyper(ap.parse_args())
+xgb = XGB(master)
+xgb.predict_repeats()
+xgb.print_xgb()

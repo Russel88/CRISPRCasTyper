@@ -106,7 +106,7 @@ if not master.aa:
     repeatPred = XGB(crispr)
 
     # Predict
-    repeatPred.predict_repeats()
+    repeatPred.xgb_run()
 
 ######### CRISPR-Cas ########
 if not master.aa:

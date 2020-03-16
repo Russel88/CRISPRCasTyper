@@ -16,7 +16,6 @@ class XGB(object):
         base_rev = "TGCA"
         self.comp_tab = str.maketrans(base_for, base_rev)
     
-
     def load_xgb_model(self):
 
         logging.debug('Loading xgboost model')
@@ -56,39 +55,51 @@ class XGB(object):
                 kmer_d[kmer] = 1
         return kmer_d
 
-    def predict_repeats(self):
+    def xgb_run(self):
         
         logging.info('Predicting subtype of CRISPR repeats')
-
-        # Prepare
-        self.load_xgb_model()
-        self.generate_canonical_kmer()
-        repeats = [x.cons for x in self.crisprs]
-        crispy = [x.crispr for x in self.crisprs]
-        start = [x.start for x in self.crisprs]
-
-        # Count kmers (first index is a to ensure all kmers are in the df)
-        z_df = pd.DataFrame([dict(zip(self.can_kmer, np.zeros(len(self.can_kmer))))] + [self.count_kmer(x) for x in repeats]).fillna(0)
-        z_df = z_df.reindex(sorted(z_df.columns), axis=1)
         
+        # Get repeats
+        self.repeats = [x.cons for x in self.crisprs]
+
         # Predict
-        z_pred = self.bst.predict(xgb.DMatrix(z_df), ntree_limit=int(self.bst.attr('best_iteration')))
-        
-        # Get type and max probability
-        z_best = [x.argmax() for x in z_pred][1:len(z_pred)]
-        z_max = [x.max() for x in z_pred][1:len(z_pred)]
-
-        # Convert to type string
-        z_type = [self.label_dict[str(x)] for x in z_best]
+        self.predict_repeats()
 
         # Add to file
         df = pd.read_csv(self.out+'crisprs_all.tab', sep='\t')
-        df['Prediction'] = z_type
-        df['Subtype'] = z_type
-        df['Subtype_probability'] = z_max
+        df['Prediction'] = self.z_type
+        df['Subtype'] = self.z_type
+        df['Subtype_probability'] = self.z_max
         df.loc[df.Subtype_probability < self.pred_prob, 'Prediction'] = 'Unknown'
         df['Subtype_probability'] = df['Subtype_probability'].round(3)
         
         df.to_csv(self.out+'crisprs_all.tab', sep='\t', index=False)
+    
+    def predict_repeats(self):
+
+        # Prepare
+        self.load_xgb_model()
+        self.generate_canonical_kmer()
+        
+        # Count kmers (first index is a to ensure all kmers are in the df)
+        z_df = pd.DataFrame([dict(zip(self.can_kmer, np.zeros(len(self.can_kmer))))] + [self.count_kmer(x) for x in self.repeats]).fillna(0)
+        z_df = z_df.reindex(sorted(z_df.columns), axis=1)
+        
+        # Predict
+        self.z_pred = self.bst.predict(xgb.DMatrix(z_df), ntree_limit=int(self.bst.attr('best_iteration')))
+        
+        # Get type and max probability
+        self.z_best = [x.argmax() for x in self.z_pred][1:len(self.z_pred)]
+        self.z_max = [x.max() for x in self.z_pred][1:len(self.z_pred)]
+
+        # Convert to type string
+        self.z_type = [self.label_dict[str(x)] for x in self.z_best]
+
+    def print_xgb(self):
+        
+        for i in range(len(self.repeats)):
+            print('{}\t{}\t{}'.format(self.repeats[i], 
+                                    self.z_type[i],
+                                    self.z_max[i]))
 
 
