@@ -39,15 +39,15 @@ caspredict genome.fa my_output -t 20
 ```
 
 ## Output
-* CRISPR_Cas.tab:           CRISPR_Cas loci
-* cas_operons.tab:          All certain Cas operons
-* crisprs_all.tab:          All CRISPR arrays
-* crisprs_orphan.tab:       Orphan CRISPRs (those not in CRISPR_Cas.tab)
-* cas_operons_orphan.tab:   Orphan Cas operons (those not in CRISPR_Cas.tab)
-* cas_operons_putative.tab: Putative Cas operons, mostly false positives, but also some ambiguous and partial systems
-* spacers.fa:               Fasta file with all spacer sequences
-* hmmer.tab:                All HMM vs. ORF matches, raw unfiltered results
-* arguments.tab:            File with arguments given to CasPredict
+* **CRISPR_Cas.tab:**           CRISPR_Cas loci
+* **cas_operons.tab:**          All certain Cas operons
+* **crisprs_all.tab:**          All CRISPR arrays
+* **crisprs_orphan.tab:**       Orphan CRISPRs (those not in CRISPR_Cas.tab)
+* **cas_operons_orphan.tab:**   Orphan Cas operons (those not in CRISPR_Cas.tab)
+* **cas_operons_putative.tab:** Putative Cas operons, mostly false positives, but also some ambiguous and partial systems
+* **spacers.fa:**               Fasta file with all spacer sequences
+* **hmmer.tab:**                All HMM vs. ORF matches, raw unfiltered results
+* **arguments.tab:**            File with arguments given to CasPredict
 
 ## Check the different options
 ```sh
