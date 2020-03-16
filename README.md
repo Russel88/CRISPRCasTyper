@@ -18,10 +18,8 @@ python -m pip install caspredict
 ```
 
 ## Download database
-### Conda
-Coming soon...
+Only needed for pip install
 
-### pip
 Coming soon...
 
 ## How to run
