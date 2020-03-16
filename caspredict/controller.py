@@ -29,14 +29,16 @@ class Controller(object):
         self.vfe = args.vf_eval
         self.vfc = args.vf_cov_hmm
         self.check_inp = args.skip_check
-        self.keep_prodigal = args.keep_prodigal
+        self.keep_tmp = args.keep_tmp
         self.lvl = args.log_lvl
         self.aa = args.aa
         self.redo = args.redo_typing
-        
+        self.kmer = args.kmer
+        self.crispr_cas_dist = args.ccd
+
         # Logger
         logging.basicConfig(format='\033[36m'+'[%(asctime)s] %(levelname)s:'+'\033[0m'+' %(message)s', datefmt='%Y-%m-%d %H:%M:%S', level=self.lvl)
-        logging.info('Running CasPredict version 0.2.2')
+        logging.info('Running CasPredict version 0.3.0')
 
         # Force consistency
         self.out = os.path.join(self.out, '')
@@ -46,7 +48,6 @@ class Controller(object):
             self.check_inp = True
 
         if self.aa:
-            self.keep_prodigal = True
             self.prot_path = self.fasta
         else:
             self.prot_path = self.out+'proteins.faa'
@@ -60,6 +61,13 @@ class Controller(object):
         # Check input and output
         self.check_input()
         self.check_out()
+
+        # Write arguments
+        da = vars(args)
+        f = open(self.out+'arguments.tab', 'w')
+        for k, v in da.items():
+            f.write('{}:\t{}\n'.format(k, v))
+        f.close()
 
     def check_out(self):
 
@@ -88,16 +96,21 @@ class Controller(object):
 
     def clean(self):
         if not self.redo:
-            logging.info('Removing temporary files')
-            shutil.rmtree(self.out+'hmmer')
 
             if os.stat(self.out+'hmmer.log').st_size == 0:
                 os.remove(self.out+'hmmer.log')
 
-            if not self.keep_prodigal:
-                os.remove(self.out+'proteins.faa')
-                os.remove(self.out+'prodigal.log')
-    
+            if not self.keep_tmp:
+                
+                logging.info('Removing temporary files')
+                
+                shutil.rmtree(self.out+'hmmer')
+                
+                if not self.aa:
+                    os.remove(self.out+'minced.out')
+                    os.remove(self.out+'prodigal.log')
+                    os.remove(self.out+'proteins.faa')
+
     def check_db(self):
         
         if self.db == '':
@@ -105,12 +118,17 @@ class Controller(object):
                 DB_PATH = os.environ['CASPREDICT_DB']
                 self.scoring = os.path.join(DB_PATH, 'CasScoring.csv')
                 self.pdir = os.path.join(DB_PATH, 'Profiles', '')
+                self.xgb = os.path.join(DB_PATH, 'xgb_repeats.model')
+                self.typedict = os.path.join(DB_PATH, 'type_dict.tab')
             except:
                 logging.error('Could not find database directory')
+                sys.exit()
 
         else:
             self.scoring = os.path.join(self.db, 'CasScoring.csv')
             self.pdir = os.path.join(self.db, 'Profiles', '')
+            self.xgb = os.path.join(self.db, "xgb_repeats.model")
+            self.typedict = os.path.join(self.db, "type_dict.tab")
         
         # Try to load CasScoring table
         if os.path.isfile(self.scoring):

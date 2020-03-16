@@ -4,6 +4,7 @@ import sys
 import logging
 import re
 import glob
+import tqdm
 
 import multiprocess as mp
 import pandas as pd
@@ -50,7 +51,7 @@ class HMMER(object):
         # Start multiprocess
         pool = mp.Pool(self.threads)
         # Each HMM
-        [pool.apply(self.hmmsearch, args=(hmms, )) for hmms in os.listdir(self.pdir)]
+        list(tqdm.tqdm(pool.imap(self.hmmsearch, os.listdir(self.pdir)), total=len(os.listdir(self.pdir))))
         # Close multiprocess
         pool.close()
 

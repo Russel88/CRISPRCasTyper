@@ -106,9 +106,10 @@ class Typer(object):
                 prediction = "False"
 
 
-        outdict = {"Operon": operon,
-                   'Start': start_operon,
-                   'End': end_operon,
+        outdict = {"Contig": list(tmp['Acc'])[0],
+                   "Operon": operon,
+                   "Start": start_operon,
+                   "End": end_operon,
                        "Prediction": prediction,
                        "Best_type": best_type,
                        "Best_score": best_score,
@@ -210,5 +211,3 @@ class Typer(object):
         operons_good.to_csv(self.out+'cas_operons.tab', sep='\t', index=False)
         operons_put.to_csv(self.out+'cas_operons_putative.tab', sep='\t', index=False)
         
-        self.master.clean()
-        logging.info('Done')

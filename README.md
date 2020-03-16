@@ -1,6 +1,6 @@
 # CasPredict
 
-Detect CRISPR-Cas genes, group them into operons, and predict their subtype 
+Detect CRISPR-Cas genes and arrays, and predict the subtype based on both Cas genes and CRISPR repeat sequence.
 
 ## Installation
 ### Conda
@@ -37,14 +37,26 @@ caspredict genome.fa my_output
 ```sh
 caspredict genome.fa my_output -t 20
 ```
-##### Check the different options
+
+## Output
+* CRISPR_Cas.tab:           CRISPR_Cas loci
+* cas_operons.tab:          All certain Cas operons
+* crisprs_all.tab:          All CRISPR arrays
+* crisprs_orphan.tab:       Orphan CRISPRs (those not in CRISPR_Cas.tab)
+* cas_operons_orphan.tab:   Orphan Cas operons (those not in CRISPR_Cas.tab)
+* cas_operons_putative.tab: Putative Cas operons, mostly false positives, but also some ambiguous and partial systems
+* spacers.fa:               Fasta file with all spacer sequences
+* hmmer.tab:                All HMM vs. ORF matches, raw unfiltered results
+* arguments.tab:            File with arguments given to CasPredict
+
+## Check the different options
 ```sh
 caspredict -h
 
-usage: caspredict [-h] [-t THREADS] [--prodigal {single,meta}] [--aa] [--skip_check] [--keep_prodigal] [--log_lvl {DEBUG,INFO,WARNING,ERROR}] [--redo_typing] [--db DB] [--dist DIST]
+usage: caspredict [-h] [-t THREADS] [--prodigal {single,meta}] [--aa] [--skip_check] [--keep_tmp] [--log_lvl {DEBUG,INFO,WARNING,ERROR}] [--redo_typing] [--db DB] [--dist DIST]
                   [--overall_eval OVERALL_EVAL] [--overall_cov_seq OVERALL_COV_SEQ] [--overall_cov_hmm OVERALL_COV_HMM] [--two_gene_eval TWO_GENE_EVAL] [--two_gene_cov_seq TWO_GENE_COV_SEQ]
                   [--two_gene_cov_hmm TWO_GENE_COV_HMM] [--single_gene_eval SINGLE_GENE_EVAL] [--single_gene_cov_seq SINGLE_GENE_COV_SEQ] [--single_cov_hmm SINGLE_COV_HMM] [--vf_eval VF_EVAL]
-                  [--vf_cov_hmm VF_COV_HMM]
+                  [--vf_cov_hmm VF_COV_HMM] [--ccd CCD] [--kmer KMER]
                   input output
 
 positional arguments:
@@ -59,7 +71,7 @@ optional arguments:
                         Which mode to run prodigal in [single].
   --aa                  Input is a protein fasta. Has to be in prodigal format.
   --skip_check          Skip check of input.
-  --keep_prodigal       Keep prodigal output.
+  --keep_tmp            Keep temporary files (prodigal, hmmer, minced).
   --log_lvl {DEBUG,INFO,WARNING,ERROR}
                         Logging level [INFO].
   --redo_typing         Redo the typing. Skip prodigal and HMMER and load the hmmer.tab from the output dir.
@@ -67,7 +79,7 @@ optional arguments:
 data arguments:
   --db DB               Path to database.
 
-threshold arguments:
+cas threshold arguments:
   --dist DIST           Max allowed distance between genes in operon [3].
   --overall_eval OVERALL_EVAL
                         Overall E-value threshold [0.001].
@@ -91,3 +103,8 @@ threshold arguments:
   --vf_cov_hmm VF_COV_HMM
                         V-F Cas12 specific HMM coverage threshold [0.97].
 
+crispr threshold arguments:
+  --ccd CCD             Distance (bp) threshold to connect Cas operons and CRISPR arrays [10000.0].
+  --kmer KMER           kmer size. Has to match training kmer size! [4].
+
+```

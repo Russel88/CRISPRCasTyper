@@ -10,3 +10,4 @@ bld.bat
 build.sh
 meta.yaml
 conda_builds/
+*.txt

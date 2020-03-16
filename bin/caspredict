@@ -9,6 +9,9 @@ from caspredict.controller import Controller
 from caspredict.prodigal import Prodigal
 from caspredict.hmmer import HMMER
 from caspredict.castyping import Typer
+from caspredict.minced import Minced
+from caspredict.xgb import XGB
+from caspredict.crisprcas import CRISPRCas
 
 ########## Arguments ##########
 ap = argparse.ArgumentParser()
@@ -22,7 +25,7 @@ ap.add_argument('-t', '--threads', help='Number of parallel processes [%(default
 ap.add_argument('--prodigal', help='Which mode to run prodigal in [%(default)s].', default='single', type=str, choices=['single','meta'])
 ap.add_argument('--aa', help='Input is a protein fasta. Has to be in prodigal format.', action='store_true')
 ap.add_argument('--skip_check', help='Skip check of input.', action='store_true',)
-ap.add_argument('--keep_prodigal', help='Keep prodigal output.', action='store_true')
+ap.add_argument('--keep_tmp', help='Keep temporary files (prodigal, hmmer, minced).', action='store_true')
 ap.add_argument('--log_lvl', help='Logging level [%(default)s].', default='INFO', type=str, choices=['DEBUG','INFO','WARNING','ERROR'])
 ap.add_argument('--redo_typing', help='Redo the typing. Skip prodigal and HMMER and load the hmmer.tab from the output dir.', action='store_true')
 
@@ -31,7 +34,7 @@ apd = ap.add_argument_group('data arguments')
 apd.add_argument('--db', help='Path to database.', default='', type=str)
 
 # Thresholds
-apt = ap.add_argument_group('threshold arguments')
+apt = ap.add_argument_group('cas threshold arguments')
 apt.add_argument('--dist', help='Max allowed distance between genes in operon [%(default)s].', default=3, type=int)
 apt.add_argument('--overall_eval', help='Overall E-value threshold [%(default)s].', default=0.001, type=float)
 apt.add_argument('--overall_cov_seq', help='Overall sequence coverage threshold [%(default)s].', default=0.5, type=float)
@@ -45,6 +48,10 @@ apt.add_argument('--single_cov_hmm', help='Lonely gene HMM coverage threshold [%
 apt.add_argument('--vf_eval', help='V-F Cas12 specific E-value threshold [%(default)s].', default=1e-75, type=float)
 apt.add_argument('--vf_cov_hmm', help='V-F Cas12 specific HMM coverage threshold [%(default)s].', default=0.97, type=float)
 
+# CRISPRs
+apc = ap.add_argument_group('crispr threshold arguments')
+apc.add_argument('--ccd', help='Distance (bp) threshold to connect Cas operons and CRISPR arrays [%(default)s].', default=1e4, type=int)
+apc.add_argument('--kmer', help='kmer size. Has to match training kmer size! [%(default)s].', default=4, type=int)
 
 # Workflow starts here
 
@@ -53,13 +60,14 @@ apt.add_argument('--vf_cov_hmm', help='V-F Cas12 specific HMM coverage threshold
 master = Controller(ap.parse_args())
 
 ########## Prodigal ##########
-prodigal = Prodigal(master)
-
-# Run
-prodigal.run_prod()
+if not master.aa:
+    proteins = Prodigal(master)
+    proteins.run_prod()
+else:
+    proteins = master
 
 ########## Hmmer ##########
-hmmeri = HMMER(prodigal)
+hmmeri = HMMER(proteins)
 
 # Run
 hmmeri.main_hmm()
@@ -70,7 +78,7 @@ hmmeri.check_hmm()
 # Parse
 hmmeri.parse_hmm()
 
-########## Typing ##########
+########## Typing of operons ##########
 castyper = Typer(hmmeri)
 
 # Type
@@ -79,5 +87,32 @@ castyper.typing()
 # Check
 castyper.check_type()
 
-########## Output ##########
+# Output Cas operons
 castyper.write_type()
+
+########## CRISPRs ##########
+if not master.aa:
+    crispr = Minced(castyper)
+
+    # Run
+    crispr.run_minced()
+
+    # Parse
+    crispr.write_crisprs()
+    crispr.write_spacers()
+
+    # Xgboost
+    repeatPred = XGB(crispr)
+
+    # Predict
+    repeatPred.predict_repeats()
+
+######### CRISPR-Cas ########
+if not master.aa:
+    criscas = CRISPRCas(repeatPred)
+
+    # Find CRISPR-Cas
+    criscas.crisprcas()
+
+######### Clean ###########
+master.clean()
