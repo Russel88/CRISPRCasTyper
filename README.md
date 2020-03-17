@@ -9,11 +9,11 @@ It then connects the Cas operons and CRISPR arrays, producing as output:
 * Orphan Cas operons, and their predicted subtype
 * Orphan CRISPR arrays, and their predicted associated subtype
 
-##### It includes the following subtypes:
+#### It includes the following subtypes:
 * All the ones in the most recent Nature Reviews Microbiology: [Evolutionary classification of CRISPR–Cas systems: a burst of class 2 and derived variants](https://doi.org/10.1038/s41579-019-0299-x)
 * Updated type IV subtypes and variants based on: [Type IV CRISPR–Cas systems are highly diverse and involved in competition between plasmids](https://doi.org/10.1093/nar/gkz1197)
-* Type V-K [RNA-guided DNA insertion with CRISPR-associated transposases](https://doi.org/10.1126/science.aax9181)
-* Transposon associated type I-F [Transposon-encoded CRISPR–Cas systems direct RNA-guided DNA integration](https://doi.org/10.1038/s41586-019-1323-z)
+* Type V-K: [RNA-guided DNA insertion with CRISPR-associated transposases](https://doi.org/10.1126/science.aax9181)
+* Transposon associated type I-F: [Transposon-encoded CRISPR–Cas systems direct RNA-guided DNA integration](https://doi.org/10.1038/s41586-019-1323-z)
 
 # Table of contents
 1. [Quick start](#quick)
@@ -45,33 +45,33 @@ If you have the dependencies (Python >= 3.8, HMMER >= 3.2, Prodigal >= 2.6, grep
 python -m pip install caspredict
 ```
 
-##### When installing with pip, you need to download the database manually: 
+#### When installing with pip, you need to download the database manually: 
 Coming soon...
 
 ## CasPredict - How to <a name="caspredict"></a>
 CasPredict takes as input a nucleotide fasta, and produces outputs with CRISPR-Cas predictions
 
-##### Activate environment
+#### Activate environment
 ```sh
 conda activate caspredict
 ```
 
-##### Run with a nucleotide fasta as input
+#### Run with a nucleotide fasta as input
 ```sh
 caspredict genome.fa my_output
 ```
 
-##### Use multiple threads
+#### Use multiple threads
 ```sh
 caspredict genome.fa my_output -t 20
 ```
 
-##### Check the different options
+#### Check the different options
 ```sh
 caspredict -h
 ```
 
-##### Output
+#### Output
 * **CRISPR_Cas.tab:**           CRISPR_Cas loci, with consensus subtype prediction
 * **cas_operons.tab:**          All certain Cas operons
 * **crisprs_all.tab:**          All CRISPR arrays
@@ -82,26 +82,29 @@ caspredict -h
 * **hmmer.tab:**                All HMM vs. ORF matches, raw unfiltered results
 * **arguments.tab:**            File with arguments given to CasPredict
 
+#### Notes on output
+CRISPR_Cas.tab and and *_orphan.tab tables will only be produced if any Cas operons can be connected with any CRISPR arrays. If no Cas operons are present, or no CRISPR arrays are adjacent to any Cas operon, then all Cas operons (if any) are orphan, and all CRISPR arrays (if any) are orphan.
+
 ## RepeatType - How to <a name="repeattype"></a>
 With an input of CRISPR repeats (one per line, in a simple textfile) RepeatType will predict the subtype, based on the kmer composition of the repeat
 
-##### Activate environment
+#### Activate environment
 ```sh
 conda activate caspredict
 ```
 
-##### Run with a simple textfile, containing only CRISPR repeats (in capital letters), one repeat per line.
+#### Run with a simple textfile, containing only CRISPR repeats (in capital letters), one repeat per line.
 ```sh
 repeatType repeats.txt
 ```
 
-##### Output
+#### Output
 The script prints:
 * Repeat sequence
 * Predicted subtype
 * Probability of prediction
 
-##### Notes on output
+#### Notes on output
 * Predictions with probabilities below 0.75 are uncertain, and should be taken with a grain of salt.
 * The classifier was only trained on the subtypes for which there were enough (>20) repeats. It can therefore only predict subtypes of repeats associated with the following subtypes:
     * I-A, I-B, I-C, I-D, I-E, I-F, I-G
