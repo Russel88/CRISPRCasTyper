@@ -2,41 +2,76 @@
 
 Detect CRISPR-Cas genes and arrays, and predict the subtype based on both Cas genes and CRISPR repeat sequence.
 
-## Installation
+This software finds Cas genes with a large suite of HMMs, then groups these HMMs into operons, and predicts the subtype of the operons based on a scoring scheme.
+Furthermore, it finds CRISPR arrays with [minced](https://github.com/ctSkennerton/minced), and using a kmer-based machine learning approach (extreme gradient boosting trees) it predicts the subtype of the CRISPR arrays based on the consensus repeat. 
+It then connects the Cas operons and CRISPR arrays, producing as output:
+* CRISPR-Cas loci, with consensus subtype prediction based on both Cas genes (mostly) and CRISPR consensus repeats
+* Orphan Cas operons, and their predicted subtype
+* Orphan CRISPR arrays, and their predicted associated subtype
+
+##### It includes the following subtypes:
+* All the ones in the most recent Nature Reviews Microbiology: [Evolutionary classification of CRISPR–Cas systems: a burst of class 2 and derived variants](https://doi.org/10.1038/s41579-019-0299-x)
+* Updated type IV subtypes and variants based on: [Type IV CRISPR–Cas systems are highly diverse and involved in competition between plasmids](https://doi.org/10.1093/nar/gkz1197)
+* Type V-K [RNA-guided DNA insertion with CRISPR-associated transposases](https://doi.org/10.1126/science.aax9181)
+* Transposon associated type I-F [Transposon-encoded CRISPR–Cas systems direct RNA-guided DNA integration](https://doi.org/10.1038/s41586-019-1323-z)
+
+# Table of contents
+1. [Quick start](#quick)
+2. [Installation](#install)
+3. [CasPredict - How to](#caspredict)
+4. [RepeatType - How to](#repeattype)
+
+## Quick start <a name="quick"></a>
+
+```sh
+conda create -n caspredict -c conda-forge -c bioconda -c russel88 caspredict
+conda activate caspredict
+caspredict my.fasta my_output
+```
+
+## Installation <a name="install"></a>
 ### Conda
 It is advised to use [miniconda](https://docs.conda.io/en/latest/miniconda.html) or [anaconda](https://www.anaconda.com/) to install.
 
+Create the environment with caspredict and all dependencies
 ```sh
 conda create -n caspredict -c conda-forge -c bioconda -c russel88 caspredict
 ```
 
 ### pip
-However, if you have the dependencies (Python >= 3.8, HMMER >= 3.2, Prodigal >= 2.6, grep, sed) in your PATH you can install with pip
+If you have the dependencies (Python >= 3.8, HMMER >= 3.2, Prodigal >= 2.6, grep, sed) in your PATH you can install with pip
 
 ```sh
 python -m pip install caspredict
 ```
 
-## Download database
-Only needed for pip install
-
+##### When installing with pip, you need to download the database manually: 
 Coming soon...
 
-## How to run
+## CasPredict - How to <a name="caspredict"></a>
+CasPredict takes as input a nucleotide fasta, and produces outputs with CRISPR-Cas predictions
+
 ##### Activate environment
 ```sh
 conda activate caspredict
 ```
+
 ##### Run with a nucleotide fasta as input
 ```sh
 caspredict genome.fa my_output
 ```
+
 ##### Use multiple threads
 ```sh
 caspredict genome.fa my_output -t 20
 ```
 
-## Output
+##### Check the different options
+```sh
+caspredict -h
+```
+
+##### Output
 * **CRISPR_Cas.tab:**           CRISPR_Cas loci, with consensus subtype prediction
 * **cas_operons.tab:**          All certain Cas operons
 * **crisprs_all.tab:**          All CRISPR arrays
@@ -47,73 +82,53 @@ caspredict genome.fa my_output -t 20
 * **hmmer.tab:**                All HMM vs. ORF matches, raw unfiltered results
 * **arguments.tab:**            File with arguments given to CasPredict
 
-## Predict subtype based on repeats
-With an input of CRISPR repeats (one per line, in a simple textfile), predict the subtype
+## RepeatType - How to <a name="repeattype"></a>
+With an input of CRISPR repeats (one per line, in a simple textfile) RepeatType will predict the subtype, based on the kmer composition of the repeat
 
+##### Activate environment
+```sh
+conda activate caspredict
+```
+
+##### Run with a simple textfile, containing only CRISPR repeats (in capital letters), one repeat per line.
 ```sh
 repeatType repeats.txt
 ```
 
-The script prints the repeat, the predicted subtype, and the associated probability of the prediction.
+##### Output
+The script prints:
+* Repeat sequence
+* Predicted subtype
+* Probability of prediction
 
-## Check the different options
-```sh
-caspredict -h
+##### Notes on output
+* Predictions with probabilities below 0.75 are uncertain, and should be taken with a grain of salt.
+* The classifier was only trained on the subtypes for which there were enough (>20) repeats. It can therefore only predict subtypes of repeats associated with the following subtypes:
+    * I-A, I-B, I-C, I-D, I-E, I-F, I-G
+    * II-A, II-B, II-C
+    * III-A, III-B, III-C, III-D
+    * IV-A1, IV-A2, IV-A3
+    * V-A
+    * VI-B
+* This the accuracy per subtype (on an unseen test dataset):
+    * I-A      0.60
+    * I-B      0.90
+    * I-C      0.98
+    * I-D      0.47
+    * I-E      1.00
+    * I-F      0.99
+    * I-G      0.83
+    * II-A     0.94
+    * II-B     1.00
+    * II-C     0.89
+    * III-A    0.89
+    * III-B    0.49
+    * III-C    0.60
+    * III-D    0.28
+    * IV-A1    0.79
+    * IV-A2    0.78
+    * IV-A3    0.98
+    * V-A      0.77
+    * VI-B     1.00
 
-usage: caspredict [-h] [-t THREADS] [--prodigal {single,meta}] [--aa] [--skip_check] [--keep_tmp] [--log_lvl {DEBUG,INFO,WARNING,ERROR}] [--redo_typing] [--db DB] [--dist DIST]
-                  [--overall_eval OVERALL_EVAL] [--overall_cov_seq OVERALL_COV_SEQ] [--overall_cov_hmm OVERALL_COV_HMM] [--two_gene_eval TWO_GENE_EVAL] [--two_gene_cov_seq TWO_GENE_COV_SEQ]
-                  [--two_gene_cov_hmm TWO_GENE_COV_HMM] [--single_gene_eval SINGLE_GENE_EVAL] [--single_gene_cov_seq SINGLE_GENE_COV_SEQ] [--single_cov_hmm SINGLE_COV_HMM] [--vf_eval VF_EVAL]
-                  [--vf_cov_hmm VF_COV_HMM] [--ccd CCD] [--kmer KMER]
-                  input output
 
-positional arguments:
-  input                 Input fasta file
-  output                Prefix for output directory
-
-optional arguments:
-  -h, --help            show this help message and exit
-  -t THREADS, --threads THREADS
-                        Number of parallel processes [4].
-  --prodigal {single,meta}
-                        Which mode to run prodigal in [single].
-  --aa                  Input is a protein fasta. Has to be in prodigal format.
-  --skip_check          Skip check of input.
-  --keep_tmp            Keep temporary files (prodigal, hmmer, minced).
-  --log_lvl {DEBUG,INFO,WARNING,ERROR}
-                        Logging level [INFO].
-  --redo_typing         Redo the typing. Skip prodigal and HMMER and load the hmmer.tab from the output dir.
-
-data arguments:
-  --db DB               Path to database.
-
-cas threshold arguments:
-  --dist DIST           Max allowed distance between genes in operon [3].
-  --overall_eval OVERALL_EVAL
-                        Overall E-value threshold [0.001].
-  --overall_cov_seq OVERALL_COV_SEQ
-                        Overall sequence coverage threshold [0.5].
-  --overall_cov_hmm OVERALL_COV_HMM
-                        Overall HMM coverage threshold [0.5].
-  --two_gene_eval TWO_GENE_EVAL
-                        Two-gene operon E-value threshold [1e-05].
-  --two_gene_cov_seq TWO_GENE_COV_SEQ
-                        Two-gene operon sequence coverage threshold [0.8].
-  --two_gene_cov_hmm TWO_GENE_COV_HMM
-                        Two-gene operon HMM coverage threshold [0.8].
-  --single_gene_eval SINGLE_GENE_EVAL
-                        Lonely gene E-value threshold [1e-10].
-  --single_gene_cov_seq SINGLE_GENE_COV_SEQ
-                        Lonely gene sequence coverage threshold [0.9].
-  --single_cov_hmm SINGLE_COV_HMM
-                        Lonely gene HMM coverage threshold [0.9].
-  --vf_eval VF_EVAL     V-F Cas12 specific E-value threshold [1e-75].
-  --vf_cov_hmm VF_COV_HMM
-                        V-F Cas12 specific HMM coverage threshold [0.97].
-
-crispr threshold arguments:
-  --ccd CCD             Distance (bp) threshold to connect Cas operons and CRISPR arrays [10000.0].
-  --pred_prob PRED_PROB
-                        Prediction probability cut-off for assigning subtype to CRISPR repeats [0.75].
-  --kmer KMER           kmer size. Has to match training kmer size! [4].
-
-```
