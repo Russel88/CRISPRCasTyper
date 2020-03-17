@@ -51,7 +51,10 @@ class HMMER(object):
         # Start multiprocess
         pool = mp.Pool(self.threads)
         # Each HMM
-        list(tqdm.tqdm(pool.imap(self.hmmsearch, os.listdir(self.pdir)), total=len(os.listdir(self.pdir))))
+        if self.lvl == 'DEBUG':
+            list(pool.imap(self.hmmsearch, os.listdir(self.pdir)))
+        else:
+            list(tqdm.tqdm(pool.imap(self.hmmsearch, os.listdir(self.pdir)), total=len(os.listdir(self.pdir))))
         # Close multiprocess
         pool.close()
 
@@ -95,34 +98,35 @@ class HMMER(object):
     # Check if any cas genes
     def check_hmm(self):
         if len(self.hmm_df) == 0:
-            logging.info('No Cas proteins found. Exiting')
-            self.master.clean()
-            sys.exit()
+            logging.info('No Cas proteins found.')
+            self.any_cas = False
 
     # Parse
     def parse_hmm(self):
 
-        logging.info('Parsing HMMER output')
+        if self.any_cas:
+        
+            logging.info('Parsing HMMER output')
 
-        # Add columns
-        self.hmm_df['Acc'] = [re.sub("_[0-9]*$","",x) for x in self.hmm_df['ORF']]
-        self.hmm_df['Pos'] = [int(re.sub(".*_","",x)) for x in self.hmm_df['ORF']]
+            # Add columns
+            self.hmm_df['Acc'] = [re.sub("_[0-9]*$","",x) for x in self.hmm_df['ORF']]
+            self.hmm_df['Pos'] = [int(re.sub(".*_","",x)) for x in self.hmm_df['ORF']]
 
-        # Coverages of aligments
-        def covs(df_sub):
-            df_sub['Cov_seq'] = len(set([x for sublst in [list(range(i,j)) 
-                for i,j in zip(df_sub['ali_from'], df_sub['ali_to']+1)] 
-                for x in sublst])) / df_sub['tlen']
-            df_sub['Cov_hmm'] = len(set([x for sublst in [list(range(i,j)) 
-                for i,j in zip(df_sub['hmm_from'], df_sub['hmm_to']+1)] 
-                for x in sublst])) / df_sub['qlen']
-            df_sub = df_sub[['Hmm','ORF','tlen','qlen','Eval','score',
-                            'start','end','Acc','Pos','Cov_seq','Cov_hmm']]
-            return df_sub
+            # Coverages of aligments
+            def covs(df_sub):
+                df_sub['Cov_seq'] = len(set([x for sublst in [list(range(i,j)) 
+                    for i,j in zip(df_sub['ali_from'], df_sub['ali_to']+1)] 
+                    for x in sublst])) / df_sub['tlen']
+                df_sub['Cov_hmm'] = len(set([x for sublst in [list(range(i,j)) 
+                    for i,j in zip(df_sub['hmm_from'], df_sub['hmm_to']+1)] 
+                    for x in sublst])) / df_sub['qlen']
+                df_sub = df_sub[['Hmm','ORF','tlen','qlen','Eval','score',
+                                'start','end','Acc','Pos','Cov_seq','Cov_hmm']]
+                return df_sub
 
-        self.hmm_df = self.hmm_df.groupby(['Hmm','ORF']).apply(covs)
+            self.hmm_df = self.hmm_df.groupby(['Hmm','ORF']).apply(covs)
 
-        # Pick best hit
-        self.hmm_df.sort_values('score', ascending=False, inplace=True)
-        self.hmm_df.drop_duplicates('ORF', inplace=True)
+            # Pick best hit
+            self.hmm_df.sort_values('score', ascending=False, inplace=True)
+            self.hmm_df.drop_duplicates('ORF', inplace=True)
 

@@ -37,9 +37,12 @@ class Controller(object):
         self.crispr_cas_dist = args.ccd
         self.pred_prob = args.pred_prob
 
+        self.any_cas = True
+        self.any_operon = True
+
         # Logger
         logging.basicConfig(format='\033[36m'+'[%(asctime)s] %(levelname)s:'+'\033[0m'+' %(message)s', datefmt='%Y-%m-%d %H:%M:%S', level=self.lvl)
-        logging.info('Running CasPredict version 0.3.2')
+        logging.info('Running CasPredict version 0.3.3')
 
         # Force consistency
         self.out = os.path.join(self.out, '')

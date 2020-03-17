@@ -127,81 +127,86 @@ class Typer(object):
         Subtyping of putative Cas operons
         '''
 
-        logging.info('Subtyping putative operons')
-        
-        # Apply overall thresholds
-        self.hmm_df = self.hmm_df[(self.hmm_df['Cov_seq'] >= self.ocs) & 
-                                    (self.hmm_df['Cov_hmm'] >= self.och) & 
-                                    (self.hmm_df['Eval'] < self.oev)]
-
-        # V-F specific thresholds
-        VF = [i for i in list(self.hmm_df['Hmm']) if 'cas12f' in i or 'cas12_x' in i]
-        
-        self.hmm_df = self.hmm_df[((self.hmm_df['Cov_hmm'] >= self.vfc) & 
-                                    (self.hmm_df['Eval'] < self.vfe)) |
-                                    ([x not in VF for x in self.hmm_df['Hmm']])]
-
-
-        # Define operons
-        # First define function for finding them
-        def cluster_adj(data, dist=self.dist):
-            '''
-            Cluster adjacent genes into operons
-
-            Params:
-            data: A pandas data.frame with an Acc (accession number) column and a Pos (gene posistion) column
-            dist: Int. Max allowed distance between genes in an operon
-
-            Returns:
-            List. Operon IDs with the same length and order as the input data.frame
-            '''
+        if self.any_cas:
+            logging.info('Subtyping putative operons')
             
-            positions = list(data['Pos'])
-            # Create a list of zeroes to indicate positions
-            pos_range = max(positions) * [0]
-            # Insert ones at positions where genes are annotated
-            for x in positions:
-                pos_range[x-1] = 1
-            # Pad
-            pad = list(np.zeros(dist, dtype=int))
-            pos_range_pad = pad + pos_range + pad
-            # Closing to melt adjacent genes together (up to 'dist' genes between them)
-            pos_range_dilated = ndimage.morphology.binary_closing(pos_range_pad, structure = list(np.ones(dist+1)))
-            # Label adjacent elements
-            clust_pad, nclust = ndimage.label(pos_range_dilated)
-            # Remove pad
-            clust = clust_pad[dist:len(clust_pad)-dist]
-            # Extract cluster id for each gene
-            return [list(data['Acc'])[0] + "@" + str(clust[x-1]) for x in positions]
-        
-        self.hmm_df.sort_values('Acc', inplace=True)
-        operons = list(self.hmm_df.groupby('Acc').apply(cluster_adj))
-        self.hmm_df['operon'] = list(chain.from_iterable(operons))
+            # Apply overall thresholds
+            self.hmm_df = self.hmm_df[(self.hmm_df['Cov_seq'] >= self.ocs) & 
+                                        (self.hmm_df['Cov_hmm'] >= self.och) & 
+                                        (self.hmm_df['Eval'] < self.oev)]
 
-        # Load score table
-        scores = pd.read_csv(self.scoring, sep=",")
-        scores.fillna(0, inplace=True)
+            # V-F specific thresholds
+            VF = [i for i in list(self.hmm_df['Hmm']) if 'cas12f' in i or 'cas12_x' in i]
+            
+            self.hmm_df = self.hmm_df[((self.hmm_df['Cov_hmm'] >= self.vfc) & 
+                                        (self.hmm_df['Eval'] < self.vfe)) |
+                                        ([x not in VF for x in self.hmm_df['Hmm']])]
 
-        # Merge the tables
-        self.hmm_df_all = pd.merge(self.hmm_df, scores, on="Hmm")
 
-        # Assign subtype for each operon
-        operons_unq = set(self.hmm_df_all['operon'])
-        dictlst = [self.type_operon(operonID) for operonID in operons_unq]
-        
-        # Return
-        self.preddf = pd.DataFrame(dictlst)
+            # Define operons
+            # First define function for finding them
+            def cluster_adj(data, dist=self.dist):
+                '''
+                Cluster adjacent genes into operons
+
+                Params:
+                data: A pandas data.frame with an Acc (accession number) column and a Pos (gene posistion) column
+                dist: Int. Max allowed distance between genes in an operon
+
+                Returns:
+                List. Operon IDs with the same length and order as the input data.frame
+                '''
+                
+                positions = list(data['Pos'])
+                # Create a list of zeroes to indicate positions
+                pos_range = max(positions) * [0]
+                # Insert ones at positions where genes are annotated
+                for x in positions:
+                    pos_range[x-1] = 1
+                # Pad
+                pad = list(np.zeros(dist, dtype=int))
+                pos_range_pad = pad + pos_range + pad
+                # Closing to melt adjacent genes together (up to 'dist' genes between them)
+                pos_range_dilated = ndimage.morphology.binary_closing(pos_range_pad, structure = list(np.ones(dist+1)))
+                # Label adjacent elements
+                clust_pad, nclust = ndimage.label(pos_range_dilated)
+                # Remove pad
+                clust = clust_pad[dist:len(clust_pad)-dist]
+                # Extract cluster id for each gene
+                return [list(data['Acc'])[0] + "@" + str(clust[x-1]) for x in positions]
+            
+            self.hmm_df.sort_values('Acc', inplace=True)
+            operons = list(self.hmm_df.groupby('Acc').apply(cluster_adj))
+            self.hmm_df['operon'] = list(chain.from_iterable(operons))
+
+            # Load score table
+            scores = pd.read_csv(self.scoring, sep=",")
+            scores.fillna(0, inplace=True)
+
+            # Merge the tables
+            self.hmm_df_all = pd.merge(self.hmm_df, scores, on="Hmm")
+
+            # Assign subtype for each operon
+            operons_unq = set(self.hmm_df_all['operon'])
+            dictlst = [self.type_operon(operonID) for operonID in operons_unq]
+            
+            # Return
+            self.preddf = pd.DataFrame(dictlst)
 
     def check_type(self):
-        if len(self.preddf) == 0:
-            logging.info('No operons found. Exiting')
-            self.master.clean()
-            sys.exit()
+        if not self.any_cas:
+            self.any_operon = False
+        else:
+            if len(self.preddf) == 0:
+                logging.info('No operons found.')
+                self.any_operon = False
 
     def write_type(self):
-        operons_good = self.preddf[~self.preddf['Prediction'].isin(['False', 'Ambiguous', 'Partial'])]
-        operons_put = self.preddf[self.preddf['Prediction'].isin(['False', 'Ambiguous', 'Partial'])]
-
-        operons_good.to_csv(self.out+'cas_operons.tab', sep='\t', index=False)
-        operons_put.to_csv(self.out+'cas_operons_putative.tab', sep='\t', index=False)
         
+        if self.any_operon:
+            operons_good = self.preddf[~self.preddf['Prediction'].isin(['False', 'Ambiguous', 'Partial'])]
+            operons_put = self.preddf[self.preddf['Prediction'].isin(['False', 'Ambiguous', 'Partial'])]
+
+            operons_good.to_csv(self.out+'cas_operons.tab', sep='\t', index=False)
+            operons_put.to_csv(self.out+'cas_operons_putative.tab', sep='\t', index=False)
+            
