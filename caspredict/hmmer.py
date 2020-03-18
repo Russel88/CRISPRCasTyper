@@ -105,7 +105,8 @@ class HMMER(object):
     def check_hmm(self):
         if len(self.hmm_df) == 0:
             logging.info('No Cas proteins found.')
-            self.any_cas = False
+        else:
+            self.any_cas = True
 
     # Parse
     def parse_hmm(self):

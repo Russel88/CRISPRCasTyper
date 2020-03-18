@@ -77,9 +77,9 @@ class XGB(object):
            
             if len(df) > 1:
                 df.to_csv(self.out+'crisprs_all.tab', sep='\t', index=False)
+                self.any_crispr = True
             else:
                 logging.info('No CRISPRs found.')
-                self.any_crispr = False
                 os.remove(self.out+'crisprs_all.tab')
     
     def predict_repeats(self):

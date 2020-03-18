@@ -36,10 +36,10 @@ class Controller(object):
         self.crispr_cas_dist = args.ccd
         self.pred_prob = args.pred_prob
 
-        self.any_cas = True
-        self.any_operon = True
-        self.any_crispr = True
-
+        self.any_cas = False
+        self.any_operon = False
+        self.any_crispr = False
+            
         # Logger
         logging.basicConfig(format='\033[36m'+'[%(asctime)s] %(levelname)s:'+'\033[0m'+' %(message)s', datefmt='%Y-%m-%d %H:%M:%S', level=self.lvl)
         logging.info('Running CasPredict version 0.3.5')
@@ -61,6 +61,13 @@ class Controller(object):
         # Check input and output
         self.check_input()
         self.check_out()
+
+        # If redo check if any crisprs and operons
+        if self.redo:
+            if os.path.exists(self.out+'cas_operons.tab') or os.path.exists(self.out+'cas_operons_putative.tab'):
+                self.any_operon = True
+            if os.path.exists(self.out+'crisprs_all.tab'):
+                self.any_crispr = True
 
         # Write arguments
         da = vars(args)

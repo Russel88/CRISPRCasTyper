@@ -223,12 +223,11 @@ class Typer(object):
             self.write_type()
 
     def check_type(self):
-        if not self.any_cas:
-            self.any_operon = False
-        else:
+        if self.any_cas:
             if len(self.preddf) == 0:
                 logging.info('No operons found.')
-                self.any_operon = False
+            else:
+                self.any_operon = True
 
     def write_type(self):
         
