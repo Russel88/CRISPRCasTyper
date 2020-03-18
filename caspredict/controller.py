@@ -42,7 +42,7 @@ class Controller(object):
             
         # Logger
         logging.basicConfig(format='\033[36m'+'[%(asctime)s] %(levelname)s:'+'\033[0m'+' %(message)s', datefmt='%Y-%m-%d %H:%M:%S', level=self.lvl)
-        logging.info('Running CasPredict version 0.3.5')
+        logging.info('Running CasPredict version 0.3.6')
 
         # Force consistency
         self.out = os.path.join(self.out, '')
