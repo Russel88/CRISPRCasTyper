@@ -84,7 +84,7 @@ caspredict -h
 * **arguments.tab:**            File with arguments given to CasPredict
 
 #### Notes on output
-The cas_operons.tab and cas_operons_putative.tab tables will only be produced if there are any Cas genes. The CRISPR_Cas.tab, cas_operons_orphan.tab, crispr_orphan.tab tables will only be produced if any Cas operons can be connected with any CRISPR arrays. If no Cas operons are present, or no CRISPR arrays are adjacent to any Cas operon, then all Cas operons (if any) are orphan, and all CRISPR arrays (if any) are orphan.
+Files are only created if there is any data. For example, the crisprs_orphan.tab file is only created if there are any orphan CRISPR arrays.
 
 ## RepeatType - How to <a name="repeattype"></a>
 With an input of CRISPR repeats (one per line, in a simple textfile) RepeatType will predict the subtype, based on the kmer composition of the repeat
