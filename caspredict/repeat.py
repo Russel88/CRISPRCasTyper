@@ -1,5 +1,6 @@
 import os
 import sys
+import re
 
 class RepeatTyper(object):
 
@@ -37,5 +38,13 @@ class RepeatTyper(object):
         with open(self.input, 'r') as f:
             self.repeats = [ll.rstrip() for ll in f]
 
-        
+        # Check input
+        def is_dna(s):
+            match = re.match("^[ACTGactg]*$", s)
+            return match is not None
 
+        for rep in self.repeats:
+            if not is_dna(rep):
+                print('Error - Non-DNA letters found in sequence:')
+                print(rep)
+                sys.exit()
