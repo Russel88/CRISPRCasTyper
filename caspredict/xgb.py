@@ -57,30 +57,32 @@ class XGB(object):
 
     def xgb_run(self):
         
-        logging.info('Predicting subtype of CRISPR repeats')
-        
-        # Get repeats
-        self.repeats = [x.cons for x in self.crisprs]
+        if not self.redo:
+            logging.info('Predicting subtype of CRISPR repeats')
+            
+            # Get repeats
+            self.repeats = [x.cons for x in self.crisprs]
 
-        # Predict
-        self.predict_repeats()
+            # Predict
+            self.predict_repeats()
 
-        # Add to file
-        df = pd.read_csv(self.out+'crisprs_all.tab', sep='\t')
-        df['Prediction'] = self.z_type
-        df['Subtype'] = self.z_type
-        df['Subtype_probability'] = self.z_max
-        df.loc[df.Subtype_probability < self.pred_prob, 'Prediction'] = 'Unknown'
-        df['Subtype_probability'] = df['Subtype_probability'].round(3)
+            # Add to file
+            df = pd.read_csv(self.out+'crisprs_all.tab', sep='\t')
+            df['Prediction'] = self.z_type
+            df['Subtype'] = self.z_type
+            df['Subtype_probability'] = self.z_max
+            df.loc[df.Subtype_probability < self.pred_prob, 'Prediction'] = 'Unknown'
+            df['Subtype_probability'] = df['Subtype_probability'].round(3)
+            
+            df.to_csv(self.out+'crisprs_all.tab', sep='\t', index=False)
         
-        df.to_csv(self.out+'crisprs_all.tab', sep='\t', index=False)
-    
     def predict_repeats(self):
 
         # Prepare
         self.load_xgb_model()
         self.generate_canonical_kmer()
-        
+        self.repeats = [x.upper() for x in self.repeats]
+
         # Count kmers (first index is a to ensure all kmers are in the df)
         z_df = pd.DataFrame([dict(zip(self.can_kmer, np.zeros(len(self.can_kmer))))] + [self.count_kmer(x) for x in self.repeats]).fillna(0)
         z_df = z_df.reindex(sorted(z_df.columns), axis=1)

@@ -31,7 +31,6 @@ class Controller(object):
         self.check_inp = args.skip_check
         self.keep_tmp = args.keep_tmp
         self.lvl = args.log_lvl
-        self.aa = args.aa
         self.redo = args.redo_typing
         self.kmer = args.kmer
         self.crispr_cas_dist = args.ccd
@@ -42,19 +41,15 @@ class Controller(object):
 
         # Logger
         logging.basicConfig(format='\033[36m'+'[%(asctime)s] %(levelname)s:'+'\033[0m'+' %(message)s', datefmt='%Y-%m-%d %H:%M:%S', level=self.lvl)
-        logging.info('Running CasPredict version 0.3.3')
+        logging.info('Running CasPredict version 0.3.5')
 
         # Force consistency
         self.out = os.path.join(self.out, '')
 
         if self.redo:
-            self.aa = True
             self.check_inp = True
 
-        if self.aa:
-            self.prot_path = self.fasta
-        else:
-            self.prot_path = self.out+'proteins.faa'
+        self.prot_path = self.out+'proteins.faa'
 
         # Hardcode single gene types
         self.single_gene_types=('II-A','II-B','II-C','V-A','V-B','V-C','V-D','V-E','V-F','V-G','V-H','V-I','V-J','VI-A','VI-B','VI-C','VI-D')
@@ -110,10 +105,9 @@ class Controller(object):
                 
                 shutil.rmtree(self.out+'hmmer')
                 
-                if not self.aa:
-                    os.remove(self.out+'minced.out')
-                    os.remove(self.out+'prodigal.log')
-                    os.remove(self.out+'proteins.faa')
+                os.remove(self.out+'minced.out')
+                os.remove(self.out+'prodigal.log')
+                os.remove(self.out+'proteins.faa')
 
     def check_db(self):
         

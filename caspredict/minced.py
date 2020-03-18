@@ -32,17 +32,22 @@ class Minced(object):
 
     def run_minced(self):
 
-        logging.info('Predicting CRISPR arrays with minced')
+        if not self.redo:
+            logging.info('Predicting CRISPR arrays with minced')
 
-        # Run minced
-        subprocess.run(['minced', 
-                        self.fasta, 
-                        self.out+'minced.out'], 
-                        stdout=subprocess.DEVNULL, 
-                        stderr=subprocess.DEVNULL)
-    
-        # Parse
-        self.parse_minced()
+            # Run minced
+            subprocess.run(['minced', 
+                            self.fasta, 
+                            self.out+'minced.out'], 
+                            stdout=subprocess.DEVNULL, 
+                            stderr=subprocess.DEVNULL)
+        
+            # Parse
+            self.parse_minced()
+
+            # Write results
+            self.write_crisprs()
+            self.write_spacers()
 
     def parse_minced(self):
         file = open(self.out+'minced.out', 'r')
@@ -92,15 +97,16 @@ class Minced(object):
     def write_spacers(self):
         
         if len(self.crisprs) > 0:
-            f = open(self.out+'spacers.fa', 'w')
+            os.mkdir(self.out+'spacers')
             for crisp in self.crisprs:
+                f = open(self.out+'spacers/{}.fa'.format(crisp.crispr), 'w')
                 n = 0
                 for sq in crisp.spacers:
                     n += 1
                     f.write('>{}:{}\n'.format(crisp.crispr, n))
                     f.write('{}\n'.format(sq))
 
-            f.close()
+                f.close()
 
 
 

@@ -21,7 +21,9 @@ class CRISPRCas(object):
         
         # Only if there is operons
         if self.any_operon:
-            
+
+            logging.info('Connecting Cas operons and CRISPR arrays')
+
             # Load data
             cas = self.preddf
             cas_1 = cas[~cas['Prediction'].isin(['False', 'Ambiguous', 'Partial'])]
@@ -110,7 +112,13 @@ class CRISPRCas(object):
 
             # Write
             if len(dicts) > 0:
-                crispr_cas.to_csv(self.out+'CRISPR_Cas.tab', sep='\t', index=False)
+
+                # Split Crispr cas in putative and good
+                crispr_cas_good = crispr_cas[~crispr_cas['Prediction'].str.contains('Unknown|Partial')]
+                crispr_cas_put = crispr_cas[crispr_cas['Prediction'].str.contains('Unknown|Partial')]
+
+                crispr_cas_good.to_csv(self.out+'CRISPR_Cas.tab', sep='\t', index=False)
+                crispr_cas_put.to_csv(self.out+'CRISPR_Cas_putative.tab', sep='\t', index=False)
                 orphan_cas.to_csv(self.out+'cas_operons_orphan.tab', sep='\t', index=False)
                 orphan_crispr.to_csv(self.out+'crisprs_orphan.tab', sep='\t', index=False)
 

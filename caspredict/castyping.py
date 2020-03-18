@@ -41,20 +41,43 @@ class Typer(object):
 
         # Get scores for each type
         type_scores = tmpX.iloc[:,13:].sum(axis=0)
-
+        
         # Highest score and type with highest score
         best_score = np.amax(type_scores)
         best_type = type_scores.index.values[np.argmax(type_scores.values)]
 
         # At least 3 genes in operon
         if len(tmpX) >= 3:
-            # If ties, ambiguous
-            if sum(type_scores == best_score) > 1:
-                prediction = "Ambiguous"
-                best_type = list(type_scores.index.values[type_scores.values == np.amax(type_scores.values)])
-            # Else, choose best
+           
+            # Solve problem with adjacent systems. Only check if at least 6 genes
+            if len(tmpX) >= 6:
+                # Only types with at least one specific HMM
+                zzz = tmpX.iloc[:,13:].transpose()
+                zzz= zzz[zzz.apply(lambda r: any(r >= 3), axis=1)]
+
+                # Sum of unique genes
+                zzz = zzz.loc[:, zzz.apply(lambda r: sum(r > 0) == 1, axis=0)]
+                zzz[zzz < 0] = 0
+                zzz["sum"] = zzz.sum(axis=1)
+                
+                # Those with score at least 6
+                zzz = zzz[zzz['sum'] >= 6]
+                
+                # If more than 1 type, hybrid:
+                if len(zzz) > 1:
+                    prediction = 'Hybrid({})'.format(','.join(zzz.index))
+                # Else just choose best type
+                else:
+                    prediction = best_type
+
             else:
-                prediction = best_type
+                # If ties, ambiguous
+                if sum(type_scores == best_score) > 1:
+                    prediction = "Ambiguous"
+                    best_type = list(type_scores.index.values[type_scores.values == np.amax(type_scores.values)])
+                # Else, choose best
+                else:
+                    prediction = best_type
 
 
         # 2 genes in operon
@@ -192,6 +215,12 @@ class Typer(object):
             
             # Return
             self.preddf = pd.DataFrame(dictlst)
+
+            # Check if any operons
+            self.check_type()
+
+            # Write cas operons
+            self.write_type()
 
     def check_type(self):
         if not self.any_cas:

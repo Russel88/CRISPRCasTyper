@@ -23,7 +23,6 @@ ap.add_argument('output', help='Prefix for output directory')
 # Optional
 ap.add_argument('-t', '--threads', help='Number of parallel processes [%(default)s].', default=4, type=int)
 ap.add_argument('--prodigal', help='Which mode to run prodigal in [%(default)s].', default='single', type=str, choices=['single','meta'])
-ap.add_argument('--aa', help='Input is a protein fasta. Has to be in prodigal format.', action='store_true')
 ap.add_argument('--skip_check', help='Skip check of input.', action='store_true',)
 ap.add_argument('--keep_tmp', help='Keep temporary files (prodigal, hmmer, minced).', action='store_true')
 ap.add_argument('--log_lvl', help='Logging level [%(default)s].', default='INFO', type=str, choices=['DEBUG','INFO','WARNING','ERROR'])
@@ -61,59 +60,28 @@ apc.add_argument('--kmer', help='kmer size. Has to match training kmer size! [%(
 master = Controller(ap.parse_args())
 
 ########## Prodigal ##########
-if not master.aa:
-    proteins = Prodigal(master)
-    proteins.run_prod()
-else:
-    proteins = master
+proteins = Prodigal(master)
+proteins.run_prod()
 
 ########## Hmmer ##########
 hmmeri = HMMER(proteins)
-
-# Run
 hmmeri.main_hmm()
 
-# Check if any cas genes
-hmmeri.check_hmm()
-
-# Parse
-hmmeri.parse_hmm()
-
-########## Typing of operons ##########
+########## Operons ##########
 castyper = Typer(hmmeri)
-
-# Type
 castyper.typing()
 
-# Check
-castyper.check_type()
-
-# Output Cas operons
-castyper.write_type()
-
 ########## CRISPRs ##########
-if not master.aa:
-    crispr = Minced(castyper)
+crispr = Minced(castyper)
+crispr.run_minced()
 
-    # Run
-    crispr.run_minced()
-
-    # Parse
-    crispr.write_crisprs()
-    crispr.write_spacers()
-
-    # Xgboost
-    repeatPred = XGB(crispr)
-
-    # Predict
-    repeatPred.xgb_run()
+########## RepeatType ########
+repeatPred = XGB(crispr)
+repeatPred.xgb_run()
 
 ######### CRISPR-Cas ########
-if not master.aa:
-    criscas = CRISPRCas(repeatPred)
-
-    # Find CRISPR-Cas
-    criscas.crisprcas()
+criscas = CRISPRCas(repeatPred)
+criscas.crisprcas()
 
 ######### Clean ###########
 master.clean()

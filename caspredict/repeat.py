@@ -37,7 +37,5 @@ class RepeatTyper(object):
         with open(self.input, 'r') as f:
             self.repeats = [ll.rstrip() for ll in f]
 
-        # Check input
-
         
 

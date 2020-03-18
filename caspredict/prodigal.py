@@ -12,19 +12,20 @@ class Prodigal(object):
 
     def run_prod(self):
 
-        logging.info('Predicting ORFs with prodigal')
+        if not self.redo:
+            logging.info('Predicting ORFs with prodigal')
 
-        # Run prodigal
-        with open(self.out+'prodigal.log', 'w') as prodigal_log:
-            subprocess.run(['prodigal', 
-                            '-i', self.fasta, 
-                            '-a', self.out+'proteins.faa', 
-                            '-p', self.prod], 
-                            stdout=subprocess.DEVNULL, 
-                            stderr=prodigal_log)
-    
-        # Check if succesful
-        self.check_rerun()
+            # Run prodigal
+            with open(self.out+'prodigal.log', 'w') as prodigal_log:
+                subprocess.run(['prodigal', 
+                                '-i', self.fasta, 
+                                '-a', self.out+'proteins.faa', 
+                                '-p', self.prod], 
+                                stdout=subprocess.DEVNULL, 
+                                stderr=prodigal_log)
+
+            # Check if succesful
+            self.check_rerun()
 
     def check_rerun(self):
         # Check prodigal output

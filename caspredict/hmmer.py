@@ -26,6 +26,12 @@ class HMMER(object):
             self.load_hmm()
             self.write_hmm()
 
+        # Check if any cas genes
+        self.check_hmm()
+
+        # Parse
+        self.parse_hmm()
+
     # A single search
     def hmmsearch(self, hmm):
        

@@ -11,7 +11,7 @@ from caspredict.repeat import RepeatTyper
 ap = argparse.ArgumentParser()
 
 # Required
-ap.add_argument('input', help='Input file')
+ap.add_argument('input', help='Input. A simple text file with one repeat sequence per line')
 
 # Optional
 ap.add_argument('--kmer', help='kmer size. Has to match training kmer size! [%(default)s].', default=4, type=int)

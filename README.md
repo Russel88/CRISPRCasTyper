@@ -73,12 +73,13 @@ caspredict -h
 
 #### Output
 * **CRISPR_Cas.tab:**           CRISPR_Cas loci, with consensus subtype prediction
+* **CRISPR_Cas_putative.tab:**  Putative CRISPR_Cas loci, often lonely Cas genes next to a CRISPR array
 * **cas_operons.tab:**          All certain Cas operons
 * **crisprs_all.tab:**          All CRISPR arrays
 * **crisprs_orphan.tab:**       Orphan CRISPRs (those not in CRISPR_Cas.tab)
 * **cas_operons_orphan.tab:**   Orphan Cas operons (those not in CRISPR_Cas.tab)
 * **cas_operons_putative.tab:** Putative Cas operons, mostly false positives, but also some ambiguous and partial systems
-* **spacers.fa:**               Fasta file with all spacer sequences
+* **spacers/*.fa:**             Fasta files with all spacer sequences
 * **hmmer.tab:**                All HMM vs. ORF matches, raw unfiltered results
 * **arguments.tab:**            File with arguments given to CasPredict
 
