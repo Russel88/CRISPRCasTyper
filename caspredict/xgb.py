@@ -75,7 +75,7 @@ class XGB(object):
             df.loc[df.Subtype_probability < self.pred_prob, 'Prediction'] = 'Unknown'
             df['Subtype_probability'] = df['Subtype_probability'].round(3)
            
-            if len(df) > 1:
+            if len(df) > 0:
                 df.to_csv(self.out+'crisprs_all.tab', sep='\t', index=False)
                 self.any_crispr = True
             else:
