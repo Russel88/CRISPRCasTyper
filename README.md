@@ -114,25 +114,25 @@ The script prints:
     * IV-A1, IV-A2, IV-A3
     * V-A
     * VI-B
-* This the accuracy per subtype (on an unseen test dataset):
-    * I-A      0.60
-    * I-B      0.90
-    * I-C      0.98
-    * I-D      0.47
-    * I-E      1.00
-    * I-F      0.99
-    * I-G      0.83
-    * II-A     0.94
-    * II-B     1.00
-    * II-C     0.89
-    * III-A    0.89
-    * III-B    0.49
-    * III-C    0.60
-    * III-D    0.28
-    * IV-A1    0.79
-    * IV-A2    0.78
-    * IV-A3    0.98
-    * V-A      0.77
-    * VI-B     1.00
+* This is the accuracy per subtype (on an unseen test dataset):
+    * **I-A**      0.60
+    * **I-B**      0.90
+    * **I-C**      0.98
+    * **I-D**      0.47
+    * **I-E**      1.00
+    * **I-F**      0.99
+    * **I-G**      0.83
+    * **II-A**     0.94
+    * **II-B**     1.00
+    * **II-C**     0.89
+    * **III-A**    0.89
+    * **III-B**    0.49
+    * **III-C**    0.60
+    * **III-D**    0.28
+    * **IV-A1**    0.79
+    * **IV-A2**    0.78
+    * **IV-A3**    0.98
+    * **V-A**      0.77
+    * **VI-B**     1.00
 
 
