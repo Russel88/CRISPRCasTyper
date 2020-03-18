@@ -19,8 +19,8 @@ class CRISPRCas(object):
         def dist_ll(x,ll):
             return [dist(x,y) for y in ll]
         
-        # Only if there is operons
-        if self.any_operon:
+        # Only if there is operons and crisprs
+        if self.any_operon and self.any_crispr:
 
             logging.info('Connecting Cas operons and CRISPR arrays')
 
@@ -117,8 +117,12 @@ class CRISPRCas(object):
                 crispr_cas_good = crispr_cas[~crispr_cas['Prediction'].str.contains('Unknown|Partial')]
                 crispr_cas_put = crispr_cas[crispr_cas['Prediction'].str.contains('Unknown|Partial')]
 
-                crispr_cas_good.to_csv(self.out+'CRISPR_Cas.tab', sep='\t', index=False)
-                crispr_cas_put.to_csv(self.out+'CRISPR_Cas_putative.tab', sep='\t', index=False)
-                orphan_cas.to_csv(self.out+'cas_operons_orphan.tab', sep='\t', index=False)
-                orphan_crispr.to_csv(self.out+'crisprs_orphan.tab', sep='\t', index=False)
+                if len(crispr_cas_good) > 0:
+                    crispr_cas_good.to_csv(self.out+'CRISPR_Cas.tab', sep='\t', index=False)
+                if len(crispr_cas_put) > 0:
+                    crispr_cas_put.to_csv(self.out+'CRISPR_Cas_putative.tab', sep='\t', index=False)
+                if len(orphan_cas) > 0:
+                    orphan_cas.to_csv(self.out+'cas_operons_orphan.tab', sep='\t', index=False)
+                if len(orphan_crispr) > 0:
+                    orphan_crispr.to_csv(self.out+'crisprs_orphan.tab', sep='\t', index=False)
 

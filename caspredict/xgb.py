@@ -1,4 +1,5 @@
 import logging
+import os
 
 import pandas as pd
 import numpy as np
@@ -73,9 +74,14 @@ class XGB(object):
             df['Subtype_probability'] = self.z_max
             df.loc[df.Subtype_probability < self.pred_prob, 'Prediction'] = 'Unknown'
             df['Subtype_probability'] = df['Subtype_probability'].round(3)
-            
-            df.to_csv(self.out+'crisprs_all.tab', sep='\t', index=False)
-        
+           
+            if len(df) > 1:
+                df.to_csv(self.out+'crisprs_all.tab', sep='\t', index=False)
+            else:
+                logging.info('No CRISPRs found.')
+                self.any_crispr = False
+                os.remove(self.out+'crisprs_all.tab')
+    
     def predict_repeats(self):
 
         # Prepare

@@ -236,6 +236,8 @@ class Typer(object):
             operons_good = self.preddf[~self.preddf['Prediction'].isin(['False', 'Ambiguous', 'Partial'])]
             operons_put = self.preddf[self.preddf['Prediction'].isin(['False', 'Ambiguous', 'Partial'])]
 
-            operons_good.to_csv(self.out+'cas_operons.tab', sep='\t', index=False)
-            operons_put.to_csv(self.out+'cas_operons_putative.tab', sep='\t', index=False)
+            if len(operons_good) > 0:
+                operons_good.to_csv(self.out+'cas_operons.tab', sep='\t', index=False)
+            if len(operons_put) > 0:    
+                operons_put.to_csv(self.out+'cas_operons_putative.tab', sep='\t', index=False)
             

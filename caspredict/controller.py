@@ -38,6 +38,7 @@ class Controller(object):
 
         self.any_cas = True
         self.any_operon = True
+        self.any_crispr = True
 
         # Logger
         logging.basicConfig(format='\033[36m'+'[%(asctime)s] %(levelname)s:'+'\033[0m'+' %(message)s', datefmt='%Y-%m-%d %H:%M:%S', level=self.lvl)
