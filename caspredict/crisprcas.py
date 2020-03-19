@@ -28,7 +28,8 @@ class CRISPRCas(object):
             cas = self.preddf
             cas_1 = cas[~cas['Prediction'].isin(['False', 'Ambiguous', 'Partial'])]
             crispr = pd.read_csv(self.out+'crisprs_all.tab', sep='\t')
-            
+            self.crisprsall = crispr
+
             dicts = []
             # Loop over contig
             for contig in set(cas['Contig']):
@@ -63,8 +64,8 @@ class CRISPRCas(object):
             # Consensus 
             if len(dicts) > 0:
                 crispr_cas = pd.DataFrame(dicts, columns=dicts[0].keys())
-                orphan_cas = cas_1[cas_1['Operon'].isin(set(cas_1['Operon']).difference(set(crispr_cas['Operon'])))]
-                orphan_crispr = crispr[crispr['CRISPR'].isin(set(crispr['CRISPR']).difference(set([x for x in crispr_cas['CRISPRs'] for x in x])))]
+                self.orphan_cas = cas_1[cas_1['Operon'].isin(set(cas_1['Operon']).difference(set(crispr_cas['Operon'])))]
+                self.orphan_crispr = crispr[crispr['CRISPR'].isin(set(crispr['CRISPR']).difference(set([x for x in crispr_cas['CRISPRs'] for x in x])))]
             
                 pred_lst = []
                 for index, row in crispr_cas.iterrows():
@@ -108,21 +109,21 @@ class CRISPRCas(object):
                 crispr_cas['Prediction'] = pred_lst
 
                 # Subset columns
-                crispr_cas = crispr_cas[['Contig', 'Operon', 'Operon_Pos', 'Prediction', 'CRISPRs', 'Distances', 'Prediction_Cas', 'Prediction_CRISPRs']]
-
+                self.crispr_cas = crispr_cas[['Contig', 'Operon', 'Operon_Pos', 'Prediction', 'CRISPRs', 'Distances', 'Prediction_Cas', 'Prediction_CRISPRs']]
+            
             # Write
             if len(dicts) > 0:
 
                 # Split Crispr cas in putative and good
-                crispr_cas_good = crispr_cas[~crispr_cas['Prediction'].str.contains('Unknown|Partial')]
-                crispr_cas_put = crispr_cas[crispr_cas['Prediction'].str.contains('Unknown|Partial')]
+                crispr_cas_good = self.crispr_cas[~self.crispr_cas['Prediction'].str.contains('Unknown|Partial')]
+                crispr_cas_put = self.crispr_cas[self.crispr_cas['Prediction'].str.contains('Unknown|Partial')]
 
                 if len(crispr_cas_good) > 0:
                     crispr_cas_good.to_csv(self.out+'CRISPR_Cas.tab', sep='\t', index=False)
                 if len(crispr_cas_put) > 0:
                     crispr_cas_put.to_csv(self.out+'CRISPR_Cas_putative.tab', sep='\t', index=False)
-                if len(orphan_cas) > 0:
-                    orphan_cas.to_csv(self.out+'cas_operons_orphan.tab', sep='\t', index=False)
-                if len(orphan_crispr) > 0:
-                    orphan_crispr.to_csv(self.out+'crisprs_orphan.tab', sep='\t', index=False)
+                if len(self.orphan_cas) > 0:
+                    self.orphan_cas.to_csv(self.out+'cas_operons_orphan.tab', sep='\t', index=False)
+                if len(self.orphan_crispr) > 0:
+                    self.orphan_crispr.to_csv(self.out+'crisprs_orphan.tab', sep='\t', index=False)
 

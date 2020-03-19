@@ -12,6 +12,7 @@ from caspredict.castyping import Typer
 from caspredict.minced import Minced
 from caspredict.xgb import XGB
 from caspredict.crisprcas import CRISPRCas
+from caspredict.plot import Map
 
 ########## Arguments ##########
 ap = argparse.ArgumentParser()
@@ -53,6 +54,11 @@ apc.add_argument('--ccd', help='Distance (bp) threshold to connect Cas operons a
 apc.add_argument('--pred_prob', help='Prediction probability cut-off for assigning subtype to CRISPR repeats [%(default)s].', default=0.75, type=float)
 apc.add_argument('--kmer', help='kmer size. Has to match training kmer size! [%(default)s].', default=4, type=int)
 
+# Plot
+app = ap.add_argument_group('plotting arguments')
+app.add_argument('--no_plot', help='Do not draw a map of CRISPR-Cas.', action='store_true')
+app.add_argument('--scale', help='Scaling of plot [%(default)s].', default=10, type=int)
+
 # Workflow starts here
 
 
@@ -83,5 +89,11 @@ repeatPred.xgb_run()
 criscas = CRISPRCas(repeatPred)
 criscas.crisprcas()
 
+######### Plot ###########
+plotting = Map(criscas)
+plotting.plot()
+
 ######### Clean ###########
 master.clean()
+
+

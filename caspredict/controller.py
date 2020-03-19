@@ -35,6 +35,8 @@ class Controller(object):
         self.kmer = args.kmer
         self.crispr_cas_dist = args.ccd
         self.pred_prob = args.pred_prob
+        self.noplot = args.no_plot
+        self.scale = args.scale
 
         self.any_cas = False
         self.any_operon = False
@@ -42,7 +44,7 @@ class Controller(object):
             
         # Logger
         logging.basicConfig(format='\033[36m'+'[%(asctime)s] %(levelname)s:'+'\033[0m'+' %(message)s', datefmt='%Y-%m-%d %H:%M:%S', level=self.lvl)
-        logging.info('Running CasPredict version 0.3.6')
+        logging.info('Running CasPredict version 0.4.0')
 
         # Force consistency
         self.out = os.path.join(self.out, '')
@@ -121,21 +123,16 @@ class Controller(object):
         
         if self.db == '':
             try:
-                DB_PATH = os.environ['CASPREDICT_DB']
-                self.scoring = os.path.join(DB_PATH, 'CasScoring.csv')
-                self.pdir = os.path.join(DB_PATH, 'Profiles', '')
-                self.xgb = os.path.join(DB_PATH, 'xgb_repeats.model')
-                self.typedict = os.path.join(DB_PATH, 'type_dict.tab')
+                self.db = os.environ['CASPREDICT_DB']
             except:
                 logging.error('Could not find database directory')
                 sys.exit()
 
-        else:
-            self.scoring = os.path.join(self.db, 'CasScoring.csv')
-            self.pdir = os.path.join(self.db, 'Profiles', '')
-            self.xgb = os.path.join(self.db, "xgb_repeats.model")
-            self.typedict = os.path.join(self.db, "type_dict.tab")
-        
+        self.scoring = os.path.join(self.db, 'CasScoring.csv')
+        self.pdir = os.path.join(self.db, 'Profiles', '')
+        self.xgb = os.path.join(self.db, "xgb_repeats.model")
+        self.typedict = os.path.join(self.db, "type_dict.tab")
+    
         # Try to load CasScoring table
         if os.path.isfile(self.scoring):
             try:

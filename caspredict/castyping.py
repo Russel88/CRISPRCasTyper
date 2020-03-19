@@ -40,7 +40,7 @@ class Typer(object):
         end_operon = max(list(start)+list(end))
 
         # Get scores for each type
-        type_scores = tmpX.iloc[:,13:].sum(axis=0)
+        type_scores = tmpX.iloc[:,14:].sum(axis=0)
         
         # Highest score and type with highest score
         best_score = np.amax(type_scores)
@@ -52,7 +52,7 @@ class Typer(object):
             # Solve problem with adjacent systems. Only check if at least 6 genes
             if len(tmpX) >= 6:
                 # Only types with at least one specific HMM
-                zzz = tmpX.iloc[:,13:].transpose()
+                zzz = tmpX.iloc[:,14:].transpose()
                 zzz= zzz[zzz.apply(lambda r: any(r >= 3), axis=1)]
 
                 # Sum of unique genes

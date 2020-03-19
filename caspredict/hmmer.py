@@ -81,10 +81,10 @@ class HMMER(object):
         hmm_df = pd.read_csv(self.out+'hmmer.tab', sep='\s+', header=None,
             usecols=(0,1,3,6,7,
                      8,16,17,18,19,
-                     20,21,22,24,26),
+                     20,21,22,24,26,28),
             names=('Hmm','ORF','tlen','qlen','Eval',
                    'score','hmm_from','hmm_to','ali_from','ali_to',
-                   'env_from','env_to','pprop','start','end'))
+                   'env_from','env_to','pprop','start','end','strand'))
 
         # Parse HMM names
         hmm_df['Hmm'] = [re.sub('\.tab', '', 
@@ -128,7 +128,7 @@ class HMMER(object):
                     for i,j in zip(df_sub['hmm_from'], df_sub['hmm_to']+1)] 
                     for x in sublst])) / df_sub['qlen']
                 df_sub = df_sub[['Hmm','ORF','tlen','qlen','Eval','score',
-                                'start','end','Acc','Pos','Cov_seq','Cov_hmm']]
+                                'start','end','Acc','Pos','Cov_seq','Cov_hmm','strand']]
                 return df_sub
 
             self.hmm_df = self.hmm_df.groupby(['Hmm','ORF']).apply(covs)
