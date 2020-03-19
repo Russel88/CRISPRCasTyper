@@ -15,6 +15,9 @@ It then connects the Cas operons and CRISPR arrays, producing as output:
 * Type V-K: [RNA-guided DNA insertion with CRISPR-associated transposases](https://doi.org/10.1126/science.aax9181)
 * Transposon associated type I-F: [Transposon-encoded CRISPR–Cas systems direct RNA-guided DNA integration](https://doi.org/10.1038/s41586-019-1323-z)
 
+#### It can automatically draw gene maps of (putative) CRISPR-Cas systems and orphan Cas operons and CRISPR arrays
+<img src='img/plot.png' align="left" height="400" />
+
 # Table of contents
 1. [Quick start](#quick)
 2. [Installation](#install)
@@ -73,12 +76,20 @@ caspredict -h
 
 #### Output
 * **CRISPR_Cas.tab:**           CRISPR_Cas loci, with consensus subtype prediction
-* **CRISPR_Cas_putative.tab:**  Putative CRISPR_Cas loci, often lonely Cas genes next to a CRISPR array
+    * Contains a consensus prediction (Prediction), and the separate predictions for the Cas operon (Prediction_Cas) and CRISPR arrays (Prediction_CRISPRs)
 * **cas_operons.tab:**          All certain Cas operons
+    * Contains a prediction of subtype (Prediction) and the subtype with the highest score (Best_type). If the score is high then Prediction = Best_type
 * **crisprs_all.tab:**          All CRISPR arrays
+    * Contains a prediction of the associated subtype based on the repeat sequence (Prediction). 
+    * The 'Subtype' column is the subtype with highest probability. Prediction = Subtype if Subtype_probability is high
 * **crisprs_orphan.tab:**       Orphan CRISPRs (those not in CRISPR_Cas.tab)
+    * Same columns as crisprs_all.tab
 * **cas_operons_orphan.tab:**   Orphan Cas operons (those not in CRISPR_Cas.tab)
+    * Same columns as cas_operons.tab
+* **CRISPR_Cas_putative.tab:**  Same as above, but onlu putative CRISPR_Cas loci, often lonely Cas genes next to a CRISPR array
+    * Same columns as CRISPR_Cas.tab
 * **cas_operons_putative.tab:** Putative Cas operons, mostly false positives, but also some ambiguous and partial systems
+    * Same columns as cas_operons.tab
 * **spacers/*.fa:**             Fasta files with all spacer sequences
 * **hmmer.tab:**                All HMM vs. ORF matches, raw unfiltered results
 * **arguments.tab:**            File with arguments given to CasPredict
