@@ -86,7 +86,7 @@ caspredict -h
     * Same columns as crisprs_all.tab
 * **cas_operons_orphan.tab:**   Orphan Cas operons (those not in CRISPR_Cas.tab)
     * Same columns as cas_operons.tab
-* **CRISPR_Cas_putative.tab:**  Same as above, but onlu putative CRISPR_Cas loci, often lonely Cas genes next to a CRISPR array
+* **CRISPR_Cas_putative.tab:**  Putative CRISPR_Cas loci, often lonely Cas genes next to a CRISPR array
     * Same columns as CRISPR_Cas.tab
 * **cas_operons_putative.tab:** Putative Cas operons, mostly false positives, but also some ambiguous and partial systems
     * Same columns as cas_operons.tab
