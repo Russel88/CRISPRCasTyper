@@ -16,6 +16,8 @@ It then connects the Cas operons and CRISPR arrays, producing as output:
 * Transposon associated type I-F: [Transposon-encoded CRISPR–Cas systems direct RNA-guided DNA integration](https://doi.org/10.1038/s41586-019-1323-z)
 
 #### It can automatically draw gene maps of (putative) CRISPR-Cas systems and orphan Cas operons and CRISPR arrays
+* Cas genes are in red.
+* Arrays are in blue, with their predicted subtype association based on the consensus repeat sequence.
 <img src='img/plot.png' align="left" height="200" />
 
 # Table of contents
