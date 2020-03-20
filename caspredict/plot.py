@@ -15,9 +15,9 @@ class Map(object):
         for key, val in vars(obj).items():
             setattr(self, key, val)
         
-        self.font = ImageFont.truetype(os.path.join(self.db, 'arial.ttf'), 3*self.scale)
-        self.fontB = ImageFont.truetype(os.path.join(self.db, 'arial.ttf'), 5*self.scale)
-        self.fontS = ImageFont.truetype(os.path.join(self.db, 'arial.ttf'), 2*self.scale)
+        self.font = ImageFont.truetype(os.path.join(self.db, 'arial.ttf'), 30)
+        self.fontB = ImageFont.truetype(os.path.join(self.db, 'arial.ttf'), 50)
+        self.fontS = ImageFont.truetype(os.path.join(self.db, 'arial.ttf'), 20)
 
     def draw_gene(self, start, end, strand, name, n, z):
         if strand > 0:
@@ -107,7 +107,7 @@ class Map(object):
 
             width = self.get_longest(self.orphan_crispr, casAmbiOrph, self.crispr_cas, self.crisprsall) 
 
-            self.im = Image.new('RGB', (int(round(self.scale/50*width+self.scale*2)), int(round((total+1)*20*self.scale))), (255, 255, 255))
+            self.im = Image.new('RGB', (int(round(self.scale/50*width+self.scale*10)), int(round((total+1)*20*self.scale))), (255, 255, 255))
             self.draw = ImageDraw.Draw(self.im)
 
             if self.grid:
