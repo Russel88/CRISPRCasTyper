@@ -122,10 +122,11 @@ class Map(object):
                     # Cas
                     posCas = list(self.preddf[self.preddf['Operon'] == i]['Positions'])[0]
                     nameCas = list(self.preddf[self.preddf['Operon'] == i]['Genes'])[0]
-                    startsCas = list(self.hmm_df[(self.hmm_df['Acc'] == contig) & (self.hmm_df['Pos'].isin(posCas))]['start'])
-                    endsCas = list(self.hmm_df[(self.hmm_df['Acc'] == contig) & (self.hmm_df['Pos'].isin(posCas))]['end'])
-                    strands = list(self.hmm_df[(self.hmm_df['Acc'] == contig) & (self.hmm_df['Pos'].isin(posCas))]['strand'])
-                    
+                    hmmSub = self.hmm_df[self.hmm_df['Acc'] == contig]
+                    startsCas = [list(hmmSub[hmmSub['Pos'] == x]['start'])[0] for x in posCas]
+                    endsCas = [list(hmmSub[hmmSub['Pos'] == x]['end'])[0] for x in posCas]
+                    strands = [list(hmmSub[hmmSub['Pos'] == x]['strand'])[0] for x in posCas]
+
                     # Crisprs
                     crisprs = list(self.crispr_cas[self.crispr_cas['Operon'] == i]['CRISPRs'])
                     startsCris = [list(self.crisprsall[self.crisprsall['CRISPR'] == x[0]]['Start'])[0] for x in crisprs]
@@ -147,7 +148,6 @@ class Map(object):
                     # Draw
                     cas_list = list(zip(startsCas, endsCas, strands, nameCas))
                     cas_list = sorted(cas_list, key=lambda x: x[0])
-                    
                     self.draw_system(cas_list, list(zip(startsCris, endsCris, nameCris)), k)
 
             # Draw Orphan Cas
@@ -160,9 +160,10 @@ class Map(object):
                     contig = list(casAmbiOrph[casAmbiOrph['Operon'] == i]['Contig'])[0]
                     pos = list(casAmbiOrph[casAmbiOrph['Operon'] == i]['Positions'])[0]
                     casName = list(casAmbiOrph[casAmbiOrph['Operon'] == i]['Genes'])[0]
-                    starts = list(self.hmm_df[(self.hmm_df['Acc'] == contig) & (self.hmm_df['Pos'].isin(pos))]['start'])
-                    ends = list(self.hmm_df[(self.hmm_df['Acc'] == contig) & (self.hmm_df['Pos'].isin(pos))]['end'])
-                    strands = list(self.hmm_df[(self.hmm_df['Acc'] == contig) & (self.hmm_df['Pos'].isin(pos))]['strand'])
+                    hmmSub = self.hmm_df[self.hmm_df['Acc'] == contig]
+                    starts = [list(hmmSub[hmmSub['Pos'] == x]['start'])[0] for x in pos]
+                    ends = [list(hmmSub[hmmSub['Pos'] == x]['end'])[0] for x in pos]
+                    strands = [list(hmmSub[hmmSub['Pos'] == x]['strand'])[0] for x in pos]
                     
                     # Draw name
                     self.draw_name(k, list(casAmbiOrph[casAmbiOrph['Operon'] == i]['Prediction'])[0], i, min(starts), max(ends))
