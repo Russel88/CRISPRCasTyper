@@ -17,6 +17,7 @@ class Map(object):
         
         self.font = ImageFont.truetype(os.path.join(self.db, 'arial.ttf'), 3*self.scale)
         self.fontB = ImageFont.truetype(os.path.join(self.db, 'arial.ttf'), 5*self.scale)
+        self.fontS = ImageFont.truetype(os.path.join(self.db, 'arial.ttf'), 2*self.scale)
 
     def draw_gene(self, start, end, strand, name, n, z):
         if strand > 0:
@@ -45,7 +46,7 @@ class Map(object):
                       (self.scale/50*end, 5*self.scale+n*20*self.scale), 
                       (self.scale/50*start, 5*self.scale+n*20*self.scale)), 
                      fill=(0, 0, 255), outline=(255, 255, 255))
-        self.draw.text((self.scale/50*start+self.scale/10, n*20*self.scale-3*self.scale), subtype, (0,0,0), font=self.font)
+        self.draw.text((self.scale/50*start+self.scale/10, n*20*self.scale-3*self.scale), 'CRISPR({})'.format(subtype), (0,0,0), font=self.font)
 
     def draw_name(self, n, pred, contig, start, end):
         self.draw.text((self.scale/10, n*20*self.scale-10*self.scale), '{}: {}({}-{})'.format(pred, contig, start, end),
@@ -82,12 +83,13 @@ class Map(object):
         total = 0
 
         # Combine orphan and ambiguous cas operons
-        cas_ambi = self.preddf[self.preddf['Prediction'] == 'Ambiguous']
-        try:
-            casAmbiOrph = pd.concat([self.orphan_cas, cas_ambi])
-        except:
-            casAmbiOrph = cas_ambi
-        total += len(casAmbiOrph)
+        if self.any_operon:
+            cas_ambi = self.preddf[self.preddf['Prediction'] == 'Ambiguous']
+            try:
+                casAmbiOrph = pd.concat([self.orphan_cas, cas_ambi])
+            except:
+                casAmbiOrph = cas_ambi
+            total += len(casAmbiOrph)
 
         try:
             total += len(self.orphan_crispr)
@@ -107,6 +109,17 @@ class Map(object):
 
             self.im = Image.new('RGB', (int(round(self.scale/50*width+self.scale*2)), int(round((total+1)*20*self.scale))), (255, 255, 255))
             self.draw = ImageDraw.Draw(self.im)
+
+            if self.grid:
+                # Draw grid
+                y_start = 8*self.scale
+                y_end = self.im.height
+                step_size = int(round(1000*self.scale/50))
+
+                for x in range(step_size, self.im.width, step_size):
+                    line = ((x, y_start), (x, y_end))
+                    self.draw.line(line, fill=(0,0,0), width=int(self.scale/20))
+                    self.draw.text((x-self.scale*4, self.scale*5), str(int(x/(self.scale/50))), (0,0,0), font=self.fontS)
 
             k = 0
             # Draw CRISPR-Cas

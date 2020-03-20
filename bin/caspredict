@@ -58,6 +58,7 @@ apc.add_argument('--kmer', help='kmer size. Has to match training kmer size! [%(
 app = ap.add_argument_group('plotting arguments')
 app.add_argument('--no_plot', help='Do not draw a map of CRISPR-Cas.', action='store_true')
 app.add_argument('--scale', help='Scaling of plot [%(default)s].', default=10, type=int)
+app.add_argument('--grid', help='Add grid to plot.', action='store_true')
 
 # Workflow starts here
 
