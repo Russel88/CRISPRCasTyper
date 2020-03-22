@@ -19,22 +19,27 @@ class Map(object):
         self.fontB = ImageFont.truetype(os.path.join(self.db, 'arial.ttf'), 50)
         self.fontS = ImageFont.truetype(os.path.join(self.db, 'arial.ttf'), 20)
 
-    def draw_gene(self, start, end, strand, name, n, z):
+    def draw_gene(self, start, end, strand, name, n, z, col):
         if strand > 0:
             self.draw.polygon(((self.scale/50*start, n*20*self.scale),
                           (self.scale/50*end-5*self.scale, n*20*self.scale),
                           (self.scale/50*end, 2.5*self.scale+n*20*self.scale),
                           (self.scale/50*end-5*self.scale, 5*self.scale+n*20*self.scale),
                           (self.scale/50*start, 5*self.scale+n*20*self.scale)),
-                     fill=(255, 0, 0), outline=(255, 255, 255))
+                     fill=col, outline=(255, 255, 255))
         else:
             self.draw.polygon(((self.scale/50*start+5*self.scale, n*20*self.scale),
                           (self.scale/50*end, n*20*self.scale),
                           (self.scale/50*end, 5*self.scale+n*20*self.scale),
                           (self.scale/50*start+5*self.scale, 5*self.scale+n*20*self.scale),
                           (self.scale/50*start, 2.5*self.scale+n*20*self.scale)),
-                     fill=(255, 0, 0), outline=(255, 255, 255))
-        name = re.sub('_[0-9]*_.*', '', name)
+                     fill=col, outline=(255, 255, 255))
+        
+        if isinstance(name, str):
+            name = re.sub('_[0-9]*_.*', '', name)
+        else:
+            name = str(name)
+
         if z % 2 == 1:
             self.draw.text((self.scale/50*start+5, n*20*self.scale-3*self.scale), name.title(), (0,0,0), font=self.font)
         else:
@@ -46,7 +51,7 @@ class Map(object):
                       (self.scale/50*end, 5*self.scale+n*20*self.scale), 
                       (self.scale/50*start, 5*self.scale+n*20*self.scale)), 
                      fill=(0, 0, 255), outline=(255, 255, 255))
-        self.draw.text((self.scale/50*start+self.scale/10, n*20*self.scale-3*self.scale), 'CRISPR({})'.format(subtype), (0,0,0), font=self.font)
+        self.draw.text((self.scale/50*start+self.scale/10, n*20*self.scale-3*self.scale), subtype, (0,0,0), font=self.font)
 
     def draw_name(self, n, pred, contig, start, end):
         self.draw.text((self.scale/10, n*20*self.scale-10*self.scale), '{}: {}({}-{})'.format(pred, contig, start, end),
@@ -57,7 +62,7 @@ class Map(object):
         if len(cas) > 0:
             for i in cas:
                 z += 1
-                self.draw_gene(i[0], i[1], i[2], i[3], n, z)
+                self.draw_gene(i[0], i[1], i[2], i[3], n, z, i[4])
         if len(crispr) > 0:
             for i in crispr:
                 z += 1
@@ -77,6 +82,34 @@ class Map(object):
         if len(casO) > 0: casO_M = max(casO['End']-casO['Start'])
         if len(criscas) > 0: cc1_M = max(self.criscas_len(criscas, crisA))
         return(max(crisO_M, casO_M, cc1_M))
+
+    def expandCas(self, contig, pos, startPos):
+        first_cas = min(pos)
+        last_cas = max(pos)
+        incl_cas = list(range(first_cas-self.expand, last_cas+self.expand+1))
+        missing_cas = [x for x in incl_cas if x not in pos]
+        add_these = self.genes[(self.genes['Contig'] == contig) & (self.genes['Pos'].isin(missing_cas))]
+        
+        add_starts = [self.expand*1000 + 1 + x - startPos for x in list(add_these['Start'])]
+        add_ends = [self.expand*1000 + 1 + x - startPos for x in list(add_these['End'])]
+
+        names = list(add_these['Pos'])
+        cols = list(((150,150,150),)*len(add_starts))
+
+        # Add putative
+        add_putative = [x in list(self.hmm_df['Pos']) for x in list(add_these['Pos'])]
+        casNames = [list(self.hmm_df[self.hmm_df['Pos'] == x]['Hmm']) for x in list(add_these['Pos'])]
+        casNames = [x[0] if len(x)>0 else x for x in casNames]
+        cols = [x[0] if not x[1] else (255,100,0) for x in zip(cols, add_putative)]
+        names = [x[0] if not x[1] else x[2] for x in zip(names, add_putative, casNames)]
+
+        expand_list = list(zip(add_starts,
+                          add_ends,
+                          list(add_these['Strand']),
+                          names,
+                          cols))
+        
+        return expand_list    
 
     def plot(self):
 
@@ -104,13 +137,16 @@ class Map(object):
         if (not self.noplot) and total > 0:
             
             logging.info('Plotting map of CRISPR-Cas loci')
-
+            
             width = self.get_longest(self.orphan_crispr, casAmbiOrph, self.crispr_cas, self.crisprsall) 
+
+            self.genes = pd.read_csv(self.out+'genes.tab', sep='\t') 
+            width = width + (1000 * self.expand * 2)
 
             self.im = Image.new('RGB', (int(round(self.scale/50*width+self.scale*10)), int(round((total+1)*20*self.scale))), (255, 255, 255))
             self.draw = ImageDraw.Draw(self.im)
 
-            if self.grid:
+            if not self.nogrid:
                 # Draw grid
                 y_start = 8*self.scale
                 y_end = self.im.height
@@ -118,8 +154,8 @@ class Map(object):
 
                 for x in range(step_size, self.im.width, step_size):
                     line = ((x, y_start), (x, y_end))
-                    self.draw.line(line, fill=(0,0,0), width=int(self.scale/20))
-                    self.draw.text((x-self.scale*4, self.scale*5), str(int(x/(self.scale/50))), (0,0,0), font=self.fontS)
+                    self.draw.line(line, fill=(150,150,150), width=int(self.scale/20))
+                    self.draw.text((x-self.scale*4, self.scale*5), str(int(x/(self.scale/50))), (100,100,100), font=self.fontS)
 
             k = 0
             # Draw CRISPR-Cas
@@ -153,17 +189,22 @@ class Map(object):
                     self.draw_name(k, prediction, i, startPos, max(endsCas + endsCris))
                     
                     # Adjust positions
-                    startsCas = [1 + x - startPos for x in startsCas]
-                    endsCas = [1 + x - startPos for x in endsCas]
-                    startsCris = [1 + x - startPos for x in startsCris]
-                    endsCris = [1 + x - startPos for x in endsCris]
+                    startsCas = [self.expand*1000 + 1 + x - startPos for x in startsCas]
+                    endsCas = [self.expand*1000 + 1 + x - startPos for x in endsCas]
+                    startsCris = [self.expand*1000 + 1 + x - startPos for x in startsCris]
+                    endsCris = [self.expand*1000 + 1 + x - startPos for x in endsCris]
                     
                     # Draw
-                    cas_list = list(zip(startsCas, endsCas, strands, nameCas))
+                    cas_list = list(zip(startsCas, endsCas, strands, nameCas, list(((255,0,0),)*len(nameCas))))
+
+                    # Expand
+                    expand_list = self.expandCas(contig, posCas, startPos)
+                    cas_list = cas_list + expand_list
+
                     cas_list = sorted(cas_list, key=lambda x: x[0])
                     self.draw_system(cas_list, list(zip(startsCris, endsCris, nameCris)), k)
-
-            # Draw Orphan Cas
+            
+            # Draw Orphan and Ambibguous Cas
             if len(casAmbiOrph) > 0:
                 for i in list(casAmbiOrph['Operon']):
                     k += 1
@@ -177,20 +218,25 @@ class Map(object):
                     starts = [list(hmmSub[hmmSub['Pos'] == x]['start'])[0] for x in pos]
                     ends = [list(hmmSub[hmmSub['Pos'] == x]['end'])[0] for x in pos]
                     strands = [list(hmmSub[hmmSub['Pos'] == x]['strand'])[0] for x in pos]
-                    
+                   
                     # Draw name
                     self.draw_name(k, list(casAmbiOrph[casAmbiOrph['Operon'] == i]['Prediction'])[0], i, min(starts), max(ends))
                     
                     # Adjust positions
-                    starts = [1 + x - list(casAmbiOrph[casAmbiOrph['Operon'] == i]['Start'])[0] for x in starts]
-                    ends = [1 + x - list(casAmbiOrph[casAmbiOrph['Operon'] == i]['Start'])[0] for x in ends]
+                    startPos =  list(casAmbiOrph[casAmbiOrph['Operon'] == i]['Start'])[0]
+                    starts = [self.expand*1000 + 1 + x - startPos for x in starts]
+                    ends = [self.expand*1000 + 1 + x - startPos for x in ends]
+
+                    cas_list = list(zip(starts, ends, strands, casName, list(((255,0,0),)*len(casName))))
+                    
+                    # Expand
+                    expand_list = self.expandCas(contig, pos, startPos)
+                    cas_list = cas_list + expand_list
 
                     # Draw
-                    cas_list = list(zip(starts, ends, strands, casName))
                     cas_list = sorted(cas_list, key=lambda x: x[0])
-                    
                     self.draw_system(cas_list, [], k)
-                    
+
             # Draw Orphan CRISPR
             if len(self.orphan_crispr) > 0:
                 for i in list(self.orphan_crispr['CRISPR']):

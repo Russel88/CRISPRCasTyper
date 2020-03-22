@@ -91,8 +91,24 @@ class HMMER(object):
                         re.sub(os.path.join(self.out, 'hmmer', ''), '', x)) 
                         for x in hmm_df['Hmm']]
                
-        self.hmm_df = hmm_df
+        # Add columns
+        hmm_df['Acc'] = [re.sub("_[0-9]*$","",x) for x in hmm_df['ORF']]
+        hmm_df['Pos'] = [int(re.sub(".*_","",x)) for x in hmm_df['ORF']]
 
+        # Coverages of aligments
+        def covs(df_sub):
+            df_sub['Cov_seq'] = len(set([x for sublst in [list(range(i,j)) 
+                for i,j in zip(df_sub['ali_from'], df_sub['ali_to']+1)] 
+                for x in sublst])) / df_sub['tlen']
+            df_sub['Cov_hmm'] = len(set([x for sublst in [list(range(i,j)) 
+                for i,j in zip(df_sub['hmm_from'], df_sub['hmm_to']+1)] 
+                for x in sublst])) / df_sub['qlen']
+            df_sub = df_sub[['Hmm','ORF','tlen','qlen','Eval','score',
+                            'start','end','Acc','Pos','Cov_seq','Cov_hmm','strand']]
+            return df_sub
+
+        self.hmm_df = hmm_df.groupby(['Hmm','ORF']).apply(covs)
+        
     # Write to file
     def write_hmm(self):
         self.hmm_df.to_csv(self.out+'hmmer.tab', sep='\t', index=False)
@@ -114,24 +130,6 @@ class HMMER(object):
         if self.any_cas:
         
             logging.info('Parsing HMMER output')
-
-            # Add columns
-            self.hmm_df['Acc'] = [re.sub("_[0-9]*$","",x) for x in self.hmm_df['ORF']]
-            self.hmm_df['Pos'] = [int(re.sub(".*_","",x)) for x in self.hmm_df['ORF']]
-
-            # Coverages of aligments
-            def covs(df_sub):
-                df_sub['Cov_seq'] = len(set([x for sublst in [list(range(i,j)) 
-                    for i,j in zip(df_sub['ali_from'], df_sub['ali_to']+1)] 
-                    for x in sublst])) / df_sub['tlen']
-                df_sub['Cov_hmm'] = len(set([x for sublst in [list(range(i,j)) 
-                    for i,j in zip(df_sub['hmm_from'], df_sub['hmm_to']+1)] 
-                    for x in sublst])) / df_sub['qlen']
-                df_sub = df_sub[['Hmm','ORF','tlen','qlen','Eval','score',
-                                'start','end','Acc','Pos','Cov_seq','Cov_hmm','strand']]
-                return df_sub
-
-            self.hmm_df = self.hmm_df.groupby(['Hmm','ORF']).apply(covs)
 
             # Pick best hit
             self.hmm_df.sort_values('score', ascending=False, inplace=True)

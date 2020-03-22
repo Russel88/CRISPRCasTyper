@@ -2,6 +2,9 @@ import os
 import subprocess
 import logging
 import sys
+import re
+
+import pandas as pd
 
 class Prodigal(object):
     
@@ -26,6 +29,9 @@ class Prodigal(object):
 
             # Check if succesful
             self.check_rerun()
+            
+            # Make gene table
+            self.get_genes()
 
     def check_rerun(self):
         # Check prodigal output
@@ -37,4 +43,17 @@ class Prodigal(object):
             else:
                 logging.critical('Prodigal failed! Check the log')
                 sys.exit()
+
+    def get_genes(self):
         
+        with open(self.out+'genes.tab', 'w') as gene_tab:
+            subprocess.run(['grep', '^>', self.out+'proteins.faa'], stdout=gene_tab)
+
+        genes = pd.read_csv(self.out+'genes.tab', sep='\s+', header=None,
+            usecols=(0,2,4,6), names=('Contig', 'Start', 'End', 'Strand'))
+
+        genes['Contig'] = [re.sub('^>','',x) for x in genes['Contig']]
+        genes['Pos'] = [int(re.sub(".*_","",x)) for x in genes['Contig']]
+        genes['Contig'] = [re.sub("_[0-9]*$","",x) for x in genes['Contig']]
+        
+        genes.to_csv(self.out+'genes.tab', index=False, sep='\t')
