@@ -15,15 +15,14 @@ It then connects the Cas operons and CRISPR arrays, producing as output:
 * Type V-K: [RNA-guided DNA insertion with CRISPR-associated transposases](https://doi.org/10.1126/science.aax9181)
 * Transposon associated type I-F: [Transposon-encoded CRISPR–Cas systems direct RNA-guided DNA integration](https://doi.org/10.1038/s41586-019-1323-z)
 
-#### It can automatically draw gene maps of (putative) CRISPR-Cas systems and orphan Cas operons and CRISPR arrays
-* Cas genes are in red.
-* Arrays are in blue, with their predicted subtype association based on the consensus repeat sequence.
+#### It can automatically draw gene maps of CRISPR-Cas systems and orphan Cas operons and CRISPR arrays
 <img src='img/plot.png' align="left" height="200" />
 
 # Table of contents
 1. [Quick start](#quick)
 2. [Installation](#install)
 3. [CasPredict - How to](#caspredict)
+    * [Plotting](#plot)
 4. [RepeatType - How to](#repeattype)
 
 ## Quick start <a name="quick"></a>
@@ -94,10 +93,24 @@ caspredict -h
     * Same columns as cas_operons.tab
 * **spacers/*.fa:**             Fasta files with all spacer sequences
 * **hmmer.tab:**                All HMM vs. ORF matches, raw unfiltered results
+* **genes.tab**                 All genes and their positions
 * **arguments.tab:**            File with arguments given to CasPredict
 
 #### Notes on output
 Files are only created if there is any data. For example, the crisprs_orphan.tab file is only created if there are any orphan CRISPR arrays.
+
+### Plotting <a name="plot"></a>
+CasPredict will automatically plot a map of the CRISPR-Cas loci, orphan Cas operons, and orphan CRISPR arrays.
+
+These maps can be expanded (`--expand N`) by adding unknown genes and genes with alignment scores below the thresholds. This can help in identify potentially un-annotated genes in operon.
+* Cas genes are in red.
+* Cas genes, with alignment scores below the thresholds, are in dark green
+* Unknown genes are in gray (the number matches the genes.tab file)
+* Arrays are in blue, with their predicted subtype association based on the consensus repeat sequence.
+
+The below plot is run with `--expand 5`
+
+<img src='img/plot2.png' align="left" height="400" />
 
 ## RepeatType - How to <a name="repeattype"></a>
 With an input of CRISPR repeats (one per line, in a simple textfile) RepeatType will predict the subtype, based on the kmer composition of the repeat
