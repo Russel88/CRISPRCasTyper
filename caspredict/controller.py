@@ -39,11 +39,12 @@ class Controller(object):
         self.scale = args.scale
         self.nogrid = args.no_grid
         self.expand = args.expand
+        self.plotexpand = args.plot_expand
 
         self.any_cas = False
         self.any_operon = False
         self.any_crispr = False
-            
+
         # Logger
         logging.basicConfig(format='\033[36m'+'[%(asctime)s] %(levelname)s:'+'\033[0m'+' %(message)s', datefmt='%Y-%m-%d %H:%M:%S', level=self.lvl)
         logging.info('Running CasPredict version 0.4.3')

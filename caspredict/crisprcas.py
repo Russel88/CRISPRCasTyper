@@ -19,6 +19,9 @@ class CRISPRCas(object):
         def dist_ll(x,ll):
             return [dist(x,y) for y in ll]
         
+        if not self.any_crispr:
+            self.crisprsall = []
+        
         # Only if there is operons and crisprs
         if self.any_operon and self.any_crispr:
 
@@ -26,6 +29,7 @@ class CRISPRCas(object):
 
             # Load data
             cas = self.preddf
+            cas = cas[~cas['Prediction'].isin(['False'])]
             cas_1 = cas[~cas['Prediction'].isin(['False', 'Ambiguous', 'Partial'])]
             crispr = pd.read_csv(self.out+'crisprs_all.tab', sep='\t')
             self.crisprsall = crispr
@@ -126,4 +130,5 @@ class CRISPRCas(object):
                     self.orphan_cas.to_csv(self.out+'cas_operons_orphan.tab', sep='\t', index=False)
                 if len(self.orphan_crispr) > 0:
                     self.orphan_crispr.to_csv(self.out+'crisprs_orphan.tab', sep='\t', index=False)
+                
 
