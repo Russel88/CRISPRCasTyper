@@ -110,7 +110,7 @@ These maps can be expanded (`--expand N`) by adding unknown genes and genes with
 
 The below plot is run with `--expand 5`
 
-<img src='img/plot2.png' align="left" height="400" />
+<img src='img/plot2.png' align="left" height="350" />
 
 ## RepeatType - How to <a name="repeattype"></a>
 With an input of CRISPR repeats (one per line, in a simple textfile) RepeatType will predict the subtype, based on the kmer composition of the repeat
