@@ -108,7 +108,7 @@ These maps can be expanded (`--expand N`) by adding unknown genes and genes with
 * Unknown genes are in gray (the number matches the genes.tab file)
 * Arrays are in blue, with their predicted subtype association based on the consensus repeat sequence.
 
-The below plot is run with `--expand 5`
+The plot below is run with `--expand 5`
 
 <img src='img/plot2.png' align="left" height="350" />
 
