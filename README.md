@@ -50,7 +50,19 @@ python -m pip install caspredict
 ```
 
 #### When installing with pip, you need to download the database manually: 
-Coming soon...
+```sh
+# Download and unpack
+svn checkout https://github.com/Russel88/CasPredict/trunk/data
+tar -xvzf data/Profiles.tar.gz
+mv Profiles/ data/
+rm data/Profiles.tar.gz
+
+# Tell CasPredict where the data is:
+# either by setting an environment variable:
+export CASPREDICT_DB="/path/to/data/"
+# or by using the --db argument:
+caspredict input.fa output --db /path/to/data/
+```
 
 ## CasPredict - How to <a name="caspredict"></a>
 CasPredict takes as input a nucleotide fasta, and produces outputs with CRISPR-Cas predictions
