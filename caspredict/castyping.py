@@ -53,7 +53,7 @@ class Typer(object):
             if len(tmpX) >= 6:
                 # Only types with at least one specific HMM
                 zzz = tmpX.iloc[:,14:].transpose()
-                zzz= zzz[zzz.apply(lambda r: any(r >= 3), axis=1)]
+                zzz = zzz[zzz.apply(lambda r: any(r >= 3), axis=1)]
 
                 # Sum of unique genes
                 zzz = zzz.loc[:, zzz.apply(lambda r: sum(r > 0) == 1, axis=0)]
@@ -83,11 +83,20 @@ class Typer(object):
         # 2 genes in operon
         elif len(tmpX) == 2:
 
-            # Both somewhat good matches and score higher than 4
+            # ( Both somewhat good matches or one very good signature gene ) and score at least 4
             first_gene_good = float(list(tmpX['Cov_seq'])[0]) >= self.tcs and float(list(tmpX['Cov_hmm'])[0]) >= self.tch and float(list(tmpX['Eval'])[0]) < self.tev
             second_gene_good = float(list(tmpX['Cov_seq'])[1]) >= self.tcs and float(list(tmpX['Cov_hmm'])[0]) >= self.tch and float(list(tmpX['Eval'])[1]) < self.tev
 
-            if (first_gene_good and second_gene_good) and best_score >= 4:
+            first_gene_vgood = float(list(tmpX['Cov_seq'])[0]) >= self.scs and float(list(tmpX['Cov_hmm'])[0]) >= self.sch and float(list(tmpX['Eval'])[0]) < self.sev
+            second_gene_vgood = float(list(tmpX['Cov_seq'])[1]) >= self.scs and float(list(tmpX['Cov_hmm'])[0]) >= self.sch and float(list(tmpX['Eval'])[1]) < self.sev
+
+            first_signature = list(tmpX['Hmm'])[0] in self.signature
+            second_signature = list(tmpX['Hmm'])[1] in self.signature
+
+            first_accept = first_gene_vgood and first_signature
+            second_accept = second_gene_vgood and second_signature
+
+            if ( (first_gene_good and second_gene_good) or (first_accept or second_accept) ) and best_score >= 4:
                 # If ties, ambiguous
                 if sum(type_scores == best_score) > 1:
                     prediction = "Ambiguous"
@@ -103,7 +112,6 @@ class Typer(object):
             # Low score or low quality double gene operon = Trash
             else:
                 prediction = "False"
-
 
         # Only 1 gene
         else:
@@ -205,6 +213,13 @@ class Typer(object):
             # Load score table
             scores = pd.read_csv(self.scoring, sep=",")
             scores.fillna(0, inplace=True)
+
+            # Signature genes for single gene types
+            scores2 = scores.iloc[:,1:]
+            scores2.index = scores['Hmm']
+            scores2 = scores2[scores2.columns.intersection(self.single_gene_types)]
+            scores2 = scores2[scores2.apply(lambda r: any(r >= 4), axis=1)]
+            self.signature = [re.sub('_.*','',x) for x in list(scores2.index)]
 
             # Merge the tables
             self.hmm_df_all = pd.merge(self.hmm_df, scores, on="Hmm")
