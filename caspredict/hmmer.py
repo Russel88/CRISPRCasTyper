@@ -107,8 +107,9 @@ class HMMER(object):
                             'start','end','Acc','Pos','Cov_seq','Cov_hmm','strand']]
             return df_sub
 
-        self.hmm_df = hmm_df.groupby(['Hmm','ORF']).apply(covs)
-        
+        hmm_df = hmm_df.groupby(['Hmm','ORF']).apply(covs)
+        self.hmm_df = hmm_df.drop_duplicates()
+
     # Write to file
     def write_hmm(self):
         self.hmm_df.to_csv(self.out+'hmmer.tab', sep='\t', index=False)

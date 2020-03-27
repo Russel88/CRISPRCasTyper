@@ -49,8 +49,19 @@ class Typer(object):
         # At least 3 genes in operon
         if len(tmpX) >= 3:
            
+            # Low score is false unless there is a signature gene
+            if best_score <= 5:
+                if any([x in self.signature for x in list(tmpX['Hmm'])]):
+                    if sum(type_scores == best_score) > 1:
+                        prediction = "Ambiguous"
+                        best_type = list(type_scores.index.values[type_scores.values == np.amax(type_scores.values)])
+                    else:
+                        prediction = best_type
+                else:
+                    prediction = "False"
+            
             # Solve problem with adjacent systems. Only check if at least 6 genes
-            if len(tmpX) >= 6:
+            elif len(tmpX) >= 6:
                 # Only types with at least one specific HMM
                 zzz = tmpX.iloc[:,14:].transpose()
                 zzz = zzz[zzz.apply(lambda r: any(r >= 3), axis=1)]
@@ -79,63 +90,29 @@ class Typer(object):
                 else:
                     prediction = best_type
 
-
-        # 2 genes in operon
-        elif len(tmpX) == 2:
-
-            # ( Both somewhat good matches or one very good signature gene ) and score at least 4
-            first_gene_good = float(list(tmpX['Cov_seq'])[0]) >= self.tcs and float(list(tmpX['Cov_hmm'])[0]) >= self.tch and float(list(tmpX['Eval'])[0]) < self.tev
-            second_gene_good = float(list(tmpX['Cov_seq'])[1]) >= self.tcs and float(list(tmpX['Cov_hmm'])[0]) >= self.tch and float(list(tmpX['Eval'])[1]) < self.tev
-
-            first_gene_vgood = float(list(tmpX['Cov_seq'])[0]) >= self.scs and float(list(tmpX['Cov_hmm'])[0]) >= self.sch and float(list(tmpX['Eval'])[0]) < self.sev
-            second_gene_vgood = float(list(tmpX['Cov_seq'])[1]) >= self.scs and float(list(tmpX['Cov_hmm'])[0]) >= self.sch and float(list(tmpX['Eval'])[1]) < self.sev
-
-            first_signature = list(tmpX['Hmm'])[0] in self.signature
-            second_signature = list(tmpX['Hmm'])[1] in self.signature
-
-            first_accept = first_gene_vgood and first_signature
-            second_accept = second_gene_vgood and second_signature
-
-            if ( (first_gene_good and second_gene_good) or (first_accept or second_accept) ) and best_score >= 4:
-                # If ties, ambiguous
-                if sum(type_scores == best_score) > 1:
-                    prediction = "Ambiguous"
-                    best_type = "Ambiguous"
-                # If no ties
-                else:
-                    # If one gene subtype, then assign
-                    if best_type in self.single_gene_types:
-                        prediction = best_type
-                    # Not one-gene subtype system hit = Partial
-                    else:
-                        prediction = "Partial"
-            # Low score or low quality double gene operon = Trash
-            else:
-                prediction = "False"
-
-        # Only 1 gene
+        # 1 or 2 genes in operon
         else:
 
-            # Only high quality
-            lonely_gene_good = float(tmpX['Cov_seq']) >= self.scs and float(tmpX['Cov_hmm']) >= self.sch and float(tmpX['Eval']) < self.sev
-
-            if lonely_gene_good and best_score >= 4:
+            if len(tmpX) == 2:
+                first_signature = list(tmpX['Hmm'])[0] in self.signature
+                second_signature = list(tmpX['Hmm'])[1] in self.signature
+                accept = first_signature or second_signature
+            if len(tmpX) == 1:
+                accept = list(tmpX['Hmm'])[0] in self.signature
+            
+            # If any is a signature gene for a single gene type
+            if accept:
                 # If ties, ambiguous
                 if sum(type_scores == best_score) > 1:
                     prediction = "Ambiguous"
-                    best_type = "Ambiguous"
+                    best_type = list(type_scores.index.values[type_scores.values == np.amax(type_scores.values)])
                 # If no ties
                 else:
-                    # One gene subtype
-                    if best_type in self.single_gene_types:
-                        prediction = best_type
-                    # High quality, lonely, not one-gene subtype system hit = Partial
-                    else:
-                        prediction = "Partial"
-            # Low quality, single gene operon = Trash
+                    prediction = best_type
+            # If no single gene type signature
             else:
                 prediction = "False"
-
+        
 
         outdict = {"Contig": list(tmp['Acc'])[0],
                    "Operon": operon,
@@ -153,6 +130,38 @@ class Typer(object):
         return outdict
 
 
+    def cluster_adj(self, data):
+        '''
+        Cluster adjacent genes into operons
+
+        Params:
+        data: A pandas data.frame with an Acc (accession number) column and a Pos (gene posistion) column
+        dist: Int. Max allowed distance between genes in an operon
+
+        Returns:
+        List. Operon IDs with the same length and order as the input data.frame
+        '''
+        
+        dist = self.dist
+        
+        positions = list(data['Pos'])
+        # Create a list of zeroes to indicate positions
+        pos_range = max(positions) * [0]
+        # Insert ones at positions where genes are annotated
+        for x in positions:
+            pos_range[x-1] = 1
+        # Pad
+        pad = list(np.zeros(dist, dtype=int))
+        pos_range_pad = pad + pos_range + pad
+        # Closing to melt adjacent genes together (up to 'dist' genes between them)
+        pos_range_dilated = ndimage.morphology.binary_closing(pos_range_pad, structure = list(np.ones(dist+1)))
+        # Label adjacent elements
+        clust_pad, nclust = ndimage.label(pos_range_dilated)
+        # Remove pad
+        clust = clust_pad[dist:len(clust_pad)-dist]
+        # Extract cluster id for each gene
+        return [list(data['Acc'])[0] + "@" + str(clust[x-1]) for x in positions]
+    
     def typing(self):
         '''
         Subtyping of putative Cas operons
@@ -160,66 +169,35 @@ class Typer(object):
 
         if self.any_cas:
             logging.info('Subtyping putative operons')
-            
-            # Apply overall thresholds
-            self.hmm_df = self.hmm_df[(self.hmm_df['Cov_seq'] >= self.ocs) & 
+
+            # Specific cut-offs
+            specifics = []
+            for key, value in self.cutoffs.items():
+                which_sub = [i for i in list(self.hmm_df['Hmm']) if key.lower() in i.lower()]
+                if len(which_sub) > 0:
+                    specifics.extend(which_sub)
+                    self.hmm_df = self.hmm_df[((self.hmm_df['Eval'] < float(value[0])) & 
+                                                (self.hmm_df['Cov_seq'] >= float(value[1])) &
+                                                (self.hmm_df['Cov_hmm'] >= float(value[2]))) |
+                                                ([x not in which_sub for x in self.hmm_df['Hmm']])]
+
+            # Apply overall thresholds for the rest
+            self.hmm_df = self.hmm_df[((self.hmm_df['Cov_seq'] >= self.ocs) & 
                                         (self.hmm_df['Cov_hmm'] >= self.och) & 
-                                        (self.hmm_df['Eval'] < self.oev)]
-
-            # V-F specific thresholds
-            VF = [i for i in list(self.hmm_df['Hmm']) if 'cas12f' in i or 'cas12_x' in i]
-            
-            self.hmm_df = self.hmm_df[((self.hmm_df['Cov_hmm'] >= self.vfc) & 
-                                        (self.hmm_df['Eval'] < self.vfe)) |
-                                        ([x not in VF for x in self.hmm_df['Hmm']])]
-
-
+                                        (self.hmm_df['Eval'] < self.oev)) |
+                                        ([x in specifics for x in self.hmm_df['Hmm']])]
+          
             # Define operons
-            # First define function for finding them
-            def cluster_adj(data, dist=self.dist):
-                '''
-                Cluster adjacent genes into operons
-
-                Params:
-                data: A pandas data.frame with an Acc (accession number) column and a Pos (gene posistion) column
-                dist: Int. Max allowed distance between genes in an operon
-
-                Returns:
-                List. Operon IDs with the same length and order as the input data.frame
-                '''
-                
-                positions = list(data['Pos'])
-                # Create a list of zeroes to indicate positions
-                pos_range = max(positions) * [0]
-                # Insert ones at positions where genes are annotated
-                for x in positions:
-                    pos_range[x-1] = 1
-                # Pad
-                pad = list(np.zeros(dist, dtype=int))
-                pos_range_pad = pad + pos_range + pad
-                # Closing to melt adjacent genes together (up to 'dist' genes between them)
-                pos_range_dilated = ndimage.morphology.binary_closing(pos_range_pad, structure = list(np.ones(dist+1)))
-                # Label adjacent elements
-                clust_pad, nclust = ndimage.label(pos_range_dilated)
-                # Remove pad
-                clust = clust_pad[dist:len(clust_pad)-dist]
-                # Extract cluster id for each gene
-                return [list(data['Acc'])[0] + "@" + str(clust[x-1]) for x in positions]
-            
-            self.hmm_df.sort_values('Acc', inplace=True)
-            operons = list(self.hmm_df.groupby('Acc').apply(cluster_adj))
-            self.hmm_df['operon'] = list(chain.from_iterable(operons))
+            self.hmm_df = self.hmm_df.sort_values('Acc')
+            operons = list(self.hmm_df.groupby('Acc').apply(self.cluster_adj))
+            self.hmm_df.loc[:,'operon'] = list(chain.from_iterable(operons))
 
             # Load score table
             scores = pd.read_csv(self.scoring, sep=",")
             scores.fillna(0, inplace=True)
 
             # Signature genes for single gene types
-            scores2 = scores.iloc[:,1:]
-            scores2.index = scores['Hmm']
-            scores2 = scores2[scores2.columns.intersection(self.single_gene_types)]
-            scores2 = scores2[scores2.apply(lambda r: any(r >= 4), axis=1)]
-            self.signature = [re.sub('_.*','',x) for x in list(scores2.index)]
+            self.signature = [re.sub('_.*','',x) for x in list(specifics)]
 
             # Merge the tables
             self.hmm_df_all = pd.merge(self.hmm_df, scores, on="Hmm")
@@ -247,8 +225,8 @@ class Typer(object):
     def write_type(self):
         
         if self.any_operon:
-            operons_good = self.preddf[~self.preddf['Prediction'].isin(['False', 'Ambiguous', 'Partial'])]
-            operons_put = self.preddf[self.preddf['Prediction'].isin(['False', 'Ambiguous', 'Partial'])]
+            operons_good = self.preddf[~self.preddf['Prediction'].isin(['False', 'Ambiguous'])]
+            operons_put = self.preddf[self.preddf['Prediction'].isin(['False', 'Ambiguous'])]
 
             if len(operons_good) > 0:
                 operons_good.to_csv(self.out+'cas_operons.tab', sep='\t', index=False)

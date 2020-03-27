@@ -39,14 +39,6 @@ apt.add_argument('--dist', help='Max allowed distance between genes in operon [%
 apt.add_argument('--overall_eval', help='Overall E-value threshold [%(default)s].', default=0.01, type=float)
 apt.add_argument('--overall_cov_seq', help='Overall sequence coverage threshold [%(default)s].', default=0.3, type=float)
 apt.add_argument('--overall_cov_hmm', help='Overall HMM coverage threshold [%(default)s].', default=0.3, type=float)
-apt.add_argument('--two_gene_eval', help='Two-gene operon E-value threshold [%(default)s].', default=1e-5, type=float)
-apt.add_argument('--two_gene_cov_seq', help='Two-gene operon sequence coverage threshold [%(default)s].', default=0.8, type=float)
-apt.add_argument('--two_gene_cov_hmm', help='Two-gene operon HMM coverage threshold [%(default)s].', default=0.8, type=float)
-apt.add_argument('--single_gene_eval', help='Lonely gene E-value threshold [%(default)s].', default=1e-10, type=float)
-apt.add_argument('--single_gene_cov_seq', help='Lonely gene sequence coverage threshold [%(default)s].', default=0.9, type=float)
-apt.add_argument('--single_cov_hmm', help='Lonely gene HMM coverage threshold [%(default)s].', default=0.9, type=float)
-apt.add_argument('--vf_eval', help='V-F Cas12 specific E-value threshold [%(default)s].', default=1e-75, type=float)
-apt.add_argument('--vf_cov_hmm', help='V-F Cas12 specific HMM coverage threshold [%(default)s].', default=0.97, type=float)
 
 # CRISPRs
 apc = ap.add_argument_group('crispr threshold arguments')

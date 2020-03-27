@@ -20,14 +20,6 @@ class Controller(object):
         self.oev = args.overall_eval
         self.ocs = args.overall_cov_seq
         self.och = args.overall_cov_hmm
-        self.tev = args.two_gene_eval
-        self.tcs = args.two_gene_cov_seq
-        self.tch = args.two_gene_cov_hmm
-        self.sev = args.single_gene_eval
-        self.scs = args.single_gene_cov_seq
-        self.sch = args.single_cov_hmm
-        self.vfe = args.vf_eval
-        self.vfc = args.vf_cov_hmm
         self.check_inp = args.skip_check
         self.keep_tmp = args.keep_tmp
         self.lvl = args.log_lvl
@@ -47,7 +39,7 @@ class Controller(object):
 
         # Logger
         logging.basicConfig(format='\033[36m'+'[%(asctime)s] %(levelname)s:'+'\033[0m'+' %(message)s', datefmt='%Y-%m-%d %H:%M:%S', level=self.lvl)
-        logging.info('Running CasPredict version 0.4.5')
+        logging.info('Running CasPredict version 0.5.0')
 
         # Force consistency
         self.out = os.path.join(self.out, '')
@@ -56,9 +48,6 @@ class Controller(object):
             self.check_inp = True
 
         self.prot_path = self.out+'proteins.faa'
-
-        # Hardcode single gene types
-        self.single_gene_types=('II-A','II-B','II-C','V-A','V-B','V-C','V-D','V-E','V-F','V-G','V-H','V-I','V-J','VI-A','VI-B','VI-C','VI-D')
 
         # Check databases
         self.check_db()
@@ -135,7 +124,8 @@ class Controller(object):
         self.pdir = os.path.join(self.db, 'Profiles', '')
         self.xgb = os.path.join(self.db, "xgb_repeats.model")
         self.typedict = os.path.join(self.db, "type_dict.tab")
-    
+        self.cutoffdb = os.path.join(self.db, "cutoffs.tab")
+
         # Try to load CasScoring table
         if os.path.isfile(self.scoring):
             try:
@@ -156,3 +146,9 @@ class Controller(object):
         else:
             logging.error('Could not find HMM profile directory')
             sys.exit()
+
+        # Load specific cutoffs
+        with open(self.cutoffdb, 'r') as f:
+            rs = (ll.rstrip().split(':') for ll in f)
+            self.cutoffs = {r[0].lower():r[1].split(',') for r in rs}
+
