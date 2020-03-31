@@ -1,0 +1,32 @@
+#!/usr/bin/env python
+
+import argparse
+import os
+import sys
+
+from caspredict.xgbtrain import XGBTrain
+
+
+########## Arguments ##########
+ap = argparse.ArgumentParser()
+
+# Required
+ap.add_argument('input', help='Input. A tab-delimeted file, where first column is the repeat sequence, and the second column is the subtype')
+ap.add_argument('output', help='Output directory')
+
+# Optional
+ap.add_argument('--kmer', help='kmer size [%(default)s].', default=4, type=int)
+ap.add_argument('--minr', help='Min number of repeats to include subtype [%(default)s].', default=20, type=int)
+ap.add_argument('--rnd_seed', help='Random seed [%(default)s].', default=42, type=int)
+ap.add_argument('--test_size', help='Fraction of data for testing [%(default)s].', default=0.3, type=float)
+ap.add_argument('--eta', help='Learning rate [%(default)s].', default=0.3, type=float)
+ap.add_argument('--threads', help='Number of threads for training [%(default)s].', default=4, type=int)
+ap.add_argument('--num_rounds', help='Number of training rounds [%(default)s].', default=100, type=int)
+ap.add_argument('--early_stop', help='Early stopping rounds [%(default)s].', default=10, type=int)
+ap.add_argument('--nfold', help='Cros-validation folds [%(default)s].', default=3, type=int)
+ap.add_argument('--max_depth', help='List of max_depth to train with [%(default)s].', default=(4,6,8), type=int, nargs='+')
+ap.add_argument('--subsample', help='List of subsample to train with [%(default)s].', default=(0.6,0.8,1), type=float, nargs='+')
+ap.add_argument('--colsample_bytree', help='List of colsample_bytree to train with [%(default)s].', default=(0.6,0.8,1), type=float, nargs='+')
+
+# Workflow starts here
+xgb = XGBTrain(ap.parse_args())

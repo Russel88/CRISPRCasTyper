@@ -39,7 +39,7 @@ class Controller(object):
 
         # Logger
         logging.basicConfig(format='\033[36m'+'[%(asctime)s] %(levelname)s:'+'\033[0m'+' %(message)s', datefmt='%Y-%m-%d %H:%M:%S', level=self.lvl)
-        logging.info('Running CasPredict version 0.5.0')
+        logging.info('Running CasPredict version 0.5.1')
 
         # Force consistency
         self.out = os.path.join(self.out, '')
@@ -91,9 +91,17 @@ class Controller(object):
                 sys.exit()
 
     def is_fasta(self):
-        with open(self.fasta, 'r') as handle:
-            fa = SeqIO.parse(handle, 'fasta')
-            return any(fa)
+        
+        try:
+            with open(self.fasta, 'r') as handle:
+                fa = SeqIO.parse(handle, 'fasta')
+                [float(x.id) for x in fa]
+                logging.error('Numeric fasta headers not supported')
+                return False
+        except:
+            with open(self.fasta, 'r') as handle:
+                fa = SeqIO.parse(handle, 'fasta')
+                return any(fa)
 
     def clean(self):
         if not self.redo:
