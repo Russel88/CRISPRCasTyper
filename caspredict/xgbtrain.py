@@ -229,11 +229,11 @@ class XGBTrain(object):
         type_acc = np.diag(conf_df) / conf_df.sum(axis=1)
 
         print('\033[92m' + 'Overall accuracy:' + '\033[0m')
-        print(round(sum(np.diag(conf))/sum(conf), 3))
+        print(np.diag(conf).sum()/conf.sum())
 
         print('\033[92m' + 'Accuracy per subtype:' + '\033[0m')
-        print(round(type_acc, 3))
+        print(type_acc)
 
         print('\033[92m' + 'Average accuracy:' + '\033[0m')
-        print(round(type_acc.mean(), 3))
+        print(type_acc.mean())
 

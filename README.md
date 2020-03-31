@@ -24,6 +24,7 @@ It then connects the Cas operons and CRISPR arrays, producing as output:
 3. [CasPredict - How to](#caspredict)
     * [Plotting](#plot)
 4. [RepeatType - How to](#repeattype)
+4. [RepeatType - Train](#repeattrain)
 
 ## Quick start <a name="quick"></a>
 
@@ -172,5 +173,32 @@ The script prints:
     * **IV-A3**    0.98
     * **V-A**      0.77
     * **VI-B**     1.00
+
+## RepeatType - Train <a name="repeattrain"></a>
+You can train the repeat classifier with your own set of subtyped repeats. With a tab-delimeted input where 1. column contains the subtypes and 2. column contains the CRISPR repeat sequences, RepeatTrain will train a CRISPR repeat classifier that is directly usable for both RepeatType and CasPredict.
+
+#### Train
+```sh
+repeatTrain typed_repeats.tab my_classifier
+```
+
+#### Use new model in RepeatType
+```sh
+repeatType repeats.txt --db my_classifier
+```
+
+#### Use new model in CasPredict
+Save the original database files:
+```sh
+mv ${CASPREDICT_DB}/type_dict.tab ${CASPREDICT_DB}/type_dict_orig.tab
+mv ${CASPREDICT_DB}/xgb_repeats.model ${CASPREDICT_DB}/xgb_repeats_orig.model
+```
+
+Move the new model into the database folder
+```sh
+mv my_classifier/* ${CASPREDICT_DB}/
+```
+
+##### CasPredict and RepeatType will now use the new model for repeat prediction!
 
 
