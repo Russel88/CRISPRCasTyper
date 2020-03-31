@@ -124,6 +124,8 @@ class Map(object):
             cas_ambi = self.preddf[self.preddf['Prediction'] == 'Ambiguous']
             try:
                 casAmbiOrph = pd.concat([self.orphan_cas, cas_ambi])
+                # Remove ambiguous, which are in CRISPR-Cas
+                casAmbiOrph = casAmbiOrph[~casAmbiOrph['Operon'].isin(self.crispr_cas['Operon'])]
             except:
                 cas_good = self.preddf[~self.preddf['Prediction'].isin(['False','Ambiguous','Partial'])]
                 casAmbiOrph = pd.concat([cas_good, cas_ambi])
@@ -148,6 +150,7 @@ class Map(object):
             width = self.get_longest(self.orphan_crispr, casAmbiOrph, self.crispr_cas, self.crisprsall) 
 
             self.genes = pd.read_csv(self.out+'genes.tab', sep='\t') 
+            
             width = width + (self.plotexpand * self.expand * 2)
 
             self.im = Image.new('RGB', (int(round(self.scale/50*width+self.scale*10)), int(round((total+1)*20*self.scale))), (255, 255, 255))
@@ -276,10 +279,23 @@ class Map(object):
                         expand_list = sorted(expand_list, key=lambda x: x[0])
                         self.draw_system(expand_list, [], k)
                             
-
+                        # Add arrays
+                        add_crisp = self.crisprsall[self.crisprsall['CRISPR'] != i]
+                        add_crisp = add_crisp[(add_crisp['End'] > start-self.plotexpand) | (add_crisp['Start'] < end+self.plotexpand)]
+                        if len(add_crisp) > 0:
+                            crisprs = list(add_crisp['CRISPR'])
+                            startsCris = [list(add_crisp[add_crisp['CRISPR'] == x]['Start'])[0] for x in crisprs]
+                            endsCris = [list(add_crisp[add_crisp['CRISPR'] == x]['End'])[0] for x in crisprs]
+                            nameCris = [list(add_crisp[add_crisp['CRISPR'] == x]['Prediction'])[0] for x in crisprs]
+                            
+                            startsCris = [self.expand*self.plotexpand + 1 + x - start for x in startsCris]
+                            endsCris = [self.expand*self.plotexpand + 1 + x - start for x in endsCris]
+                            
+                            self.draw_system([], list(zip(startsCris, endsCris, nameCris)), k)
+                    
                     # Draw
                     self.draw_array(self.expand*self.plotexpand + 1, self.expand*self.plotexpand + 1 + end - start, pred, k, 1)
                     self.draw_name(k, pred, i, start, end)
-                            
+                    
             self.im.save(self.out+'plot.png')
                     
