@@ -58,7 +58,7 @@ class XGBTrain(object):
     def read_input(self):
         
         # Load input:i
-        self.dat = pd.read_csv(self.input, header=None, sep='\t', names=('Acc','Type',"Seq"))
+        self.dat = pd.read_csv(self.input, header=None, sep='\t', names=('Type',"Seq"))
 
         # Check input
         def is_dna(s):

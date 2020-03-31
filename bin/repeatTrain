@@ -11,7 +11,7 @@ from caspredict.xgbtrain import XGBTrain
 ap = argparse.ArgumentParser()
 
 # Required
-ap.add_argument('input', help='Input. A tab-delimeted file, where first column is the repeat sequence, and the second column is the subtype')
+ap.add_argument('input', help='Input. A tab-delimeted file, where first column is the subtype, and the second column is the repeat sequence')
 ap.add_argument('output', help='Output directory')
 
 # Optional
