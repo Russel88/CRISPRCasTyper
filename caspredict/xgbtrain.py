@@ -96,7 +96,7 @@ class XGBTrain(object):
         
         f = open(self.out+'type_dict.tab', 'w')
         for k, v in self.label_dict.items():
-            f.write('{}:\t{}\n'.format(k, v))
+            f.write('{}:{}\n'.format(k, v))
         f.close()
 
         self.dat = self.dat[self.dat['Type'].isin(self.incl)]
