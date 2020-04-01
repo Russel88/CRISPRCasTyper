@@ -10,7 +10,7 @@ It then connects the Cas operons and CRISPR arrays, producing as output:
 * Orphan CRISPR arrays, and their predicted associated subtype
 
 #### It includes the following subtypes:
-* All the ones in the most recent Nature Reviews Microbiology: [Evolutionary classification of CRISPR–Cas systems: a burst of class 2 and derived variants](https://doi.org/10.1038/s41579-019-0299-x)
+* All the ones in the most recent Nature Reviews Microbiology (Makarova et al. 2020): [Evolutionary classification of CRISPR–Cas systems: a burst of class 2 and derived variants](https://doi.org/10.1038/s41579-019-0299-x)
 * Updated type IV subtypes and variants based on: [Type IV CRISPR–Cas systems are highly diverse and involved in competition between plasmids](https://doi.org/10.1093/nar/gkz1197)
 * Type V-K: [RNA-guided DNA insertion with CRISPR-associated transposases](https://doi.org/10.1126/science.aax9181)
 * Transposon associated type I-F: [Transposon-encoded CRISPR–Cas systems direct RNA-guided DNA integration](https://doi.org/10.1038/s41586-019-1323-z)
@@ -35,10 +35,14 @@ caspredict my.fasta my_output
 ```
 
 ## Installation <a name="install"></a>
-### Conda
-It is advised to use [miniconda](https://docs.conda.io/en/latest/miniconda.html) or [anaconda](https://www.anaconda.com/) to install.
+CasPredict can be installed either through conda or pip.
 
-Create the environment with caspredict and all dependencies
+It is advised to use conda, since this installs CasPredict and all dependencies, and downloads with database in one go.
+
+### Conda
+Use [miniconda](https://docs.conda.io/en/latest/miniconda.html) or [anaconda](https://www.anaconda.com/) to install.
+
+Create the environment with caspredict and all dependencies and database
 ```sh
 conda create -n caspredict -c conda-forge -c bioconda -c russel88 caspredict
 ```
@@ -59,9 +63,9 @@ mv Profiles/ data/
 rm data/Profiles.tar.gz
 
 # Tell CasPredict where the data is:
-# either by setting an environment variable:
+# either by setting an environment variable (has to done for each terminal session, or added to .bashrc):
 export CASPREDICT_DB="/path/to/data/"
-# or by using the --db argument:
+# or by using the --db argument each time you run CasPredict:
 caspredict input.fa output --db /path/to/data/
 ```
 
