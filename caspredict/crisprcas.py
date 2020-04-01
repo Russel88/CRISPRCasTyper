@@ -22,6 +22,11 @@ class CRISPRCas(object):
         if not self.any_crispr:
             self.crisprsall = []
         
+        # If only CRISPR
+        if self.any_crispr and (not self.any_operon):
+            crispr = pd.read_csv(self.out+'crisprs_all.tab', sep='\t')
+            self.crisprsall = crispr
+        
         # Only if there is operons and crisprs
         if self.any_operon and self.any_crispr:
 

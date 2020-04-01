@@ -130,7 +130,9 @@ class Map(object):
                 cas_good = self.preddf[~self.preddf['Prediction'].isin(['False','Ambiguous','Partial'])]
                 casAmbiOrph = pd.concat([cas_good, cas_ambi])
             total += len(casAmbiOrph)
-
+        else:
+            casAmbiOrph = []
+        
         try:
             total += len(self.orphan_crispr)
         except:
