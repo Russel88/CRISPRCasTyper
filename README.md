@@ -109,23 +109,32 @@ caspredict -h
 * **cas_operons_putative.tab:** Putative Cas operons, mostly false positives, but also some ambiguous and partial systems
     * Same columns as cas_operons.tab
 * **spacers/*.fa:**             Fasta files with all spacer sequences
-* **hmmer.tab:**                All HMM vs. ORF matches, raw unfiltered results
+* **hmmer.tab:**                All HMM vs. ORF matches, unfiltered results
 * **genes.tab**                 All genes and their positions
 * **arguments.tab:**            File with arguments given to CasPredict
 
+* **hmmer.log**                 Error messages from HMMER (only produced if any errors were encountered)
+
+##### If run with `--keep_tmp` the following is also produced
+* **prodigal.log**              Log from prodigal
+* **proteins.faa**              Protein sequences
+* **hmmer/*.tab**               Alignment output from HMMER for each Cas HMM
+* **minced.out:**               CRISPR array output from minced
+
 #### Notes on output
-Files are only created if there is any data. For example, the crisprs_orphan.tab file is only created if there are any orphan CRISPR arrays.
+Files are only created if there is any data. For example, the CRISPR_Cas.tab file is only created if there are any CRISPR-Cas loci. 
 
 ### Plotting <a name="plot"></a>
 CasPredict will automatically plot a map of the CRISPR-Cas loci, orphan Cas operons, and orphan CRISPR arrays.
 
-These maps can be expanded (`--expand N`) by adding unknown genes and genes with alignment scores below the thresholds. This can help in identify potentially un-annotated genes in operon.
+These maps can be expanded (`--expand N`) by adding unknown genes and genes with alignment scores below the thresholds. This can help in identify potentially un-annotated genes in operons. You can generate new plots without having to re-run the entire pipeline by adding `--redo_typing` to the command. This will re-use the mappings and re-type the operons and re-make the plot, based on new thresholds and plot parameters.
+
+The plot below is run with `--expand 5`
+
 * Cas genes are in red.
 * Cas genes, with alignment scores below the thresholds, are in dark green
 * Unknown genes are in gray (the number matches the genes.tab file)
 * Arrays are in blue, with their predicted subtype association based on the consensus repeat sequence.
-
-The plot below is run with `--expand 5`
 
 <img src='img/plot2.png' align="left" height="350" />
 
