@@ -32,14 +32,18 @@ class Controller(object):
         self.nogrid = args.no_grid
         self.expand = args.expand
         self.plotexpand = args.plot_expand
+        self.simplelog = args.simplelog
 
         self.any_cas = False
         self.any_operon = False
         self.any_crispr = False
 
         # Logger
-        logging.basicConfig(format='\033[36m'+'[%(asctime)s] %(levelname)s:'+'\033[0m'+' %(message)s', datefmt='%Y-%m-%d %H:%M:%S', level=self.lvl)
-        logging.info('Running CasPredict version 0.5.2')
+        if self.simplelog:
+            logging.basicConfig(format='[%(asctime)s] %(levelname)s: %(message)s', datefmt='%Y-%m-%d %H:%M:%S', level=self.lvl)
+        else:
+            logging.basicConfig(format='\033[36m'+'[%(asctime)s] %(levelname)s:'+'\033[0m'+' %(message)s', datefmt='%Y-%m-%d %H:%M:%S', level=self.lvl)
+        logging.info('Running CasPredict version 0.5.3')
 
         # Force consistency
         self.out = os.path.join(self.out, '')

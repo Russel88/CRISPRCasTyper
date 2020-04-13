@@ -57,7 +57,7 @@ class HMMER(object):
         # Start multiprocess
         pool = mp.Pool(self.threads)
         # Each HMM
-        if self.lvl == 'DEBUG':
+        if self.lvl == 'DEBUG' or self.simplelog:
             list(pool.imap(self.hmmsearch, os.listdir(self.pdir)))
         else:
             list(tqdm.tqdm(pool.imap(self.hmmsearch, os.listdir(self.pdir)), total=len(os.listdir(self.pdir))))
