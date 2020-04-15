@@ -17,6 +17,7 @@ class Controller(object):
         self.dist = args.dist
         self.prod = args.prodigal
         self.db = args.db
+        self.circular = args.circular
         self.oev = args.overall_eval
         self.ocs = args.overall_cov_seq
         self.och = args.overall_cov_hmm
@@ -43,7 +44,7 @@ class Controller(object):
             logging.basicConfig(format='[%(asctime)s] %(levelname)s: %(message)s', datefmt='%Y-%m-%d %H:%M:%S', level=self.lvl)
         else:
             logging.basicConfig(format='\033[36m'+'[%(asctime)s] %(levelname)s:'+'\033[0m'+' %(message)s', datefmt='%Y-%m-%d %H:%M:%S', level=self.lvl)
-        logging.info('Running CasPredict version 0.5.3')
+        logging.info('Running CasPredict version 0.5.4')
 
         # Force consistency
         self.out = os.path.join(self.out, '')
@@ -73,6 +74,10 @@ class Controller(object):
         for k, v in da.items():
             f.write('{}:\t{}\n'.format(k, v))
         f.close()
+
+        # If circular get lengths
+        if self.circular:
+            self.get_length()
 
     def check_out(self):
 
@@ -164,3 +169,9 @@ class Controller(object):
             rs = (ll.rstrip().split(':') for ll in f)
             self.cutoffs = {r[0].lower():r[1].split(',') for r in rs}
 
+    def get_length(self):
+        with open(self.fasta, 'r') as handle:
+            self.len_dict = {}
+            for fa in SeqIO.parse(handle, 'fasta'):
+                self.len_dict[fa.id] = len(fa.seq)
+        

@@ -56,4 +56,6 @@ class Prodigal(object):
         genes['Pos'] = [int(re.sub(".*_","",x)) for x in genes['Contig']]
         genes['Contig'] = [re.sub("_[0-9]*$","",x) for x in genes['Contig']]
         
+        self.genes = genes
+        
         genes.to_csv(self.out+'genes.tab', index=False, sep='\t')

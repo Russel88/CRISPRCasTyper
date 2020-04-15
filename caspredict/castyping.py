@@ -33,11 +33,16 @@ class Typer(object):
         tmpX['Hmm'] = [re.sub("_.*","",x) for x in tmpX['Hmm']]
         tmpX.drop_duplicates('Hmm', inplace=True)
 
-        start = tmp['start']
-        end = tmp['end']
+        start = list(tmp['start'])
+        end = list(tmp['end'])
 
-        start_operon = min(list(start)+list(end))
-        end_operon = max(list(start)+list(end))
+        if operon in self.circ_operons:
+            gene_end = np.argmax(np.diff(list(tmp['Pos'])))
+            start_operon = start[gene_end+1]
+            end_operon = end[gene_end]
+        else:
+            start_operon = min(start+end)
+            end_operon = max(start+end)
 
         # Get scores for each type
         type_scores = tmpX.iloc[:,14:].sum(axis=0)
@@ -146,7 +151,10 @@ class Typer(object):
         
         positions = list(data['Pos'])
         # Create a list of zeroes to indicate positions
-        pos_range = max(positions) * [0]
+        if self.circular:
+            pos_range = max(self.genes[self.genes['Contig'] == list(data['Acc'])[0]]['Pos']) * [0]
+        else:
+            pos_range = max(positions) * [0]
         # Insert ones at positions where genes are annotated
         for x in positions:
             pos_range[x-1] = 1
@@ -159,8 +167,17 @@ class Typer(object):
         clust_pad, nclust = ndimage.label(pos_range_dilated)
         # Remove pad
         clust = clust_pad[dist:len(clust_pad)-dist]
+        # Resolve circular
+        is_circ = False
+        if self.circular:
+            if any(clust[len(clust)-dist-1:] > 0) and any(clust[:dist+1] > 0):
+                last_num = clust[len(clust)-dist-1:][clust[len(clust)-dist-1:] > 0][0]
+                first_num = clust[:dist+1][clust[:dist+1] > 0][0]
+                if last_num != first_num:
+                    clust[clust == last_num] = first_num
+                    is_circ = True
         # Extract cluster id for each gene
-        return [list(data['Acc'])[0] + "@" + str(clust[x-1]) for x in positions]
+        return [[list(data['Acc'])[0] + "@" + str(clust[x-1]) for x in positions], is_circ]
     
     def typing(self):
         '''
@@ -188,9 +205,18 @@ class Typer(object):
                                         ([x in specifics for x in self.hmm_df['Hmm']])]
           
             # Define operons
+            if self.circular and self.redo:
+                self.genes = pd.read_csv(self.out+'genes.tab', sep='\t')
+            
             self.hmm_df = self.hmm_df.sort_values('Acc')
-            operons = list(self.hmm_df.groupby('Acc').apply(self.cluster_adj))
-            self.hmm_df.loc[:,'operon'] = list(chain.from_iterable(operons))
+            operons = self.hmm_df.groupby('Acc').apply(self.cluster_adj)
+            self.hmm_df.loc[:,'operon'] = list(chain.from_iterable([x[0] for x in list(operons)]))
+
+            # If any circular
+            self.circ_operons = []
+            any_circ = [x[1] for x in list(operons)]
+            if any(any_circ):
+                self.circ_operons = [sorted(i)[0] for (i, v) in zip([x[0] for x in list(operons)], any_circ) if v]
 
             # Load score table
             scores = pd.read_csv(self.scoring, sep=",")

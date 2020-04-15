@@ -13,11 +13,20 @@ class CRISPRCas(object):
     def crisprcas(self):
         
         # Define distance functions
-        def dist(x,y):
-            return y[0]-x[1] if y[0]>x[1] else x[0]-y[1]
+        def dist(x,y,ss,co):
+            if co:
+                return min(y[0]-x[1], x[0]-y[1])
+            else:
+                if ss > 0:
+                    if y[0]>x[1]:
+                        return min(y[0]-x[1], x[0]+ss-y[1])
+                    else:
+                        return min(x[0]-y[1], y[0]+ss-x[1])
+                else:
+                    return y[0]-x[1] if y[0]>x[1] else x[0]-y[1]
 
-        def dist_ll(x,ll):
-            return [dist(x,y) for y in ll]
+        def dist_ll(x,ll,ss,co):
+            return [dist(x,y,ss,co) for y in ll]
         
         if not self.any_crispr:
             self.crisprsall = []
@@ -48,9 +57,16 @@ class CRISPRCas(object):
                 # Loop over operons
                 for operon in set(cas_sub['Operon']):
                     cas_operon = cas_sub[cas_sub['Operon'] == operon]
-                    
+
+                    if self.circular:
+                        seq_size = self.len_dict[list(cas_operon['Contig'])[0]]
+                        circ_op = operon in self.circ_operons
+                    else:
+                        seq_size = 0
+                        circ_op = False
+
                     # Find distances between operon and crisprs
-                    dists = dist_ll((int(cas_operon['Start']), int(cas_operon['End'])), zip(crispr_sub['Start'], crispr_sub['End']))
+                    dists = dist_ll((int(cas_operon['Start']), int(cas_operon['End'])), zip(crispr_sub['Start'], crispr_sub['End']), seq_size, circ_op)
                     
                     # Only crisprs closer than dist threshold
                     crispr_operon = crispr_sub[[x <= self.crispr_cas_dist for x in dists]]
