@@ -105,6 +105,7 @@ caspredict -h
     * Prediction: Consenus prediction based on both Cas operon and CRISPR arrays
     * CRISPRs: CRISPRs adjacent to Cas operon
     * Distances: Distances to CRISPRs from Cas operon
+    * Prediction_Cas: Subtype prediction based on Cas operon
     * Prediction_CRISPRs: Subtype prediction of CRISPRs based on CRISPR repeat sequences
 * **cas_operons.tab:**          All certain Cas operons
     * Contig: Sequence accession
