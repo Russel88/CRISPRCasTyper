@@ -15,8 +15,14 @@ It then connects the Cas operons and CRISPR arrays, producing as output:
 * Type V-K: [RNA-guided DNA insertion with CRISPR-associated transposases](https://doi.org/10.1126/science.aax9181)
 * Transposon associated type I-F: [Transposon-encoded CRISPR–Cas systems direct RNA-guided DNA integration](https://doi.org/10.1038/s41586-019-1323-z)
 
+#### Webserver
+[CasPredict and RepeatType are also available throuh a webserver](caspredict.crispr.dk)
+
 #### It can automatically draw gene maps of CRISPR-Cas systems and orphan Cas operons and CRISPR arrays
 <img src='img/plot.png' align="left" height="200" />
+
+#### Citation
+Coming soon...
 
 # Table of contents
 1. [Quick start](#quick)
