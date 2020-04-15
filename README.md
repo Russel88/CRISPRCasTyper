@@ -99,12 +99,36 @@ caspredict -h
 
 #### Output <a name="caspredictout"></a>
 * **CRISPR_Cas.tab:**           CRISPR_Cas loci, with consensus subtype prediction
-    * Contains a consensus prediction (Prediction), and the separate predictions for the Cas operon (Prediction_Cas) and CRISPR arrays (Prediction_CRISPRs)
+    * Contig: Sequence accession
+    * Operon: Operon ID (Sequence accession @ NUMBER)
+    * Operon_Pos: [Start, End] of operon
+    * Prediction: Consenus prediction based on both Cas operon and CRISPR arrays
+    * CRISPRs: CRISPRs adjacent to Cas operon
+    * Distances: Distances to CRISPRs from Cas operon
+    * Prediction_CRISPRs: Subtype prediction of CRISPRs based on CRISPR repeat sequences
 * **cas_operons.tab:**          All certain Cas operons
-    * Contains a prediction of subtype (Prediction) and the subtype with the highest score (Best_type). If the score is high then Prediction = Best_type
+    * Contig: Sequence accession
+    * Operon: Operon ID (Sequence accession @ NUMBER)
+    * Start: Start of operon
+    * End: End of operon
+    * Prediction: Subtype prediction
+    * Best_type: Subtype with the highest score. If the score is high then Prediction = Best_type
+    * Best_score: Score of the highest scoring subtype
+    * Genes: List of Cas genes
+    * Positions: List of Gene IDs for the genes
+    * E-values: List of E-values for the genes
+    * CoverageSeq: List of sequence coverages for the genes
+    * CoverageHMM: List of HMM coverages for the genes
 * **crisprs_all.tab:**          All CRISPR arrays
-    * Contains a prediction of the associated subtype based on the repeat sequence (Prediction). 
-    * The 'Subtype' column is the subtype with highest probability. Prediction = Subtype if Subtype_probability is high
+    * Contig: Sequence accession
+    * CRISPR: CRISPR ID (Sequence accession _ NUMBER)
+    * Start: Start of CRISPR
+    * End: End of CRISPR
+    * Consensus_repeat: Consensus repeat sequence
+    * N_repeats: Number of repeats
+    * Prediction: Prediction of the associated subtype based on the repeat sequence
+    * Subtype: Subtype with highest prediction probability. Prediction = Subtype if Subtype_probability is high
+    * Subtype_probability: Probability of subtype prediction
 * **crisprs_orphan.tab:**       Orphan CRISPRs (those not in CRISPR_Cas.tab)
     * Same columns as crisprs_all.tab
 * **cas_operons_orphan.tab:**   Orphan Cas operons (those not in CRISPR_Cas.tab)
@@ -115,9 +139,26 @@ caspredict -h
     * Same columns as cas_operons.tab
 * **spacers/*.fa:**             Fasta files with all spacer sequences
 * **hmmer.tab:**                All HMM vs. ORF matches, unfiltered results
+    * Hmm: HMM name
+    * ORF: ORF name (Sequence accession _ Gene ID)
+    * tlen: ORF length
+    * qlen: HMM length
+    * Eval: E-value of alignment
+    * score: Alignment score
+    * start: ORF start
+    * end: ORF end
+    * Acc: Sequence accession
+    * Pos: Gene ID
+    * Cov_seq: Sequence coverage
+    * Cov_hmm: HMM coverage
+    * strand: Leading (1) or lagging (-1) strand
 * **genes.tab**                 All genes and their positions
+    * Contig: Sequence accession
+    * Start: Start of ORF
+    * End: End of ORF
+    * Strand: Leading (1) or lagging (-1) strand
+    * Pos: Gene ID
 * **arguments.tab:**            File with arguments given to CasPredict
-
 * **hmmer.log**                 Error messages from HMMER (only produced if any errors were encountered)
 
 ##### If run with `--keep_tmp` the following is also produced
