@@ -2,6 +2,8 @@
 
 Detect CRISPR-Cas genes and arrays, and predict the subtype based on both Cas genes and CRISPR repeat sequence.
 
+[CasPredict and RepeatType are also available through a webserver](http://caspredict.crispr.dk)
+
 This software finds Cas genes with a large suite of HMMs, then groups these HMMs into operons, and predicts the subtype of the operons based on a scoring scheme.
 Furthermore, it finds CRISPR arrays with [minced](https://github.com/ctSkennerton/minced), and using a kmer-based machine learning approach (extreme gradient boosting trees) it predicts the subtype of the CRISPR arrays based on the consensus repeat. 
 It then connects the Cas operons and CRISPR arrays, producing as output:
@@ -14,9 +16,6 @@ It then connects the Cas operons and CRISPR arrays, producing as output:
 * Updated type IV subtypes and variants based on: [Type IV CRISPR–Cas systems are highly diverse and involved in competition between plasmids](https://doi.org/10.1093/nar/gkz1197)
 * Type V-K: [RNA-guided DNA insertion with CRISPR-associated transposases](https://doi.org/10.1126/science.aax9181)
 * Transposon associated type I-F: [Transposon-encoded CRISPR–Cas systems direct RNA-guided DNA integration](https://doi.org/10.1038/s41586-019-1323-z)
-
-#### Webserver
-[CasPredict and RepeatType are also available throuh a webserver](caspredict.crispr.dk)
 
 #### It can automatically draw gene maps of CRISPR-Cas systems and orphan Cas operons and CRISPR arrays
 <img src='img/plot.png' align="left" height="200" />
