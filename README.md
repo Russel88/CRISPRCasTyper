@@ -97,7 +97,7 @@ caspredict genome.fa my_output -t 20
 caspredict -h
 ```
 
-#### Output
+#### Output <a name="caspredictout"></a>
 * **CRISPR_Cas.tab:**           CRISPR_Cas loci, with consensus subtype prediction
     * Contains a consensus prediction (Prediction), and the separate predictions for the Cas operon (Prediction_Cas) and CRISPR arrays (Prediction_CRISPRs)
 * **cas_operons.tab:**          All certain Cas operons
@@ -156,7 +156,7 @@ conda activate caspredict
 repeatType repeats.txt
 ```
 
-#### Output
+#### Output <a name="repeattypeout"></a>
 The script prints:
 * Repeat sequence
 * Predicted subtype
