@@ -26,7 +26,7 @@ Coming soon...
 # Table of contents
 1. [Quick start](#quick)
 2. [Installation](#install)
-3. [CasPredict - How to](#caspredict)
+3. [CasPredict - How to](#caspredicthow)
     * [Plotting](#plot)
 4. [RepeatType - How to](#repeattype)
 4. [RepeatType - Train](#repeattrain)
@@ -74,7 +74,7 @@ export CASPREDICT_DB="/path/to/data/"
 caspredict input.fa output --db /path/to/data/
 ```
 
-## CasPredict - How to <a name="caspredict"></a>
+## CasPredict - How to <a name="caspredicthow"></a>
 CasPredict takes as input a nucleotide fasta, and produces outputs with CRISPR-Cas predictions
 
 #### Activate environment
