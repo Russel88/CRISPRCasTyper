@@ -14,16 +14,19 @@ class CRISPRCas(object):
         
         # Define distance functions
         def dist(x,y,ss,co):
+            cc_circ = None
             if co:
-                return min(y[0]-x[1], x[0]-y[1])
+                return min(y[0]-x[1], x[0]-y[1]), cc_circ
             else:
                 if ss > 0:
                     if y[0]>x[1]:
-                        return min(y[0]-x[1], x[0]+ss-y[1])
+                        if x[0]+ss-y[1] < y[0]-x[1]: cc_circ = "crispr_end"
+                        return min(y[0]-x[1], x[0]+ss-y[1]), cc_circ
                     else:
-                        return min(x[0]-y[1], y[0]+ss-x[1])
+                        if y[0]+ss-x[1] < x[0]-y[1]: cc_circ = "crispr_start"
+                        return min(x[0]-y[1], y[0]+ss-x[1]), cc_circ
                 else:
-                    return y[0]-x[1] if y[0]>x[1] else x[0]-y[1]
+                    return y[0]-x[1] if y[0]>x[1] else x[0]-y[1], cc_circ
 
         def dist_ll(x,ll,ss,co):
             return [dist(x,y,ss,co) for y in ll]
@@ -49,6 +52,9 @@ class CRISPRCas(object):
             self.crisprsall = crispr
 
             dicts = []
+            self.cc_circ_start = {}
+            self.cc_circ_end = {}
+
             # Loop over contig
             for contig in set(cas['Contig']):
                 cas_sub = cas[cas['Contig'] == contig]
@@ -67,17 +73,29 @@ class CRISPRCas(object):
 
                     # Find distances between operon and crisprs
                     dists = dist_ll((int(cas_operon['Start']), int(cas_operon['End'])), zip(crispr_sub['Start'], crispr_sub['End']), seq_size, circ_op)
-                    
+                    cc_circs = [x[1] for x in dists]
+                    distances = [x[0] for x in dists]
+
                     # Only crisprs closer than dist threshold
-                    crispr_operon = crispr_sub[[x <= self.crispr_cas_dist for x in dists]]
+                    crispr_operon = crispr_sub[[x <= self.crispr_cas_dist for x in distances]]
                     
+                    # Which CRISPRCas are spanning ends
+                    crispr_circ_start = crispr_sub.iloc[[x <= self.crispr_cas_dist for x, y in dists if y == 'crispr_start'],:]
+                    crispr_circ_end = crispr_sub.iloc[[x <= self.crispr_cas_dist for x, y in dists if y == 'crispr_end'],:]
+
+                    if len(crispr_circ_start) > 0:
+                        self.cc_circ_start[operon] = list(crispr_circ_start['CRISPR'])
+
+                    if len(crispr_circ_end) > 0:
+                        self.cc_circ_end[operon] = list(crispr_circ_end['CRISPR'])
+
                     if len(crispr_operon) > 0:
                         outdict = {
                         'Contig': list(cas_operon['Contig'])[0],
                         'Operon': list(cas_operon['Operon'])[0],
                         'Operon_Pos': [list(cas_operon['Start'])[0], list(cas_operon['End'])[0]],     
                         'CRISPRs': list(crispr_operon['CRISPR']),
-                        'Distances': [0 if x<0 else x for x in dists if x <= self.crispr_cas_dist],
+                        'Distances': [0 if x<0 else x for x in distances if x <= self.crispr_cas_dist],
                         'Prediction_Cas': list(cas_operon['Prediction'])[0],
                         'Prediction_CRISPRs': list(crispr_operon['Prediction']),
                         'Subtype_Cas': list(cas_operon['Best_type'])[0],

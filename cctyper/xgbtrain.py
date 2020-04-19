@@ -10,7 +10,7 @@ import xgboost as xgb
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import confusion_matrix
 
-from caspredict.xgb import XGB
+from cctyper.xgb import XGB
 
 class XGBTrain(object):
 

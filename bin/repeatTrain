@@ -4,7 +4,7 @@ import argparse
 import os
 import sys
 
-from caspredict.xgbtrain import XGBTrain
+from cctyper.xgbtrain import XGBTrain
 
 
 ########## Arguments ##########

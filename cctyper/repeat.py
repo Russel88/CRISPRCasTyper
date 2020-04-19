@@ -21,7 +21,7 @@ class RepeatTyper(object):
         
         if self.db == '':
             try:
-                DB_PATH = os.environ['CASPREDICT_DB']
+                DB_PATH = os.environ['CCTYPER_DB']
                 self.xgb = os.path.join(DB_PATH, 'xgb_repeats.model')
                 self.typedict = os.path.join(DB_PATH, 'type_dict.tab')
             except:

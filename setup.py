@@ -4,15 +4,15 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="caspredict", 
-    version="0.5.4",
+    name="cctyper", 
+    version="1.0.0",
     author="Jakob Russel",
     author_email="russel2620@gmail.com",
-    description="Automatic detection and subtyping of CRISPR-Cas operons",
+    description="CRISPRCasTyper: Automatic detection and subtyping of CRISPR-Cas operons",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/russel88/caspredict",
-    download_url="https://github.com/Russel88/CasPredict/archive/v0.5.4.tar.gz",
+    url="https://github.com/Russel88/CRISPRCasTyper",
+    download_url="https://github.com/Russel88/CRISPRCasTyper/archive/v1.0.0.tar.gz",
     packages=setuptools.find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",
@@ -33,7 +33,7 @@ setuptools.setup(
         "tqdm >= 4",
         "Pillow >= 7.0.0",
         "setuptools"],
-    scripts=['bin/caspredict',
+    scripts=['bin/cctyper',
              'bin/repeatType',
              'bin/repeatTrain']
 )

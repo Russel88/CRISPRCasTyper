@@ -4,8 +4,8 @@ import argparse
 import os
 import sys
 
-from caspredict.xgb import XGB
-from caspredict.repeat import RepeatTyper
+from cctyper.xgb import XGB
+from cctyper.repeat import RepeatTyper
 
 ########## Arguments ##########
 ap = argparse.ArgumentParser()

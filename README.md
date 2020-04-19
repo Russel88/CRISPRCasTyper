@@ -1,8 +1,8 @@
-# CasPredict
+# CRISPRCasTyper
 
 Detect CRISPR-Cas genes and arrays, and predict the subtype based on both Cas genes and CRISPR repeat sequence.
 
-[CasPredict and RepeatType are also available through a webserver](http://caspredict.crispr.dk)
+[CRISPRCasTyper and RepeatType are also available through a webserver](http://crisprcastyper.crispr.dk)
 
 This software finds Cas genes with a large suite of HMMs, then groups these HMMs into operons, and predicts the subtype of the operons based on a scoring scheme.
 Furthermore, it finds CRISPR arrays with [minced](https://github.com/ctSkennerton/minced), and using a kmer-based machine learning approach (extreme gradient boosting trees) it predicts the subtype of the CRISPR arrays based on the consensus repeat. 
@@ -26,7 +26,7 @@ Coming soon...
 # Table of contents
 1. [Quick start](#quick)
 2. [Installation](#install)
-3. [CasPredict - How to](#caspredicthow)
+3. [CRISPRCasTyper - How to](#cctyperhow)
     * [Plotting](#plot)
 4. [RepeatType - How to](#repeattype)
 4. [RepeatType - Train](#repeattrain)
@@ -34,70 +34,70 @@ Coming soon...
 ## Quick start <a name="quick"></a>
 
 ```sh
-conda create -n caspredict -c conda-forge -c bioconda -c russel88 caspredict
-conda activate caspredict
-caspredict my.fasta my_output
+conda create -n cctyper -c conda-forge -c bioconda -c russel88 cctyper
+conda activate cctyper
+cctyper my.fasta my_output
 ```
 
 ## Installation <a name="install"></a>
-CasPredict can be installed either through conda or pip.
+CRISPRCasTyper can be installed either through conda or pip.
 
-It is advised to use conda, since this installs CasPredict and all dependencies, and downloads with database in one go.
+It is advised to use conda, since this installs CRISPRCasTyper and all dependencies, and downloads with database in one go.
 
 ### Conda
 Use [miniconda](https://docs.conda.io/en/latest/miniconda.html) or [anaconda](https://www.anaconda.com/) to install.
 
-Create the environment with caspredict and all dependencies and database
+Create the environment with CRISPRCasTyper and all dependencies and database
 ```sh
-conda create -n caspredict -c conda-forge -c bioconda -c russel88 caspredict
+conda create -n cctyper -c conda-forge -c bioconda -c russel88 cctyper
 ```
 
 ### pip
 If you have the dependencies (Python >= 3.8, HMMER >= 3.2, Prodigal >= 2.6, grep, sed) in your PATH you can install with pip
 
 ```sh
-python -m pip install caspredict
+python -m pip install cctyper
 ```
 
 #### When installing with pip, you need to download the database manually: 
 ```sh
 # Download and unpack
-svn checkout https://github.com/Russel88/CasPredict/trunk/data
+svn checkout https://github.com/Russel88/CRISPRCasTyper/trunk/data
 tar -xvzf data/Profiles.tar.gz
 mv Profiles/ data/
 rm data/Profiles.tar.gz
 
-# Tell CasPredict where the data is:
+# Tell CRISPRCasTyper where the data is:
 # either by setting an environment variable (has to done for each terminal session, or added to .bashrc):
-export CASPREDICT_DB="/path/to/data/"
-# or by using the --db argument each time you run CasPredict:
-caspredict input.fa output --db /path/to/data/
+export CCTYPER_DB="/path/to/data/"
+# or by using the --db argument each time you run CRISPRCasTyper:
+cctyper input.fa output --db /path/to/data/
 ```
 
-## CasPredict - How to <a name="caspredicthow"></a>
-CasPredict takes as input a nucleotide fasta, and produces outputs with CRISPR-Cas predictions
+## CRISPRCasTyper - How to <a name="cctyperhow"></a>
+CRISPRCasTyper takes as input a nucleotide fasta, and produces outputs with CRISPR-Cas predictions
 
 #### Activate environment
 ```sh
-conda activate caspredict
+conda activate cctyper
 ```
 
 #### Run with a nucleotide fasta as input
 ```sh
-caspredict genome.fa my_output
+cctyper genome.fa my_output
 ```
 
 #### Use multiple threads
 ```sh
-caspredict genome.fa my_output -t 20
+cctyper genome.fa my_output -t 20
 ```
 
 #### Check the different options
 ```sh
-caspredict -h
+cctyper -h
 ```
 
-#### Output <a name="caspredictout"></a>
+#### Output <a name="cctyperout"></a>
 * **CRISPR_Cas.tab:**           CRISPR_Cas loci, with consensus subtype prediction
     * Contig: Sequence accession
     * Operon: Operon ID (Sequence accession @ NUMBER)
@@ -159,7 +159,7 @@ caspredict -h
     * End: End of ORF
     * Strand: Leading (1) or lagging (-1) strand
     * Pos: Gene ID
-* **arguments.tab:**            File with arguments given to CasPredict
+* **arguments.tab:**            File with arguments given to CRISPRCasTyper
 * **hmmer.log**                 Error messages from HMMER (only produced if any errors were encountered)
 
 ##### If run with `--keep_tmp` the following is also produced
@@ -172,7 +172,7 @@ caspredict -h
 Files are only created if there is any data. For example, the CRISPR_Cas.tab file is only created if there are any CRISPR-Cas loci. 
 
 ### Plotting <a name="plot"></a>
-CasPredict will automatically plot a map of the CRISPR-Cas loci, orphan Cas operons, and orphan CRISPR arrays.
+CRISPRCasTyper will automatically plot a map of the CRISPR-Cas loci, orphan Cas operons, and orphan CRISPR arrays.
 
 These maps can be expanded (`--expand N`) by adding unknown genes and genes with alignment scores below the thresholds. This can help in identify potentially un-annotated genes in operons. You can generate new plots without having to re-run the entire pipeline by adding `--redo_typing` to the command. This will re-use the mappings and re-type the operons and re-make the plot, based on new thresholds and plot parameters.
 
@@ -190,7 +190,7 @@ With an input of CRISPR repeats (one per line, in a simple textfile) RepeatType 
 
 #### Activate environment
 ```sh
-conda activate caspredict
+conda activate cctyper
 ```
 
 #### Run with a simple textfile, containing only CRISPR repeats (in capital letters), one repeat per line.
@@ -235,7 +235,7 @@ The script prints:
     * **VI-B**     1.00
 
 ## RepeatType - Train <a name="repeattrain"></a>
-You can train the repeat classifier with your own set of subtyped repeats. With a tab-delimeted input where 1. column contains the subtypes and 2. column contains the CRISPR repeat sequences, RepeatTrain will train a CRISPR repeat classifier that is directly usable for both RepeatType and CasPredict.
+You can train the repeat classifier with your own set of subtyped repeats. With a tab-delimeted input where 1. column contains the subtypes and 2. column contains the CRISPR repeat sequences, RepeatTrain will train a CRISPR repeat classifier that is directly usable for both RepeatType and CRISPRCasTyper.
 
 #### Train
 ```sh
@@ -247,18 +247,18 @@ repeatTrain typed_repeats.tab my_classifier
 repeatType repeats.txt --db my_classifier
 ```
 
-#### Use new model in CasPredict
+#### Use new model in CRISPRCasTyper
 Save the original database files:
 ```sh
-mv ${CASPREDICT_DB}/type_dict.tab ${CASPREDICT_DB}/type_dict_orig.tab
-mv ${CASPREDICT_DB}/xgb_repeats.model ${CASPREDICT_DB}/xgb_repeats_orig.model
+mv ${CCTYPER_DB}/type_dict.tab ${CCTYPER_DB}/type_dict_orig.tab
+mv ${CCTYPER_DB}/xgb_repeats.model ${CCTYPER_DB}/xgb_repeats_orig.model
 ```
 
 Move the new model into the database folder
 ```sh
-mv my_classifier/* ${CASPREDICT_DB}/
+mv my_classifier/* ${CCTYPER_DB}/
 ```
 
-##### CasPredict and RepeatType will now use the new model for repeat prediction!
+##### CRISPRCasTyper and RepeatType will now use the new model for repeat prediction!
 
 

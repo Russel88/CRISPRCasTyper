@@ -5,14 +5,14 @@ import logging
 import os
 import sys
 
-from caspredict.controller import Controller
-from caspredict.prodigal import Prodigal
-from caspredict.hmmer import HMMER
-from caspredict.castyping import Typer
-from caspredict.minced import Minced
-from caspredict.xgb import XGB
-from caspredict.crisprcas import CRISPRCas
-from caspredict.plot import Map
+from cctyper.controller import Controller
+from cctyper.prodigal import Prodigal
+from cctyper.hmmer import HMMER
+from cctyper.castyping import Typer
+from cctyper.minced import Minced
+from cctyper.xgb import XGB
+from cctyper.crisprcas import CRISPRCas
+from cctyper.plot import Map
 
 ########## Arguments ##########
 ap = argparse.ArgumentParser()
