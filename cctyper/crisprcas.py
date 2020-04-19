@@ -80,8 +80,8 @@ class CRISPRCas(object):
                     crispr_operon = crispr_sub[[x <= self.crispr_cas_dist for x in distances]]
                     
                     # Which CRISPRCas are spanning ends
-                    crispr_circ_start = crispr_sub.iloc[[x <= self.crispr_cas_dist for x, y in dists if y == 'crispr_start'],:]
-                    crispr_circ_end = crispr_sub.iloc[[x <= self.crispr_cas_dist for x, y in dists if y == 'crispr_end'],:]
+                    crispr_circ_start = crispr_sub.iloc[[x <= self.crispr_cas_dist and y == 'crispr_start' for x, y in dists],:]
+                    crispr_circ_end = crispr_sub.iloc[[x <= self.crispr_cas_dist and y == 'crispr_end' for x, y in dists],:]
 
                     if len(crispr_circ_start) > 0:
                         self.cc_circ_start[operon] = list(crispr_circ_start['CRISPR'])
