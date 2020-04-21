@@ -95,7 +95,7 @@ cctyper genome.fa my_output --circular
 #### For metagenome assemblies and short contigs/plasmids/phages, change the prodigal mode
 The default prodigal mode expects the input to be a single draft or complete genome
 ```sh
-cctyper genome.fa my_output --prodigal meta
+cctyper assembly.fa my_output --prodigal meta
 ```
 
 #### Check the different options
