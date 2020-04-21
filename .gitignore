@@ -6,7 +6,6 @@ build/
 sdist/
 setup.cfg
 bld.bat
-build.sh
 meta.yaml
 conda_builds/
 *.txt
