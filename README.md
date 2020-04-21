@@ -87,9 +87,15 @@ conda activate cctyper
 cctyper genome.fa my_output
 ```
 
-#### Use multiple threads
+#### If you have a complete circular genome
 ```sh
-cctyper genome.fa my_output -t 20
+cctyper genome.fa my_output --circular
+```
+
+#### For metagenome assemblies and short contigs/plasmids/phages, change the prodigal mode
+The default prodigal mode expects the input to be a single draft or complete genome
+```sh
+cctyper genome.fa my_output --prodigal meta
 ```
 
 #### Check the different options
