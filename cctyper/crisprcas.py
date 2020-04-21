@@ -16,7 +16,12 @@ class CRISPRCas(object):
         def dist(x,y,ss,co):
             cc_circ = None
             if co:
-                return min(y[0]-x[1], x[0]-y[1]), cc_circ
+                if y[0]<x[1]:
+                    cc_circ = "crispr_start"
+                    return y[0]-x[1], cc_circ
+                else:
+                    cc_circ = "crispr_end"
+                    return x[0]-y[1], cc_circ
             else:
                 if ss > 0:
                     if y[0]>x[1]:
@@ -41,7 +46,6 @@ class CRISPRCas(object):
         
         # Only if there is operons and crisprs
         if self.any_operon and self.any_crispr:
-
             logging.info('Connecting Cas operons and CRISPR arrays')
 
             # Load data
@@ -73,6 +77,7 @@ class CRISPRCas(object):
 
                     # Find distances between operon and crisprs
                     dists = dist_ll((int(cas_operon['Start']), int(cas_operon['End'])), zip(crispr_sub['Start'], crispr_sub['End']), seq_size, circ_op)
+                    
                     cc_circs = [x[1] for x in dists]
                     distances = [x[0] for x in dists]
 
