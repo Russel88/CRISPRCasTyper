@@ -158,12 +158,12 @@ cctyper -h
     * Pos: Gene ID
     * Cov_seq: Sequence coverage
     * Cov_hmm: HMM coverage
-    * strand: Leading (1) or lagging (-1) strand
+    * strand: Coding strand is like input (1) or reverse complement (-1)
 * **genes.tab**                 All genes and their positions
     * Contig: Sequence accession
     * Start: Start of ORF
     * End: End of ORF
-    * Strand: Leading (1) or lagging (-1) strand
+    * Strand: Coding strand is like input (1) or reverse complement (-1)
     * Pos: Gene ID
 * **arguments.tab:**            File with arguments given to CRISPRCasTyper
 * **hmmer.log**                 Error messages from HMMER (only produced if any errors were encountered)
@@ -182,7 +182,7 @@ CRISPRCasTyper will automatically plot a map of the CRISPR-Cas loci, orphan Cas 
 
 These maps can be expanded (`--expand N`) by adding unknown genes and genes with alignment scores below the thresholds. This can help in identify potentially un-annotated genes in operons. You can generate new plots without having to re-run the entire pipeline by adding `--redo_typing` to the command. This will re-use the mappings and re-type the operons and re-make the plot, based on new thresholds and plot parameters.
 
-The plot below is run with `--expand 5`
+The plot below is run with `--expand 5000`
 
 * Cas genes are in red.
 * Cas genes, with alignment scores below the thresholds, are in dark green

@@ -53,8 +53,7 @@ app = ap.add_argument_group('plotting arguments')
 app.add_argument('--no_plot', help='Do not draw a map of CRISPR-Cas.', action='store_true')
 app.add_argument('--scale', help='Scaling of plot [%(default)s].', default=10, type=int)
 app.add_argument('--no_grid', help='Do not add grid to plot.', action='store_true')
-app.add_argument('--expand', help='Expand operons with un-annotated genes. The value determines by how genes in each end to expand. 0 only fills gaps [%(default)s].', default=0, type=int)
-app.add_argument('--plot_expand', help='How many bp to expand plot in each direction per gene expanded (see argument above) [%(default)s].', default=1000, type=int)
+app.add_argument('--expand', help='Expand operons with un-annotated genes. The value determines by how many bp in each end to expand. 0 only fills gaps [%(default)s].', default=0, type=int)
 
 # Workflow starts here
 

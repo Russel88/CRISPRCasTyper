@@ -123,32 +123,36 @@ class Map(object):
             cc_M = max(self.criscas_len(criscasO, crisA))
         return(max(crisO_M, casO_M, cc_M))
 
-    def expandCas(self, contig, pos, startPos, seq_size, span_ends, array=False):
-        first_cas = min(pos)
-        last_cas = max(pos)
+    def expandCas(self, contig, pos, startPos, endPos, seq_size, span_ends, array=False):
+        all_cas = list(self.genes[self.genes['Contig'] == contig]['Pos'])
+        
         if array:
-            missing_cas = list(range(first_cas-self.expand+1, last_cas+self.expand))
+            missing_cas = all_cas
         else:
-            incl_cas = list(range(first_cas-self.expand, last_cas+self.expand+1))
-            missing_cas = [x for x in incl_cas if x not in pos]
+            missing_cas = [x for x in all_cas if x not in pos]
         
         add_these = self.genes[(self.genes['Contig'] == contig) & (self.genes['Pos'].isin(missing_cas))]
         
         if span_ends:
-            add_starts = [self.expand*self.plotexpand + 1 + x - startPos if x<startPos else self.expand*self.plotexpand + 1 + x + seq_size - startPos for x in list(add_these['Start'])]
-            add_ends = [self.expand*self.plotexpand + 1 + x - startPos if x<startPos else self.expand*self.plotexpand + 1 + x + seq_size - startPos for x in list(add_these['End'])]
+            which_end = [x>(endPos+self.expand) for x in list(add_these['Start'])]
+            add_starts = [self.expand + 1 + x[0] - startPos if x[1] else self.expand + 1 + x[0] + seq_size - startPos for x in zip(list(add_these['Start']),which_end)]
+            add_ends = [self.expand + 1 + x[0] - startPos if x[1] else self.expand + 1 + x[0] + seq_size - startPos for x in zip(list(add_these['End']),which_end)]
         else:
-            add_starts = [self.expand*self.plotexpand + 1 + x - startPos for x in list(add_these['Start'])]
-            add_ends = [self.expand*self.plotexpand + 1 + x - startPos for x in list(add_these['End'])]
+            add_starts = [self.expand + 1 + x - startPos for x in list(add_these['Start'])]
+            add_ends = [self.expand + 1 + x - startPos for x in list(add_these['End'])]
 
         names = list(add_these['Pos'])
         cols = list(((150,150,150),)*len(add_starts))
 
         # Add putative
-        add_putative = [x in list(self.hmm_df['Pos']) for x in list(add_these['Pos'])]
-        casNames = [list(self.hmm_df[self.hmm_df['Pos'] == x]['Hmm']) for x in list(add_these['Pos'])]
+        hmm_contig = self.hmm_df[self.hmm_df['Acc'] == contig]
+        known_contig = self.knowngenes[contig]
+        add_putative = [x in list(hmm_contig['Pos']) for x in list(add_these['Pos'])]
+        add_known = [x in known_contig for x in list(add_these['Pos'])]
+        casNames = [list(hmm_contig[hmm_contig['Pos'] == x]['Hmm']) for x in list(add_these['Pos'])]
         casNames = [x[0] if len(x)>0 else x for x in casNames]
         cols = [x[0] if not x[1] else (0,150,0) for x in zip(cols, add_putative)]
+        cols = [x[0] if not x[1] else (255,0,0) for x in zip(cols, add_known)]
         names = [x[0] if not x[1] else x[2] for x in zip(names, add_putative, casNames)]
 
         expand_list = list(zip(add_starts,
@@ -197,7 +201,7 @@ class Map(object):
 
             self.genes = pd.read_csv(self.out+'genes.tab', sep='\t') 
             
-            width = width + (self.plotexpand * self.expand * 2)
+            width = width + (self.expand * 2)
 
             self.im = Image.new('RGB', (int(round(self.scale/50*width+self.scale*10)), int(round((total+1)*20*self.scale))), (255, 255, 255))
             self.draw = ImageDraw.Draw(self.im)
@@ -213,6 +217,9 @@ class Map(object):
                     self.draw.line(line, fill=(150,150,150), width=int(self.scale/20))
                     self.draw.text((x-self.scale*4, self.scale*5), str(int(x/(self.scale/50))), (100,100,100), font=self.fontS)
 
+            # Get known genes
+            self.knowngenes = self.preddf[self.preddf['Prediction'] != 'False'].groupby('Contig').agg({'Positions': 'sum'}).to_dict()['Positions']
+            
             # Init count of loci
             k = 0
             
@@ -242,32 +249,33 @@ class Map(object):
 
                     # Find start of loci
                     startPos = self.criscaspos[i][0]
+                    endPos = self.criscaspos[i][1]
 
                     # Draw name
-                    self.draw_name(k, prediction, i, startPos, self.criscaspos[i][1])
+                    self.draw_name(k, prediction, i, startPos, endPos)
                     
                     # Adjust positions
                     seq_size = self.len_dict[contig]
                     
                     if self.criscaspos[i][3]:
-                        startsCas = [self.expand*self.plotexpand + 1 + x - startPos if x>=startPos else self.expand*self.plotexpand + 1 + x + seq_size - startPos for x in startsCas]
-                        endsCas = [self.expand*self.plotexpand + 1 + x - startPos if x>startPos else self.expand*self.plotexpand + 1 + x + seq_size - startPos for x in endsCas]
-                        startsCris = [self.expand*self.plotexpand + 1 + x - startPos if x>=startPos else self.expand*self.plotexpand + 1 + x + seq_size - startPos for x in startsCris]
-                        endsCris = [self.expand*self.plotexpand + 1 + x - startPos if x>startPos else self.expand*self.plotexpand + 1 + x + seq_size - startPos for x in endsCris]
-                        self.draw.line((((self.expand*self.plotexpand+1+seq_size-startPos)*self.scale/50, k*self.scale*20-self.scale*5),
-                            ((self.expand*self.plotexpand+1+seq_size-startPos)*self.scale/50, k*self.scale*20+self.scale*10)), 
+                        startsCas = [self.expand + 1 + x - startPos if x>=startPos else self.expand + 1 + x + seq_size - startPos for x in startsCas]
+                        endsCas = [self.expand + 1 + x - startPos if x>startPos else self.expand + 1 + x + seq_size - startPos for x in endsCas]
+                        startsCris = [self.expand + 1 + x - startPos if x>=startPos else self.expand + 1 + x + seq_size - startPos for x in startsCris]
+                        endsCris = [self.expand + 1 + x - startPos if x>startPos else self.expand + 1 + x + seq_size - startPos for x in endsCris]
+                        self.draw.line((((self.expand+1+seq_size-startPos)*self.scale/50, k*self.scale*20-self.scale*5),
+                            ((self.expand+1+seq_size-startPos)*self.scale/50, k*self.scale*20+self.scale*10)), 
                             fill=(0,0,0), width=int(self.scale/2)) 
                     else:
-                        startsCas = [self.expand*self.plotexpand + 1 + x - startPos for x in startsCas]
-                        endsCas = [self.expand*self.plotexpand + 1 + x - startPos for x in endsCas]
-                        startsCris = [self.expand*self.plotexpand + 1 + x - startPos for x in startsCris]
-                        endsCris = [self.expand*self.plotexpand + 1 + x - startPos for x in endsCris]
+                        startsCas = [self.expand + 1 + x - startPos for x in startsCas]
+                        endsCas = [self.expand + 1 + x - startPos for x in endsCas]
+                        startsCris = [self.expand + 1 + x - startPos for x in startsCris]
+                        endsCris = [self.expand + 1 + x - startPos for x in endsCris]
                         
                     # Draw
                     cas_list = list(zip(startsCas, endsCas, strands, nameCas, list(((255,0,0),)*len(nameCas))))
 
                     # Expand
-                    expand_list = self.expandCas(contig, posCas, startPos, seq_size, self.criscaspos[i][3])
+                    expand_list = self.expandCas(contig, posCas, startPos, endPos, seq_size, self.criscaspos[i][3])
                     cas_list = cas_list + expand_list
 
                     cas_list = sorted(cas_list, key=lambda x: x[0])
@@ -293,24 +301,25 @@ class Map(object):
                     
                     # Adjust positions
                     startPos =  list(casAmbiOrph[casAmbiOrph['Operon'] == i]['Start'])[0]
+                    endPos =  list(casAmbiOrph[casAmbiOrph['Operon'] == i]['End'])[0]
                     seq_size = self.len_dict[contig]
                     
-                    if startPos < list(casAmbiOrph[casAmbiOrph['Operon'] == i]['End'])[0]:
+                    if startPos < endPos:
                         span_ends = False
-                        starts = [self.expand*self.plotexpand + 1 + x - startPos for x in starts]
-                        ends = [self.expand*self.plotexpand + 1 + x - startPos for x in ends]
+                        starts = [self.expand + 1 + x - startPos for x in starts]
+                        ends = [self.expand + 1 + x - startPos for x in ends]
                     else:
                         span_ends = True
-                        starts = [self.expand*self.plotexpand + 1 + x - startPos if x>=startPos else self.expand*self.plotexpand + 1 + x + seq_size - startPos for x in starts]
-                        ends = [self.expand*self.plotexpand + 1 + x - startPos if x>startPos else self.expand*self.plotexpand + 1 + x + seq_size - startPos for x in ends]
-                        self.draw.line((((self.expand*self.plotexpand+1+seq_size-startPos)*self.scale/50, k*self.scale*20-self.scale*5),
-                            ((self.expand*self.plotexpand+1+seq_size-startPos)*self.scale/50, k*self.scale*20+self.scale*10)), 
+                        starts = [self.expand + 1 + x - startPos if x>=startPos else self.expand + 1 + x + seq_size - startPos for x in starts]
+                        ends = [self.expand + 1 + x - startPos if x>startPos else self.expand + 1 + x + seq_size - startPos for x in ends]
+                        self.draw.line((((self.expand+1+seq_size-startPos)*self.scale/50, k*self.scale*20-self.scale*5),
+                            ((self.expand+1+seq_size-startPos)*self.scale/50, k*self.scale*20+self.scale*10)), 
                             fill=(0,0,0), width=int(self.scale/2)) 
 
                     cas_list = list(zip(starts, ends, strands, casName, list(((255,0,0),)*len(casName))))
                     
                     # Expand
-                    expand_list = self.expandCas(contig, pos, startPos, seq_size, span_ends)
+                    expand_list = self.expandCas(contig, pos, startPos, endPos, seq_size, span_ends)
                     cas_list = cas_list + expand_list
 
                     # Draw
@@ -332,39 +341,27 @@ class Map(object):
                     # Expand
                     if self.expand > 0:
                         
-                        after_df = self.genes[self.genes['Start'] > end] 
-                        before_df = self.genes[self.genes['End'] < start]
-
-                        if len(after_df) > 0:
-                            after = after_df.iloc[0,:]['Pos']
-                        else:
-                            after = 0
-                        if len(before_df) > 0:
-                            before = before_df.iloc[-1,:]['Pos']
-                        else:
-                            before = 0
-
                         # Draw
-                        expand_list = self.expandCas(contig, [before, after], start, 0, False, True)
+                        expand_list = self.expandCas(contig, [0], start, end, 0, False, True)
                         expand_list = sorted(expand_list, key=lambda x: x[0])
                         self.draw_system(expand_list, [], k)
                             
                         # Add arrays
                         add_crisp = self.crisprsall[self.crisprsall['CRISPR'] != i]
-                        add_crisp = add_crisp[(add_crisp['End'] > start-self.plotexpand) | (add_crisp['Start'] < end+self.plotexpand)]
+                        add_crisp = add_crisp[(add_crisp['End'] > start-self.expand) | (add_crisp['Start'] < end+self.expand)]
                         if len(add_crisp) > 0:
                             crisprs = list(add_crisp['CRISPR'])
                             startsCris = [list(add_crisp[add_crisp['CRISPR'] == x]['Start'])[0] for x in crisprs]
                             endsCris = [list(add_crisp[add_crisp['CRISPR'] == x]['End'])[0] for x in crisprs]
                             nameCris = [list(add_crisp[add_crisp['CRISPR'] == x]['Prediction'])[0] for x in crisprs]
                             
-                            startsCris = [self.expand*self.plotexpand + 1 + x - start for x in startsCris]
-                            endsCris = [self.expand*self.plotexpand + 1 + x - start for x in endsCris]
+                            startsCris = [self.expand + 1 + x - start for x in startsCris]
+                            endsCris = [self.expand + 1 + x - start for x in endsCris]
                             
                             self.draw_system([], list(zip(startsCris, endsCris, nameCris)), k)
                     
                     # Draw
-                    self.draw_array(self.expand*self.plotexpand + 1, self.expand*self.plotexpand + 1 + end - start, pred, k, 1)
+                    self.draw_array(self.expand + 1, self.expand + 1 + end - start, pred, k, 1)
                     self.draw_name(k, pred, i, start, end)
                     
             self.im.save(self.out+'plot.png')
