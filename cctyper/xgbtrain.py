@@ -207,14 +207,16 @@ class XGBTrain(object):
         params['max_depth'] = best_params[0]
         params['subsample'] = best_params[1]
         params['colsample_bytree'] = best_params[2]
-        self.boost_rounds = best_params[3]
 
         self.model = xgb.train(
             params,
             self.dtrain,
-            num_boost_round=self.boost_rounds,
-            evals=[(self.dtest, "Test")]
+            num_boost_round=self.num_rounds,
+            evals=[(self.dtest, "Test")],
+            early_stopping_rounds=self.early_stop
         )
+
+        self.boost_rounds = self.model.best_iteration
 
         self.model.save_model(self.out+'xgb_repeats.model')
         
@@ -234,6 +236,6 @@ class XGBTrain(object):
         print('\033[92m' + 'Accuracy per subtype:' + '\033[0m')
         print(type_acc)
 
-        print('\033[92m' + 'Average accuracy:' + '\033[0m')
+        print('\033[92m' + 'Adjusted accuracy:' + '\033[0m')
         print(type_acc.mean())
 

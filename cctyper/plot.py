@@ -41,9 +41,9 @@ class Map(object):
             name = str(name)
 
         if z % 2 == 1:
-            self.draw.text((self.scale/50*start+5, n*20*self.scale-3*self.scale), name.title(), (0,0,0), font=self.font)
+            self.draw.text((self.scale/50*start+5, n*20*self.scale-3*self.scale), name, (0,0,0), font=self.font)
         else:
-            self.draw.text((self.scale/50*start+5, n*20*self.scale+5*self.scale), name.title(), (0,0,0), font=self.font)
+            self.draw.text((self.scale/50*start+5, n*20*self.scale+5*self.scale), name, (0,0,0), font=self.font)
 
     def draw_array(self, start, end, subtype, n, z):
         self.draw.polygon(((self.scale/50*start, n*20*self.scale), 
