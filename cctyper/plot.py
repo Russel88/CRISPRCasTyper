@@ -356,7 +356,11 @@ class Map(object):
                     # Expand
                     expand_list = self.expandCas(contig, pos, startPos, endPos, seq_size, span_ends)
                     cas_list = cas_list + expand_list
-                    expand_cris = self.expandCris(contig, [], startPos, endPos, seq_size, span_ends)
+                    
+                    if self.any_crispr:
+                        expand_cris = self.expandCris(contig, [], startPos, endPos, seq_size, span_ends)
+                    else:
+                        expand_cris = []
 
                     # Draw
                     cas_list = sorted(cas_list, key=lambda x: x[0])
