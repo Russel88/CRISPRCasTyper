@@ -111,6 +111,10 @@ class Typer(object):
                 if sum(type_scores == best_score) > 1:
                     prediction = "Ambiguous"
                     best_type = list(type_scores.index.values[type_scores.values == np.amax(type_scores.values)])
+                # If best type is not single effector
+                elif best_type not in self.single_effector:
+                    prediction = "Ambiguous"
+                    best_type = list(type_scores.index.values[type_scores.values > 0])
                 # If no ties
                 else:
                     prediction = best_type
@@ -224,6 +228,10 @@ class Typer(object):
 
             # Signature genes for single gene types
             self.signature = [re.sub('_.*','',x) for x in list(specifics)]
+
+            # Get single effector types
+            single_effector_hmms = scores[scores['Hmm'].isin(list(specifics))].drop('Hmm', 1)
+            self.single_effector = list(single_effector_hmms.iloc[:, single_effector_hmms.sum(axis=0).values > 0].columns)
 
             # Merge the tables
             self.hmm_df_all = pd.merge(self.hmm_df, scores, on="Hmm")

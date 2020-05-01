@@ -43,7 +43,7 @@ class Controller(object):
             logging.basicConfig(format='[%(asctime)s] %(levelname)s: %(message)s', datefmt='%Y-%m-%d %H:%M:%S', level=self.lvl)
         else:
             logging.basicConfig(format='\033[36m'+'[%(asctime)s] %(levelname)s:'+'\033[0m'+' %(message)s', datefmt='%Y-%m-%d %H:%M:%S', level=self.lvl)
-        logging.info('Running CRISPRCasTyper version 1.0.6')
+        logging.info('Running CRISPRCasTyper version 1.0.7')
 
         # Force consistency
         self.out = os.path.join(self.out, '')
