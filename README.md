@@ -119,6 +119,8 @@ cctyper -h
     * Start: Start of operon
     * End: End of operon
     * Prediction: Subtype prediction
+    * Complete_Interference: Percent completion of the interference module(s). Can be a list if best_type is a list (Hybrid and Ambiguous)
+    * Complete_Adaptation: Percent completion of the adaptation module(s). Can be a list if best_type is a list (Hybrid and Ambiguous)
     * Best_type: Subtype with the highest score. If the score is high then Prediction = Best_type
     * Best_score: Score of the highest scoring subtype
     * Genes: List of Cas genes
