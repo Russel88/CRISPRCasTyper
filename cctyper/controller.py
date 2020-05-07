@@ -2,6 +2,7 @@ import os
 import logging
 import sys
 import shutil
+import json
 
 import pandas as pd
 
@@ -43,7 +44,7 @@ class Controller(object):
             logging.basicConfig(format='[%(asctime)s] %(levelname)s: %(message)s', datefmt='%Y-%m-%d %H:%M:%S', level=self.lvl)
         else:
             logging.basicConfig(format='\033[36m'+'[%(asctime)s] %(levelname)s:'+'\033[0m'+' %(message)s', datefmt='%Y-%m-%d %H:%M:%S', level=self.lvl)
-        logging.info('Running CRISPRCasTyper version 1.0.7')
+        logging.info('Running CRISPRCasTyper version 1.1.0')
 
         # Force consistency
         self.out = os.path.join(self.out, '')
@@ -140,6 +141,8 @@ class Controller(object):
         self.xgb = os.path.join(self.db, "xgb_repeats.model")
         self.typedict = os.path.join(self.db, "type_dict.tab")
         self.cutoffdb = os.path.join(self.db, "cutoffs.tab")
+        self.ifdb = os.path.join(self.db, "interference.json")
+        self.addb = os.path.join(self.db, "adaptation.json")
 
         # Try to load CasScoring table
         if os.path.isfile(self.scoring):
@@ -166,6 +169,12 @@ class Controller(object):
         with open(self.cutoffdb, 'r') as f:
             rs = (ll.rstrip().split(':') for ll in f)
             self.cutoffs = {r[0].lower():r[1].split(',') for r in rs}
+
+        # Load mandatory gene files
+        with open(self.ifdb, 'r') as f:
+            self.compl_interf = json.load(f)
+        with open(self.addb, 'r') as f:
+            self.compl_adapt = json.load(f)
 
     def get_length(self):
         with open(self.fasta, 'r') as handle:

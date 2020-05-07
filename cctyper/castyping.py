@@ -82,6 +82,7 @@ class Typer(object):
                 # If more than 1 type, hybrid:
                 if len(zzz) > 1:
                     prediction = 'Hybrid({})'.format(','.join(zzz.index))
+                    best_type = list(zzz.index)
                 # Else just choose best type
                 else:
                     prediction = best_type
@@ -123,11 +124,41 @@ class Typer(object):
                 prediction = "False"
         
 
+        # Completion
+        compl_interf = []
+        compl_adapt = []
+        
+        # Make list of types
+        if isinstance(best_type, str):
+            best_type_list = [best_type]
+        else:
+            best_type_list = best_type
+        
+        for bt in best_type_list:
+            # Get interference completion
+            if bt in self.compl_interf.keys():
+                mandatory_genes = self.compl_interf[bt]
+                compl_interf.append(str(round(len([i for i in mandatory_genes if any([any([x in k for k in list(tmp['Hmm'])]) for x in i])])/len(mandatory_genes)*100))+'%')
+            else:
+                compl_interf.append('NA')
+            # Get adaptation completion
+            if bt in self.compl_adapt.keys():
+                mandatory_genes = self.compl_adapt[bt]
+                compl_adapt.append(str(round(len([i for i in mandatory_genes if any([any([x in k for k in list(tmp['Hmm'])]) for x in i])])/len(mandatory_genes)*100))+'%')
+            else:
+                compl_adapt.append('NA')
+
+        if isinstance(best_type, str):
+            compl_interf = compl_interf[0]
+            compl_adapt = compl_adapt[0]
+
         outdict = {"Contig": list(tmp['Acc'])[0],
                    "Operon": operon,
                    "Start": start_operon,
                    "End": end_operon,
                        "Prediction": prediction,
+                       "Complete_Interference": compl_interf,
+                       "Complete_Adaptation": compl_adapt,
                        "Best_type": best_type,
                        "Best_score": best_score,
                        "Genes": list(tmp['Hmm']),
