@@ -222,6 +222,9 @@ class Typer(object):
         if self.any_cas:
             logging.info('Subtyping putative operons')
 
+            # Save raw
+            self.hmm_df_raw = self.hmm_df
+            
             # Specific cut-offs
             specifics = []
             for key, value in self.cutoffs.items():

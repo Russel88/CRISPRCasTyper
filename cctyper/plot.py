@@ -147,7 +147,7 @@ class Map(object):
         cols = list(((150,150,150),)*len(add_starts))
 
         # Add putative
-        hmm_contig = self.hmm_df[self.hmm_df['Acc'] == contig]
+        hmm_contig = self.hmm_df_raw[self.hmm_df_raw['Acc'] == contig]
         try:
             known_contig = self.knowngenes[contig]
         except:
