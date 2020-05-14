@@ -186,10 +186,13 @@ These maps can be expanded (`--expand N`) by adding unknown genes and genes with
 
 The plot below is run with `--expand 5000`
 
-* Cas genes are in red.
-* Cas genes, with alignment scores below the thresholds, are in dark green
+* Arrays are in black, with their predicted subtype association based on the consensus repeat sequence.
+* The interference module is in yellow.
+* The adaptation module is in blue.
+* Cas6 is in red.
+* Accessory genes are in purple
+* Genes with alignment scores below the thresholds are lighter and with parentheses around names.
 * Unknown genes are in gray (the number matches the genes.tab file)
-* Arrays are in blue, with their predicted subtype association based on the consensus repeat sequence.
 
 <img src='img/plot2.png' align="left" height="350" />
 

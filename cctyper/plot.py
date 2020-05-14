@@ -19,7 +19,28 @@ class Map(object):
         self.fontB = ImageFont.truetype(os.path.join(self.db, 'arial.ttf'), 50)
         self.fontS = ImageFont.truetype(os.path.join(self.db, 'arial.ttf'), 20)
 
-    def draw_gene(self, start, end, strand, name, n, z, col):
+    def draw_gene(self, start, end, strand, name, n, z, put):
+
+        if isinstance(name, str):
+            name = re.sub('_[0-9]*_.*', '', name)
+            if 'Cas6' in name:
+                col = (255, 0, 0)
+            elif 'Cas3-Cas2' in name:
+                col = (0, 150, 0)
+            elif any([True if x in name else False for x in self.interf_genes]):
+                col = (240, 200, 0)
+            elif any([True if x in name+'_' else False for x in self.adapt_genes]):
+                col = (0, 0, 255)
+            else:
+                col = (240, 0, 240)
+        else:
+            name = str(name)
+            col = (200, 200, 200)
+
+        if put:
+            name = '('+name+')'
+            col = tuple(x+150 for x in col)
+
         if strand > 0:
             self.draw.polygon(((self.scale/50*start, n*20*self.scale),
                           (self.scale/50*end-5*self.scale, n*20*self.scale),
@@ -35,11 +56,6 @@ class Map(object):
                           (self.scale/50*start, 2.5*self.scale+n*20*self.scale)),
                      fill=col, outline=(255, 255, 255))
         
-        if isinstance(name, str):
-            name = re.sub('_[0-9]*_.*', '', name)
-        else:
-            name = str(name)
-
         if z % 2 == 1:
             self.draw.text((self.scale/50*start+5, n*20*self.scale-3*self.scale), name, (0,0,0), font=self.font)
         else:
@@ -50,7 +66,7 @@ class Map(object):
                       (self.scale/50*end, n*20*self.scale), 
                       (self.scale/50*end, 5*self.scale+n*20*self.scale), 
                       (self.scale/50*start, 5*self.scale+n*20*self.scale)), 
-                     fill=(0, 0, 255), outline=(255, 255, 255))
+                     fill=(0, 0, 0), outline=(255, 255, 255))
         self.draw.text((self.scale/50*start+self.scale/10, n*20*self.scale-3*self.scale), subtype, (0,0,0), font=self.font)
 
     def draw_name(self, n, pred, contig, start, end):
@@ -144,7 +160,7 @@ class Map(object):
             add_ends = [self.expand + 1 + x - startPos for x in list(add_these['End'])]
 
         names = list(add_these['Pos'])
-        cols = list(((150,150,150),)*len(add_starts))
+        puts = list((False,)*len(add_starts))
 
         # Add putative
         hmm_contig = self.hmm_df_raw[self.hmm_df_raw['Acc'] == contig]
@@ -156,15 +172,14 @@ class Map(object):
         add_known = [x in known_contig for x in list(add_these['Pos'])]
         casNames = [list(hmm_contig[hmm_contig['Pos'] == x]['Hmm']) for x in list(add_these['Pos'])]
         casNames = [x[0] if len(x)>0 else x for x in casNames]
-        cols = [x[0] if not x[1] else (0,150,0) for x in zip(cols, add_putative)]
-        cols = [x[0] if not x[1] else (255,0,0) for x in zip(cols, add_known)]
+        puts = [x[0] if not x[1] else True for x in zip(puts, add_putative)]
         names = [x[0] if not x[1] else x[2] for x in zip(names, add_putative, casNames)]
 
         expand_list = list(zip(add_starts,
                           add_ends,
                           list(add_these['Strand']),
                           names,
-                          cols))
+                          puts))
         
         return expand_list    
 
@@ -230,6 +245,9 @@ class Map(object):
             
             logging.info('Plotting map of CRISPR-Cas loci')
             
+            self.interf_genes = set([subitem for subsublist in [item for sublist in self.compl_interf.values() for item in sublist] for subitem in subsublist])
+            self.adapt_genes = set([subitem for subsublist in [item for sublist in self.compl_adapt.values() for item in sublist] for subitem in subsublist])
+        
             width = self.get_longest(self.orphan_crispr, casAmbiOrph, self.crispr_cas, self.crisprsall) 
 
             self.genes = pd.read_csv(self.out+'genes.tab', sep='\t') 
@@ -305,7 +323,7 @@ class Map(object):
                         endsCris = [self.expand + 1 + x - startPos for x in endsCris]
                         
                     # Draw
-                    cas_list = list(zip(startsCas, endsCas, strands, nameCas, list(((255,0,0),)*len(nameCas))))
+                    cas_list = list(zip(startsCas, endsCas, strands, nameCas, list((False,)*len(nameCas))))
 
                     # Expand
                     expand_list = self.expandCas(contig, posCas, startPos, endPos, seq_size, self.criscaspos[i][3])
@@ -351,7 +369,7 @@ class Map(object):
                             ((self.expand+1+seq_size-startPos)*self.scale/50, k*self.scale*20+self.scale*10)), 
                             fill=(0,0,0), width=int(self.scale/2)) 
 
-                    cas_list = list(zip(starts, ends, strands, casName, list(((255,0,0),)*len(casName))))
+                    cas_list = list(zip(starts, ends, strands, casName, list((False,)*len(casName))))
                     
                     # Expand
                     expand_list = self.expandCas(contig, pos, startPos, endPos, seq_size, span_ends)
