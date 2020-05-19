@@ -34,6 +34,7 @@ class Controller(object):
         self.nogrid = args.no_grid
         self.expand = args.expand
         self.simplelog = args.simplelog
+        self.customhmm = args.custom_hmm
 
         self.any_cas = False
         self.any_operon = False
@@ -44,7 +45,7 @@ class Controller(object):
             logging.basicConfig(format='[%(asctime)s] %(levelname)s: %(message)s', datefmt='%Y-%m-%d %H:%M:%S', level=self.lvl)
         else:
             logging.basicConfig(format='\033[36m'+'[%(asctime)s] %(levelname)s:'+'\033[0m'+' %(message)s', datefmt='%Y-%m-%d %H:%M:%S', level=self.lvl)
-        logging.info('Running CRISPRCasTyper version 1.1.2')
+        logging.info('Running CRISPRCasTyper version 1.1.3')
 
         # Force consistency
         self.out = os.path.join(self.out, '')
@@ -117,6 +118,9 @@ class Controller(object):
             if os.stat(self.out+'hmmer.log').st_size == 0:
                 os.remove(self.out+'hmmer.log')
 
+            if os.stat(self.out+'hmmer_custom.log').st_size == 0:
+                os.remove(self.out+'hmmer_custom.log')
+            
             if not self.keep_tmp:
                 
                 logging.info('Removing temporary files')

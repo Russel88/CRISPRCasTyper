@@ -22,17 +22,22 @@ class Map(object):
     def draw_gene(self, start, end, strand, name, n, z, put):
 
         if isinstance(name, str):
+            name_full = name
             name = re.sub('_[0-9]*_.*', '', name)
-            if 'Cas6' in name:
-                col = (255, 0, 0)
-            elif 'Cas3-Cas2' in name:
-                col = (0, 150, 0)
-            elif any([True if x in name else False for x in self.interf_genes]):
-                col = (240, 200, 0)
-            elif any([True if x in name+'_' else False for x in self.adapt_genes]):
-                col = (0, 0, 255)
+            if name_full in self.cas_hmms:
+                if 'Cas6' in name:
+                    col = (255, 0, 0)
+                elif 'Cas3-Cas2' in name:
+                    col = (0, 150, 0)
+                elif any([True if x in name else False for x in self.interf_genes]):
+                    col = (240, 200, 0)
+                elif any([True if x in name+'_' else False for x in self.adapt_genes]):
+                    col = (0, 0, 255)
+                else:
+                    col = (240, 0, 240)
             else:
-                col = (240, 0, 240)
+                col = (200, 200, 200)
+
         else:
             name = str(name)
             col = (200, 200, 200)
@@ -162,18 +167,24 @@ class Map(object):
         names = list(add_these['Pos'])
         puts = list((False,)*len(add_starts))
 
+        if self.customhmm != '' and len(self.custom_hmm_df)>0: 
+            # Add custom
+            hmm_contig = self.custom_hmm_df[self.custom_hmm_df['Contig'] == contig]
+            add_custom = [x in list(hmm_contig['Pos']) for x in list(add_these['Pos'])]
+            custom_names = [list(hmm_contig[hmm_contig['Pos'] == x]['Query']) for x in list(add_these['Pos'])]
+            custom_names = [x[0] if len(x)>0 else x for x in custom_names]
+            names = [x[0] if not x[1] else x[2] for x in zip(names, add_custom, custom_names)]
+        else:
+            add_custom = puts
+
         # Add putative
         hmm_contig = self.hmm_df_raw[self.hmm_df_raw['Acc'] == contig]
-        try:
-            known_contig = self.knowngenes[contig]
-        except:
-            known_contig = [0]
         add_putative = [x in list(hmm_contig['Pos']) for x in list(add_these['Pos'])]
-        add_known = [x in known_contig for x in list(add_these['Pos'])]
-        casNames = [list(hmm_contig[hmm_contig['Pos'] == x]['Hmm']) for x in list(add_these['Pos'])]
-        casNames = [x[0] if len(x)>0 else x for x in casNames]
+        add_putative = [x[0] if not x[1] else False for x in zip(add_putative, add_custom)]
+        put_names = [list(hmm_contig[hmm_contig['Pos'] == x]['Hmm']) for x in list(add_these['Pos'])]
+        put_names = [x[0] if len(x)>0 else x for x in put_names]
         puts = [x[0] if not x[1] else True for x in zip(puts, add_putative)]
-        names = [x[0] if not x[1] else x[2] for x in zip(names, add_putative, casNames)]
+        names = [x[0] if not x[1] else x[2] for x in zip(names, add_putative, put_names)]
 
         expand_list = list(zip(add_starts,
                           add_ends,
@@ -268,9 +279,6 @@ class Map(object):
                     self.draw.line(line, fill=(150,150,150), width=int(self.scale/20))
                     self.draw.text((x-self.scale*4, self.scale*5), str(int(x/(self.scale/50))), (100,100,100), font=self.fontS)
 
-            # Get known genes
-            self.knowngenes = self.preddf[self.preddf['Prediction'] != 'False'].groupby('Contig').agg({'Positions': 'sum'}).to_dict()['Positions']
-            
             # Init count of loci
             k = 0
             

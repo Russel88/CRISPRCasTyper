@@ -259,7 +259,8 @@ class Typer(object):
             # Load score table
             scores = pd.read_csv(self.scoring, sep=",")
             scores.fillna(0, inplace=True)
-
+            self.cas_hmms = list(scores['Hmm'])
+            
             # Signature genes for single gene types
             self.signature = [re.sub('_.*','',x) for x in list(specifics)]
 

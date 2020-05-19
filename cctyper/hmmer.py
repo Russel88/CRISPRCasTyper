@@ -25,12 +25,16 @@ class HMMER(object):
             self.run_hmm()
             self.load_hmm()
             self.write_hmm()
+            self.run_custom_hmm()
 
         # Check if any cas genes
         self.check_hmm()
 
         # Parse
         self.parse_hmm()
+
+        # Load Custom HMM db
+        self.load_custom_hmm()
 
     # A single search
     def hmmsearch(self, hmm):
@@ -135,4 +139,43 @@ class HMMER(object):
             # Pick best hit
             self.hmm_df.sort_values('score', ascending=False, inplace=True)
             self.hmm_df.drop_duplicates('ORF', inplace=True)
+
+    def run_custom_hmm(self):
+        
+        if self.customhmm != '':
+            logging.info('Running HMMER against custom HMM profiles')
+            
+            with open(self.out+'hmmer_custom.log', 'a') as hmmer_log:
+                subprocess.run(['hmmsearch', 
+                                '--tblout', self.out+'hmmer_custom.tab', 
+                                '--cpu', str(self.threads),
+                                self.customhmm, 
+                                self.prot_path], 
+                                stdout=subprocess.DEVNULL, 
+                                stderr=hmmer_log)
+            
+    def load_custom_hmm(self):
+
+        if self.customhmm != '':
+
+            # Check if successful
+            if not os.path.isfile(self.out+'hmmer_custom.tab'):
+                logging.error('HMMER failed running on the custom HMM database')
+                sys.exit()
+
+            # Load
+            self.custom_hmm_df = pd.read_csv(self.out+'hmmer_custom.tab', sep='\s+', comment='#', 
+                header=None, usecols=(0, 2, 3, 4, 5), 
+                names=('Target', 'Query', 'Acc', 'E-value', 'Score'))
+                        
+            # Remove low E-value hits
+            self.custom_hmm_df = self.custom_hmm_df[self.custom_hmm_df['E-value'] < self.oev]
+            
+            # Pick best hit
+            self.custom_hmm_df.sort_values('Score', ascending=False, inplace=True)
+            self.custom_hmm_df.drop_duplicates('Target', inplace=True)
+
+            # New columns
+            self.custom_hmm_df['Contig'] = [re.sub("_[0-9]*$","",x) for x in self.custom_hmm_df['Target']]
+            self.custom_hmm_df['Pos'] = [int(re.sub(".*_","",x)) for x in self.custom_hmm_df['Target']]
 
