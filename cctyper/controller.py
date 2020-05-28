@@ -35,6 +35,9 @@ class Controller(object):
         self.expand = args.expand
         self.simplelog = args.simplelog
         self.customhmm = args.custom_hmm
+        self.repeat_id = args.repeat_id
+        self.spacer_id = args.spacer_id
+        self.spacer_sem = args.spacer_sem
 
         self.any_cas = False
         self.any_operon = False
@@ -45,7 +48,7 @@ class Controller(object):
             logging.basicConfig(format='[%(asctime)s] %(levelname)s: %(message)s', datefmt='%Y-%m-%d %H:%M:%S', level=self.lvl)
         else:
             logging.basicConfig(format='\033[36m'+'[%(asctime)s] %(levelname)s:'+'\033[0m'+' %(message)s', datefmt='%Y-%m-%d %H:%M:%S', level=self.lvl)
-        logging.info('Running CRISPRCasTyper version 1.1.5')
+        logging.info('Running CRISPRCasTyper version 1.2.0')
 
         # Force consistency
         self.out = os.path.join(self.out, '')

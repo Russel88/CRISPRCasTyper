@@ -178,13 +178,16 @@ class Map(object):
             add_custom = puts
 
         # Add putative
-        hmm_contig = self.hmm_df_raw[self.hmm_df_raw['Acc'] == contig]
-        add_putative = [x in list(hmm_contig['Pos']) for x in list(add_these['Pos'])]
-        add_putative = [x[0] if not x[1] else False for x in zip(add_putative, add_custom)]
-        put_names = [list(hmm_contig[hmm_contig['Pos'] == x]['Hmm']) for x in list(add_these['Pos'])]
-        put_names = [x[0] if len(x)>0 else x for x in put_names]
-        puts = [x[0] if not x[1] else True for x in zip(puts, add_putative)]
-        names = [x[0] if not x[1] else x[2] for x in zip(names, add_putative, put_names)]
+        try:
+            hmm_contig = self.hmm_df_raw[self.hmm_df_raw['Acc'] == contig]
+            add_putative = [x in list(hmm_contig['Pos']) for x in list(add_these['Pos'])]
+            add_putative = [x[0] if not x[1] else False for x in zip(add_putative, add_custom)]
+            put_names = [list(hmm_contig[hmm_contig['Pos'] == x]['Hmm']) for x in list(add_these['Pos'])]
+            put_names = [x[0] if len(x)>0 else x for x in put_names]
+            puts = [x[0] if not x[1] else True for x in zip(puts, add_putative)]
+            names = [x[0] if not x[1] else x[2] for x in zip(names, add_putative, put_names)]
+        except:
+            pass
 
         expand_list = list(zip(add_starts,
                           add_ends,

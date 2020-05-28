@@ -47,6 +47,9 @@ apc = ap.add_argument_group('crispr threshold arguments')
 apc.add_argument('--ccd', help='Distance (bp) threshold to connect Cas operons and CRISPR arrays [%(default)s].', default=10000, type=int)
 apc.add_argument('--pred_prob', help='Prediction probability cut-off for assigning subtype to CRISPR repeats [%(default)s].', default=0.75, type=float)
 apc.add_argument('--kmer', help='kmer size. Has to match training kmer size! [%(default)s].', default=4, type=int)
+apc.add_argument('--repeat_id', help='Minimum average sequence identity between repeats for trusted arrays [%(default)s].', default=70, type=int)
+apc.add_argument('--spacer_id', help='Maximum average sequence identity between spacers for trusted arrays [%(default)s].', default=55, type=int)
+apc.add_argument('--spacer_sem', help='Maximum spacer length standard error of the mean for trusted arrays [%(default)s].', default=3.5, type=float)
 
 # Plot
 app = ap.add_argument_group('plotting arguments')

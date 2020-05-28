@@ -130,17 +130,27 @@ cctyper -h
     * E-values: List of E-values for the genes
     * CoverageSeq: List of sequence coverages for the genes
     * CoverageHMM: List of HMM coverages for the genes
-* **crisprs_all.tab:**          All CRISPR arrays
+* **crisprs_all.tab:**          All CRISPR arrays, also false positives
     * Contig: Sequence accession
     * CRISPR: CRISPR ID (Sequence accession _ NUMBER)
     * Start: Start of CRISPR
     * End: End of CRISPR
     * Consensus_repeat: Consensus repeat sequence
     * N_repeats: Number of repeats
+    * Repeat_len: Length of repeat sequences
+    * Spacer_len_avg: Average spacer length
+    * Repeat_identity: Average identity of repeat sequences
+    * Spacer_identity: Average identity of spacer sequences
+    * Spacer_len_sem: Standard error of the mean of spacer lenghts
+    * Trusted: TRUE/FALSE, is the array trusted. Based on repeat/spacer identity, spacer sem, prediction probability and adjacency to a cas operon
     * Prediction: Prediction of the associated subtype based on the repeat sequence
     * Subtype: Subtype with highest prediction probability. Prediction = Subtype if Subtype_probability is high
     * Subtype_probability: Probability of subtype prediction
+* **crisprs_near_cas.tab:**     CRISPRs part of CRISPR-Cas loci
+    * Same columns as crisprs_all.tab
 * **crisprs_orphan.tab:**       Orphan CRISPRs (those not in CRISPR_Cas.tab)
+    * Same columns as crisprs_all.tab
+* **crisprs_putative.tab:**     Low quality CRISPRs. Most likely false positives
     * Same columns as crisprs_all.tab
 * **cas_operons_orphan.tab:**   Orphan Cas operons (those not in CRISPR_Cas.tab)
     * Same columns as cas_operons.tab

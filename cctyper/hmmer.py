@@ -120,7 +120,11 @@ class HMMER(object):
 
     # Read from file
     def read_hmm(self):
-        self.hmm_df = pd.read_csv(self.out+'hmmer.tab', sep='\t')
+        try:        
+            self.hmm_df = pd.read_csv(self.out+'hmmer.tab', sep='\t')
+        except:
+            logging.error('No matches to Cas HMMs')
+            sys.exit()
 
     # Check if any cas genes
     def check_hmm(self):

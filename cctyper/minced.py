@@ -3,6 +3,12 @@ import subprocess
 import logging
 import sys
 import re
+import math
+
+import statistics as st
+
+from Bio import pairwise2
+from joblib import Parallel, delayed
 
 # Define the CRISPR class
 class CRISPR(object):
@@ -22,6 +28,20 @@ class CRISPR(object):
         self.spacers.append(spacer.rstrip())
     def getConsensus(self):
         self.cons = max(set(self.repeats), key = self.repeats.count) 
+    def identity(self, i, j, sqlst):
+        align = pairwise2.align.globalxx(sqlst[i], sqlst[j])
+        return(align[0][2]/align[0][4]*100)
+    def identLoop(self, seqs, threads):
+        sqr = range(len(seqs))
+        idents = Parallel(n_jobs=threads)(delayed(self.identity)(k, l, seqs) for k in sqr for l in sqr if k > l)
+        return(st.mean(idents))
+    def stats(self, threads, rep_id, spa_id, spa_sem):
+        self.spacer_identity = round(self.identLoop(self.spacers, threads), 1)
+        self.repeat_identity = round(self.identLoop(self.repeats, threads), 1)
+        self.spacer_len = round(st.mean([len(x) for x in self.spacers]), 1)
+        self.repeat_len = round(st.mean([len(x) for x in self.repeats]), 1)
+        self.spacer_sem = round(st.stdev([len(x) for x in self.spacers])/math.sqrt(len(self.spacers)), 1)
+        self.trusted = (self.repeat_identity > rep_id) & (self.spacer_identity < spa_id) & (self.spacer_sem < spa_sem)
 
 class Minced(object):
     
@@ -75,6 +95,7 @@ class Minced(object):
             # Save the instance
             if ll.startswith('Repeats'):
                 crisp_tmp.getConsensus()
+                crisp_tmp.stats(self.threads, self.repeat_id, self.spacer_id, self.spacer_sem)
                 crisprs.append(crisp_tmp)
 
         file.close()
@@ -82,16 +103,38 @@ class Minced(object):
         self.crisprs = crisprs
 
     def write_crisprs(self):
-        
+       
+        header = '{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format('Contig',
+                                                                    'CRISPR',
+                                                                    'Start',
+                                                                    'End',
+                                                                    'Consensus_repeat',
+                                                                    'N_repeats',
+                                                                    'Repeat_len',
+                                                                    'Spacer_len_avg',
+                                                                    'Repeat_identity',
+                                                                    'Spacer_identity',
+                                                                    'Spacer_len_sem',
+                                                                    'Trusted')
+       
+        def write_crisp(handle, cris):
+            handle.write('{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(cris.sequence,
+                                                   cris.crispr,
+                                                   cris.start,
+                                                   cris.end,
+                                                   cris.cons,
+                                                   len(cris.repeats),
+                                                   cris.repeat_len,
+                                                   cris.spacer_len,
+                                                   cris.repeat_identity,
+                                                   cris.spacer_identity,
+                                                   cris.spacer_sem,
+                                                   cris.trusted))
+            
         f = open(self.out+'crisprs_all.tab', 'w')
-        f.write('Contig\tCRISPR\tStart\tEnd\tConsensus_repeat\tN_repeats\n')
+        f.write(header)
         for crisp in self.crisprs:
-            f.write('{}\t{}\t{}\t{}\t{}\t{}\n'.format(crisp.sequence,
-                                                   crisp.crispr,
-                                                   crisp.start,
-                                                   crisp.end,
-                                                   crisp.cons,
-                                                   len(crisp.repeats)))
+            write_crisp(f, crisp)
         f.close()
 
     def write_spacers(self):

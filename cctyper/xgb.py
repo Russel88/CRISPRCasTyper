@@ -85,6 +85,9 @@ class XGB(object):
                 df.loc[df.Subtype_probability < self.pred_prob, 'Prediction'] = 'Unknown'
                 df['Subtype_probability'] = df['Subtype_probability'].round(3)
                
+                # We trust arrays with a known (predictable) repeat sequence
+                df.loc[df.Subtype_probability >= 0.9, 'Trusted'] = True
+                
                 df.to_csv(self.out+'crisprs_all.tab', sep='\t', index=False)
     
     def predict_repeats(self):

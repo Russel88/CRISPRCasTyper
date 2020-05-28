@@ -42,8 +42,15 @@ class CRISPRCas(object):
         # If only CRISPR
         if self.any_crispr and (not self.any_operon):
             crispr = pd.read_csv(self.out+'crisprs_all.tab', sep='\t')
+            crispr_put = crispr[~crispr['Trusted']]
+            crispr = crispr[crispr['Trusted']]
             self.crisprsall = crispr
-        
+      
+            if len(crispr_put) > 0:
+                crispr_put.to_csv(self.out+'crisprs_putative.tab', sep='\t', index=False)
+            if len(crispr) > 0:
+                crispr.to_csv(self.out+'crisprs_orphan.tab', sep='\t', index=False)
+
         # Only if there is operons and crisprs
         if self.any_operon and self.any_crispr:
             logging.info('Connecting Cas operons and CRISPR arrays')
@@ -53,7 +60,6 @@ class CRISPRCas(object):
             cas = cas[~cas['Prediction'].isin(['False'])]
             cas_1 = cas[~cas['Prediction'].isin(['False', 'Ambiguous', 'Partial'])]
             crispr = pd.read_csv(self.out+'crisprs_all.tab', sep='\t')
-            self.crisprsall = crispr
 
             dicts = []
             self.cc_circ_start = {}
@@ -114,7 +120,17 @@ class CRISPRCas(object):
                 crispr_cas = pd.DataFrame(dicts, columns=dicts[0].keys())
                 self.orphan_cas = cas_1[cas_1['Operon'].isin(set(cas_1['Operon']).difference(set(crispr_cas['Operon'])))]
                 self.orphan_crispr = crispr[crispr['CRISPR'].isin(set(crispr['CRISPR']).difference(set([x for x in crispr_cas['CRISPRs'] for x in x])))]
-            
+           
+                # CRISPRs near cas are trusted
+                crispr.loc[crispr['CRISPR'].isin(set([x for x in crispr_cas['CRISPRs'] for x in x])), 'Trusted'] = True
+                
+                # Only trusted for the plot
+                self.crisprsall = crispr[crispr['Trusted']]
+
+                # Save file with trusted crisprs near Cas
+                crispr_near_cas = crispr[crispr['CRISPR'].isin(set([x for x in crispr_cas['CRISPRs'] for x in x]))]
+                crispr_near_cas.to_csv(self.out+'crisprs_near_cas.tab', sep='\t', index=False)
+
                 pred_lst = []
                 for index, row in crispr_cas.iterrows():
                     # Choose nearest CRISPR prediction
@@ -162,7 +178,7 @@ class CRISPRCas(object):
             # Write
             if len(dicts) > 0:
 
-                # Split Crispr cas in putative and good
+                # Split CRISPR-Cas in putative and good
                 crispr_cas_good = self.crispr_cas[~self.crispr_cas['Prediction'].str.contains('Unknown|Partial')]
                 crispr_cas_put = self.crispr_cas[self.crispr_cas['Prediction'].str.contains('Unknown|Partial')]
 
@@ -173,6 +189,22 @@ class CRISPRCas(object):
                 if len(self.orphan_cas) > 0:
                     self.orphan_cas.to_csv(self.out+'cas_operons_orphan.tab', sep='\t', index=False)
                 if len(self.orphan_crispr) > 0:
-                    self.orphan_crispr.to_csv(self.out+'crisprs_orphan.tab', sep='\t', index=False)
-                
+                    # Split orphan CRISPRs in good and putative
+                    crispr_put = self.orphan_crispr[~self.orphan_crispr['Trusted']]
+                    self.orphan_crispr = self.orphan_crispr[self.orphan_crispr['Trusted']]
+              
+                    if len(crispr_put) > 0:
+                        crispr_put.to_csv(self.out+'crisprs_putative.tab', sep='\t', index=False)
+                    if len(self.orphan_crispr) > 0:
+                        self.orphan_crispr.to_csv(self.out+'crisprs_orphan.tab', sep='\t', index=False)
 
+            else:
+                
+                crispr_put = crispr[~crispr['Trusted']]
+                crispr = crispr[crispr['Trusted']]
+                self.crisprsall = crispr
+          
+                if len(crispr_put) > 0:
+                    crispr_put.to_csv(self.out+'crisprs_putative.tab', sep='\t', index=False)
+                if len(crispr) > 0:
+                    crispr.to_csv(self.out+'crisprs_orphan.tab', sep='\t', index=False)
