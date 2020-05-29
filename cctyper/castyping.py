@@ -266,6 +266,7 @@ class Typer(object):
 
             # Get single effector types
             single_effector_hmms = scores[scores['Hmm'].isin(list(specifics))].drop('Hmm', 1)
+            single_effector_hmms[single_effector_hmms < 0] = 0
             self.single_effector = list(single_effector_hmms.iloc[:, single_effector_hmms.sum(axis=0).values > 0].columns)
 
             # Merge the tables
