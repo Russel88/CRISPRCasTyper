@@ -3,6 +3,7 @@ import logging
 import sys
 import shutil
 import json
+import pkg_resources
 
 import pandas as pd
 
@@ -48,7 +49,7 @@ class Controller(object):
             logging.basicConfig(format='[%(asctime)s] %(levelname)s: %(message)s', datefmt='%Y-%m-%d %H:%M:%S', level=self.lvl)
         else:
             logging.basicConfig(format='\033[36m'+'[%(asctime)s] %(levelname)s:'+'\033[0m'+' %(message)s', datefmt='%Y-%m-%d %H:%M:%S', level=self.lvl)
-        logging.info('Running CRISPRCasTyper version 1.2.1')
+        logging.info('Running CRISPRCasTyper version {}'.format(pkg_resources.require("cctyper")[0].version))
 
         # Force consistency
         self.out = os.path.join(self.out, '')

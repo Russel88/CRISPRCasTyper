@@ -4,6 +4,7 @@ import argparse
 import logging
 import os
 import sys
+import pkg_resources
 
 from cctyper.controller import Controller
 from cctyper.prodigal import Prodigal
@@ -15,7 +16,7 @@ from cctyper.crisprcas import CRISPRCas
 from cctyper.plot import Map
 
 ########## Arguments ##########
-ap = argparse.ArgumentParser()
+ap = argparse.ArgumentParser(description='CRISPRCasTyper version {}'.format(pkg_resources.require("cctyper")[0].version))
 
 # Required
 ap.add_argument('input', help='Input fasta file')
