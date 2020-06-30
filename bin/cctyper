@@ -38,7 +38,7 @@ apd.add_argument('--db', help='Path to database.', default='', type=str)
 
 # Thresholds
 apt = ap.add_argument_group('cas threshold arguments')
-apt.add_argument('--dist', help='Max allowed distance between genes in operon [%(default)s].', default=3, type=int)
+apt.add_argument('--dist', help='Max allowed number of unknown genes between cas genes in operon [%(default)s].', default=3, type=int)
 apt.add_argument('--overall_eval', help='Overall E-value threshold [%(default)s].', default=0.01, type=float)
 apt.add_argument('--overall_cov_seq', help='Overall sequence coverage threshold [%(default)s].', default=0.3, type=float)
 apt.add_argument('--overall_cov_hmm', help='Overall HMM coverage threshold [%(default)s].', default=0.3, type=float)
