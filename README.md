@@ -31,7 +31,8 @@ It then connects the Cas operons and CRISPR arrays, producing as output:
 3. [CRISPRCasTyper - How to](#cctyperhow)
     * [Plotting](#plot)
 4. [RepeatType - How to](#repeattype)
-4. [RepeatType - Train](#repeattrain)
+5. [RepeatType - Train](#repeattrain)
+6. [Troubleshoot](#trouble)
 
 ## Quick start <a name="quick"></a>
 
@@ -291,4 +292,7 @@ mv my_classifier/* ${CCTYPER_DB}/
 
 ##### CRISPRCasTyper and RepeatType will now use the new model for repeat prediction!
 
+## Troubleshoot <a name="trouble"></a>
 
+### Running out of memory
+Large metagenomic assemblies with many small contigs can exhaust the RAM on your laptop. Fortunately, as metagenomic contigs are analysed separately (when run with `--prodigal meta`) a simple solution is to split the input into smaller chunks (e.g. with [pyfasta](https://pypi.org/project/pyfasta/#command-line-interface))
