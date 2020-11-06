@@ -1,3 +1,6 @@
+[![Project Status: Active - The project has reached a stable, usable state and is being actively developed.](http://www.repostatus.org/badges/latest/active.svg)](http://www.repostatus.org/#active)
+[![Conda](https://anaconda.org/russel88/cctyper/badges/installer/conda.svg)](https://anaconda.org/russel88/cctyper)
+
 # CRISPRCasTyper
 
 Detect CRISPR-Cas genes and arrays, and predict the subtype based on both Cas genes and CRISPR repeat sequence.
