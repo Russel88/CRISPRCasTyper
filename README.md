@@ -28,6 +28,8 @@ It then connects the Cas operons and CRISPR arrays, producing as output:
 #### Citation
 [Jakob Russel, Rafael Pinilla-Redondo, David Mayo-Muñoz, Shiraz A. Shah, Søren J. Sørensen - CRISPRCasTyper: Automated Identification, Annotation and Classification of CRISPR-Cas loci. The CRISPR Journal Dec 2020](https://doi.org/10.1089/crispr.2020.0059)
 
+Find  a free to read version on [BioRxiv](https://doi.org/10.1101/2020.05.15.097824)
+
 # Table of contents
 1. [Quick start](#quick)
 2. [Installation](#install)
