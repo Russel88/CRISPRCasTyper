@@ -26,7 +26,7 @@ It then connects the Cas operons and CRISPR arrays, producing as output:
 <img src='img/plot.png' align="left" height="200" />
 
 #### Citation
-[Jakob Russel, Rafael Pinilla-Redondo, David Mayo-Muñoz, Shiraz A. Shah, Søren J. Sørensen - CRISPRCasTyper: An automated tool for the identification, annotation and classification of CRISPR-Cas loci. BioRxiv May 2020](https://doi.org/10.1101/2020.05.15.097824)
+[Jakob Russel, Rafael Pinilla-Redondo, David Mayo-Muñoz, Shiraz A. Shah, Søren J. Sørensen - CRISPRCasTyper: Automated Identification, Annotation and Classification of CRISPR-Cas loci. The CRISPR Journal Dec 2020](https://doi.org/10.1089/crispr.2020.0059)
 
 # Table of contents
 1. [Quick start](#quick)
