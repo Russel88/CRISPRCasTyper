@@ -36,6 +36,7 @@ Find  a free to read version on [BioRxiv](https://doi.org/10.1101/2020.05.15.097
 3. [CRISPRCasTyper - How to](#cctyperhow)
     * [Plotting](#plot)
 4. [RepeatType - How to](#repeattype)
+    * [Updated models](#repeatnew)
 5. [RepeatType - Train](#repeattrain)
 6. [Troubleshoot](#trouble)
 
@@ -221,8 +222,8 @@ The plot below is run with `--expand 5000`
 
 <img src='img/plot2.png' align="left" height="350" />
 
-## RepeatType - How to <a name="repeattype"></a>
-With an input of CRISPR repeats (one per line, in a simple textfile) RepeatType will predict the subtype, based on the kmer composition of the repeat
+## RepeatTyper - How to <a name="repeattype"></a>
+With an input of CRISPR repeats (one per line, in a simple textfile) RepeatTyper will predict the subtype, based on the kmer composition of the repeat
 
 #### Activate environment
 ```sh
@@ -270,15 +271,39 @@ The script prints:
     * **V-A**      0.77
     * **VI-B**     1.00
 
-## RepeatType - Train <a name="repeattrain"></a>
-You can train the repeat classifier with your own set of subtyped repeats. With a tab-delimeted input where 1. column contains the subtypes and 2. column contains the CRISPR repeat sequences, RepeatTrain will train a CRISPR repeat classifier that is directly usable for both RepeatType and CRISPRCasTyper.
+### Updated RepeatTyper models <a name="repeatnew"></a>
+The [CCTyper webserver](https://typer.crispr.dk) is crowdsourcing subtyped repeats and includes an updated RepeatTyper model based on a much larger set of repeats and contains additional subtypes compared to the curated RepeatTyper model. 
+This updated model is automatically retrained each month and the models can be downloaded [here](http://mibi.galaxy.bio.ku.dk/russel/repeattyper/).
+
+Each model contains a training report (xgb_report), where you can find the training log, and in the bottom the accuracy, both overall and per subtype.
+
+#### Use new model in CRISPRCasTyper
+Save the original database files:
+```sh
+mv ${CCTYPER_DB}/type_dict.tab ${CCTYPER_DB}/type_dict_orig.tab
+mv ${CCTYPER_DB}/xgb_repeats.model ${CCTYPER_DB}/xgb_repeats_orig.model
+```
+
+Move the new model into the database folder
+```sh
+mv repeat_model/* ${CCTYPER_DB}/
+```
+
+##### CRISPRCasTyper and RepeatTyper will now use the new model for repeat prediction!
+
+## RepeatTyper - Train <a name="repeattrain"></a>
+You can train the repeat classifier with your own set of subtyped repeats. With a tab-delimeted input where 1. column contains the subtypes and 2. column contains the CRISPR repeat sequences, RepeatTrain will train a CRISPR repeat classifier that is directly usable for both RepeatTyper and CRISPRCasTyper.
+
+#### Train
+```sh
+You can train the repeat classifier with your own set of subtyped repeats. With a tab-delimeted input where 1. column contains the subtypes and 2. column contains the CRISPR repeat sequences, RepeatTrain will train a CRISPR repeat classifier that is directly usable for both RepeatTyper and CRISPRCasTyper.
 
 #### Train
 ```sh
 repeatTrain typed_repeats.tab my_classifier
 ```
 
-#### Use new model in RepeatType
+#### Use new model in RepeatTyper
 ```sh
 repeatType repeats.txt --db my_classifier
 ```
@@ -295,7 +320,7 @@ Move the new model into the database folder
 mv my_classifier/* ${CCTYPER_DB}/
 ```
 
-##### CRISPRCasTyper and RepeatType will now use the new model for repeat prediction!
+##### CRISPRCasTyper and RepeatTyper will now use the new model for repeat prediction!
 
 ## Troubleshoot <a name="trouble"></a>
 
