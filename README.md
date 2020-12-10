@@ -62,7 +62,7 @@ conda create -n cctyper -c conda-forge -c bioconda -c russel88 cctyper
 ```
 
 ### pip
-If you have the dependencies (Python >= 3.8, HMMER >= 3.2, Prodigal >= 2.6, grep, sed) in your PATH you can install with pip
+If you have the dependencies (Python >= 3.8, HMMER >= 3.2, Prodigal >= 2.6, minced, grep, sed) in your PATH you can install with pip
 
 Install cctyper python module
 ```sh
