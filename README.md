@@ -51,7 +51,7 @@ cctyper my.fasta my_output
 ## Installation <a name="install"></a>
 CRISPRCasTyper can be installed either through conda or pip.
 
-It is advised to use conda, since this installs CRISPRCasTyper and all dependencies, and downloads with database in one go.
+It is advised to use conda, since this installs CRISPRCasTyper and all dependencies, and downloads the database in one go.
 
 ### Conda
 Use [miniconda](https://docs.conda.io/en/latest/miniconda.html) or [anaconda](https://www.anaconda.com/) to install.
