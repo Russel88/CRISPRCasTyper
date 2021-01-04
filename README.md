@@ -14,7 +14,7 @@ It then connects the Cas operons and CRISPR arrays, producing as output:
 * Orphan Cas operons, and their predicted subtype
 * Orphan CRISPR arrays, and their predicted associated subtype
 
-#### It includes the following 44 subtypes/variants:
+#### It includes the following 44 subtypes/variants [(find typing scheme here)](https://typer.crispr.dk/#/typing):
 * I-A, I-B, I-C, I-D, I-E, I-F, I-F (transposon), I-G, II-A, II-B, II-C, III-A, III-B, III-C, III-D, III-E, III-F, IV-A1, IV-A2, IV-A3, IV-B, IV-C, IV-D, IV-E, V-A, V-B1, V-B2, V-C, V-D, V-E, V-F1, V-F2, V-F3, V-F (the rest), V-G, V-H, V-I, V-J, V-K, VI-A, VI-B1, VI-B2, VI-C, VI-D. 
 
 * All subtypes from the most recent Nature Reviews Microbiology (Makarova et al. 2020): [Evolutionary classification of CRISPR–Cas systems: a burst of class 2 and derived variants](https://doi.org/10.1038/s41579-019-0299-x)
