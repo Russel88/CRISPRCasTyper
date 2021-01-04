@@ -1,21 +1,18 @@
 import setuptools
 
-with open("VERSION", "r") as ver:
-    VV = ver.read().strip()
-
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
     name="cctyper", 
-    version=VV,
+    version="1.2.2",
     author="Jakob Russel",
     author_email="russel2620@gmail.com",
     description="CRISPRCasTyper: Automatic detection and subtyping of CRISPR-Cas operons",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/Russel88/CRISPRCasTyper",
-    download_url="https://github.com/Russel88/CRISPRCasTyper/archive/v{}.tar.gz".format(VV),
+    download_url="https://github.com/Russel88/CRISPRCasTyper/archive/v1.2.2.tar.gz",
     packages=setuptools.find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",
