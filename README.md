@@ -21,6 +21,7 @@ It then connects the Cas operons and CRISPR arrays, producing as output:
 * Updated type IV subtypes and variants based on: [Type IV CRISPR–Cas systems are highly diverse and involved in competition between plasmids](https://doi.org/10.1093/nar/gkz1197)
 * Type V-K: [RNA-guided DNA insertion with CRISPR-associated transposases](https://doi.org/10.1126/science.aax9181)
 * Transposon associated type I-F: [Transposon-encoded CRISPR–Cas systems direct RNA-guided DNA integration](https://doi.org/10.1038/s41586-019-1323-z)
+* New V-A variants: [Novel Type V-A CRISPR Effectors Are Active Nucleases with Expanded Targeting Capabilities](https://doi.org/10.1089/crispr.2020.0043)
 
 #### It can automatically draw gene maps of CRISPR-Cas systems and orphan Cas operons and CRISPR arrays
 <img src='img/plot.png' align="left" height="200" />
@@ -28,7 +29,7 @@ It then connects the Cas operons and CRISPR arrays, producing as output:
 #### Citation
 [Jakob Russel, Rafael Pinilla-Redondo, David Mayo-Muñoz, Shiraz A. Shah, Søren J. Sørensen - CRISPRCasTyper: Automated Identification, Annotation and Classification of CRISPR-Cas loci. The CRISPR Journal Dec 2020](https://doi.org/10.1089/crispr.2020.0059)
 
-Find  a free to read version on [BioRxiv](https://doi.org/10.1101/2020.05.15.097824)
+Find a free to read version on [BioRxiv](https://doi.org/10.1101/2020.05.15.097824)
 
 # Table of contents
 1. [Quick start](#quick)
