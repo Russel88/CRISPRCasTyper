@@ -85,7 +85,7 @@ mv Profiles/ data/
 rm data/Profiles.tar.gz
 
 # Tell CRISPRCasTyper where the data is:
-# either by setting an environment variable (has to done for each terminal session, or added to .bashrc):
+# either by setting an environment variable (has to be done for each terminal session, or added to .bashrc):
 export CCTYPER_DB="/path/to/data/"
 # or by using the --db argument each time you run CRISPRCasTyper:
 cctyper input.fa output --db /path/to/data/
@@ -293,10 +293,6 @@ mv repeat_model/* ${CCTYPER_DB}/
 ##### CRISPRCasTyper and RepeatTyper will now use the new model for repeat prediction!
 
 ## RepeatTyper - Train <a name="repeattrain"></a>
-You can train the repeat classifier with your own set of subtyped repeats. With a tab-delimeted input where 1. column contains the subtypes and 2. column contains the CRISPR repeat sequences, RepeatTrain will train a CRISPR repeat classifier that is directly usable for both RepeatTyper and CRISPRCasTyper.
-
-#### Train
-```sh
 You can train the repeat classifier with your own set of subtyped repeats. With a tab-delimeted input where 1. column contains the subtypes and 2. column contains the CRISPR repeat sequences, RepeatTrain will train a CRISPR repeat classifier that is directly usable for both RepeatTyper and CRISPRCasTyper.
 
 #### Train
