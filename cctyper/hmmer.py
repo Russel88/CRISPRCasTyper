@@ -109,9 +109,11 @@ class HMMER(object):
                 for x in sublst])) / df_sub['qlen']
             df_sub = df_sub[['Hmm','ORF','tlen','qlen','Eval','score',
                             'start','end','Acc','Pos','Cov_seq','Cov_hmm','strand']]
+            df_sub = df_sub.drop_duplicates()
             return df_sub
 
         hmm_df = hmm_df.groupby(['Hmm','ORF']).apply(covs)
+        hmm_df.reset_index(drop=True, inplace=True)
         self.hmm_df = hmm_df.drop_duplicates()
 
     # Write to file
