@@ -160,10 +160,10 @@ class CRISPRCas(object):
                         # If Cas False or Partial    
                         else:
                             if Best_Cas == Prediction_CRISPR:
-                                Prediction = Best_Cas+'(Partial)'
+                                Prediction = Best_Cas+'(Putative)'
                             # If overall type match
                             elif re.sub('-.*$', '', Best_Cas) == re.sub('-.*$', '', Prediction_CRISPR):
-                                Prediction = re.sub('-.*$', '', Prediction_CRISPR)+'(Partial)'
+                                Prediction = re.sub('-.*$', '', Prediction_CRISPR)+'(Putative)'
                             else:
                                 Prediction = "Unknown"
                                 
@@ -179,8 +179,8 @@ class CRISPRCas(object):
             if len(dicts) > 0:
 
                 # Split CRISPR-Cas in putative and good
-                crispr_cas_good = self.crispr_cas[~self.crispr_cas['Prediction'].str.contains('Unknown|Partial')]
-                crispr_cas_put = self.crispr_cas[self.crispr_cas['Prediction'].str.contains('Unknown|Partial')]
+                crispr_cas_good = self.crispr_cas[~self.crispr_cas['Prediction'].str.contains('Unknown|Putative')]
+                crispr_cas_put = self.crispr_cas[self.crispr_cas['Prediction'].str.contains('Unknown|Putative')]
 
                 if len(crispr_cas_good) > 0:
                     crispr_cas_good.to_csv(self.out+'CRISPR_Cas.tab', sep='\t', index=False)
