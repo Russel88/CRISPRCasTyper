@@ -40,6 +40,7 @@ class Controller(object):
         self.spacer_id = args.spacer_id
         self.spacer_sem = args.spacer_sem
         self.exact_stats = args.exact_stats
+        self.seed = args.seed
 
         self.any_cas = False
         self.any_operon = False

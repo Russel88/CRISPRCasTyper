@@ -81,6 +81,8 @@ class Minced(object):
     def parse_minced(self):
         file = open(self.out+'minced.out', 'r')
 
+        random.seed(self.seed)
+        
         crisprs = []
         for ll in file:
             # Record sequence accession
