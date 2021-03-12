@@ -256,21 +256,20 @@ class Typer(object):
             if any(any_circ):
                 self.circ_operons = [sorted(i)[0] for (i, v) in zip([x[0] for x in list(operons)], any_circ) if v]
 
-            # Load score table
-            scores = pd.read_csv(self.scoring, sep=",")
-            scores.fillna(0, inplace=True)
-            self.cas_hmms = list(scores['Hmm'])
+            # Prepare score table
+            self.scores.fillna(0, inplace=True)
+            self.cas_hmms = list(self.scores['Hmm'])
             
             # Signature genes for single gene types
             self.signature = [re.sub('_.*','',x) for x in list(specifics)]
 
             # Get single effector types
-            single_effector_hmms = scores[scores['Hmm'].isin(list(specifics))].drop('Hmm', 1)
+            single_effector_hmms = self.scores[self.scores['Hmm'].isin(list(specifics))].drop('Hmm', 1)
             single_effector_hmms[single_effector_hmms < 0] = 0
             self.single_effector = list(single_effector_hmms.iloc[:, single_effector_hmms.sum(axis=0).values > 0].columns)
 
             # Merge the tables
-            self.hmm_df_all = pd.merge(self.hmm_df, scores, on="Hmm")
+            self.hmm_df_all = pd.merge(self.hmm_df, self.scores, on="Hmm")
 
             # Assign subtype for each operon
             operons_unq = set(self.hmm_df_all['operon'])

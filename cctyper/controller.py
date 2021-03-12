@@ -158,10 +158,10 @@ class Controller(object):
         self.ifdb = os.path.join(self.db, "interference.json")
         self.addb = os.path.join(self.db, "adaptation.json")
 
-        # Try to load CasScoring table
+        # Load CasScoring table
         if os.path.isfile(self.scoring):
             try:
-                dump = pd.read_csv(self.scoring, sep=",")
+                self.scores = pd.read_csv(self.scoring, sep=",")
             except:
                 logging.error('CasScoring table could not be loaded')
                 sys.exit()
