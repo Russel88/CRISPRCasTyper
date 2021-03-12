@@ -4,6 +4,7 @@ import logging
 import sys
 import re
 import math
+import random
 
 import statistics as st
 
@@ -13,12 +14,13 @@ from joblib import Parallel, delayed
 # Define the CRISPR class
 class CRISPR(object):
     count = 0
-    def __init__(self, sequence):
+    def __init__(self, sequence, exact_stats):
         self.sequence = sequence.rstrip()
         CRISPR.count += 1
         self.crispr = '{}_{}'.format(self.sequence, CRISPR.count)
         self.repeats = []
         self.spacers = []
+        self.exact = exact_stats
     def setPos(self, start, end):
         self.start = start.rstrip()
         self.end = end.rstrip()
@@ -32,7 +34,14 @@ class CRISPR(object):
         align = pairwise2.align.globalxx(sqlst[i], sqlst[j])
         return(align[0][2]/align[0][4]*100)
     def identLoop(self, seqs, threads):
-        sqr = range(len(seqs))
+        if self.exact:
+            sqr = range(len(seqs))
+        else:
+            if len(seqs) > 10:
+                n_samp = 10
+            else:
+                n_samp = len(seqs)
+            sqr = random.sample(range(len(seqs)), n_samp)
         idents = Parallel(n_jobs=threads)(delayed(self.identity)(k, l, seqs) for k in sqr for l in sqr if k > l)
         return(st.mean(idents))
     def stats(self, threads, rep_id, spa_id, spa_sem):
@@ -79,7 +88,7 @@ class Minced(object):
                 sequence_current = re.sub('\' \(.*', '', re.sub('Sequence \'', '', ll))
             # Create instance of CRISPR and add positions
             if ll.startswith('CRISPR'):
-                crisp_tmp = CRISPR(sequence_current)
+                crisp_tmp = CRISPR(sequence_current, self.exact_stats)
                 pos = re.sub('.*Range: ', '', ll)
                 start = re.sub(' - .*', '', pos)
                 end = re.sub('.* - ', '', pos)

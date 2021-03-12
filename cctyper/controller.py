@@ -39,6 +39,7 @@ class Controller(object):
         self.repeat_id = args.repeat_id
         self.spacer_id = args.spacer_id
         self.spacer_sem = args.spacer_sem
+        self.exact_stats = args.exact_stats
 
         self.any_cas = False
         self.any_operon = False
