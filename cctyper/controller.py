@@ -52,6 +52,10 @@ class Controller(object):
             logging.basicConfig(format='\033[36m'+'[%(asctime)s] %(levelname)s:'+'\033[0m'+' %(message)s', datefmt='%Y-%m-%d %H:%M:%S', level=self.lvl)
         logging.info('Running CRISPRCasTyper version {}'.format(pkg_resources.require("cctyper")[0].version))
 
+        # kmer warning
+        if self.kmer != 4:
+            logging.warning('kmer argument should only be used if the repeatTyper model is trained with a different kmer than 4.')
+        
         # Force consistency
         self.out = os.path.join(self.out, '')
 

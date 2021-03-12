@@ -34,17 +34,17 @@ ap.add_argument('--simplelog', help='No color or progress bar in log.', action='
 
 # Data
 apd = ap.add_argument_group('data arguments')
-apd.add_argument('--db', help='Path to database.', default='', type=str)
+apd.add_argument('--db', help='Path to database. Only needed if CCTYPER_DB environment variable is not set.', default='', type=str)
 
 # Thresholds
-apt = ap.add_argument_group('cas threshold arguments')
+apt = ap.add_argument_group('cas arguments')
 apt.add_argument('--dist', help='Max allowed number of unknown genes between cas genes in operon [%(default)s].', default=3, type=int)
 apt.add_argument('--overall_eval', help='Overall E-value threshold [%(default)s].', default=0.01, type=float)
 apt.add_argument('--overall_cov_seq', help='Overall sequence coverage threshold [%(default)s].', default=0.3, type=float)
 apt.add_argument('--overall_cov_hmm', help='Overall HMM coverage threshold [%(default)s].', default=0.3, type=float)
 
 # CRISPRs
-apc = ap.add_argument_group('crispr threshold arguments')
+apc = ap.add_argument_group('crispr arguments')
 apc.add_argument('--ccd', help='Distance (bp) threshold to connect Cas operons and CRISPR arrays [%(default)s].', default=10000, type=int)
 apc.add_argument('--pred_prob', help='Prediction probability cut-off for assigning subtype to CRISPR repeats [%(default)s].', default=0.75, type=float)
 apc.add_argument('--kmer', help='kmer size. Has to match training kmer size! [%(default)s].', default=4, type=int)
