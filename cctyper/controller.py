@@ -4,6 +4,7 @@ import sys
 import shutil
 import json
 import pkg_resources
+import subprocess
 
 import pandas as pd
 
@@ -23,7 +24,6 @@ class Controller(object):
         self.oev = args.overall_eval
         self.ocs = args.overall_cov_seq
         self.och = args.overall_cov_hmm
-        self.check_inp = args.skip_check
         self.keep_tmp = args.keep_tmp
         self.lvl = args.log_lvl
         self.redo = args.redo_typing
@@ -60,17 +60,14 @@ class Controller(object):
         # Force consistency
         self.out = os.path.join(self.out, '')
 
-        if self.redo:
-            self.check_inp = True
-
         self.prot_path = self.out+'proteins.faa'
 
         # Check databases
         self.check_db()
         
         # Check input and output
-        self.check_input()
         self.check_out()
+        self.check_input()
 
         # If redo check if any crisprs and operons
         if self.redo:
@@ -86,9 +83,6 @@ class Controller(object):
             f.write('{}:\t{}\n'.format(k, v))
         f.close()
 
-        # Get lengths
-        self.get_length()
-
     def check_out(self):
 
         if not self.redo:
@@ -100,30 +94,45 @@ class Controller(object):
 
     def check_input(self):
 
-        if not self.check_inp:
-            if os.path.isfile(self.fasta):
-                if not self.is_fasta():
-                    logging.error('Input file is not in fasta format')
-                    sys.exit()
-            else:
-                logging.error('Could not find input file')
-                sys.exit()
+        if os.path.isfile(self.fasta):
+            self.check_fasta()
+        else:
+            logging.error('Could not find input file')
+            sys.exit()
 
-    def is_fasta(self):
+    def check_fasta(self):
         
-        try:
-            with open(self.fasta, 'r') as handle:
-                fa = SeqIO.parse(handle, 'fasta')
-                [float(x.id) for x in fa]
-                logging.error('Numeric fasta headers not supported')
-                return False
-        except:
-            with open(self.fasta, 'r') as handle:
-                fa = SeqIO.parse(handle, 'fasta')
-                return any(fa)
+        # Get sequence lengths
+        with open(self.fasta, 'r') as handle:
+            self.len_dict = {}
+            for fa in SeqIO.parse(handle, 'fasta'):
+                if fa.id in self.len_dict:
+                    logging.error('Duplicate fasta headers detected')
+                    sys.exit()
+                self.len_dict[fa.id] = len(fa.seq)
+            
+        # Check for numeric headers
+        self.num_headers = False
+        for i in self.len_dict.keys():
+            try:
+                dump = float(i)
+                self.num_headers = True
+            except:
+                pass
+        
+        if self.num_headers:
+            logging.warning('Numeric fasta headers detected. A prefix is added to the names')
+            new_fasta = open(self.out+'fixed_input.fna', 'w')
+            subprocess.run(['sed', 's/^>/>Contig/', self.fasta], stdout = new_fasta)
+            new_fasta.close()
+            self.fasta = self.out+'fixed_input.fna'
+            self.len_dict = {'Contig'+str(key): val for key, val in self.len_dict.items()}
 
     def clean(self):
         if not self.redo:
+
+            if self.num_headers:
+                os.remove(self.out+'fixed_input.fna')
 
             if os.stat(self.out+'hmmer.log').st_size == 0:
                 os.remove(self.out+'hmmer.log')
@@ -191,9 +200,3 @@ class Controller(object):
         with open(self.addb, 'r') as f:
             self.compl_adapt = json.load(f)
 
-    def get_length(self):
-        with open(self.fasta, 'r') as handle:
-            self.len_dict = {}
-            for fa in SeqIO.parse(handle, 'fasta'):
-                self.len_dict[fa.id] = len(fa.seq)
-        
