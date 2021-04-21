@@ -152,6 +152,31 @@ class Typer(object):
             compl_interf = compl_interf[0]
             compl_adapt = compl_adapt[0]
 
+        # Strand
+        interf_genes = list(chain.from_iterable(chain.from_iterable(self.compl_interf.values())))
+        adapt_genes = list(chain.from_iterable(chain.from_iterable(self.compl_adapt.values())))
+
+        tmp['Interf'] = tmp.apply(lambda x: any([i in x['Hmm'] for i in interf_genes]), axis=1)
+        tmp['Adapt'] = tmp.apply(lambda x: any([i in x['Hmm'] for i in adapt_genes]), axis=1)
+
+        interf_strands = set(tmp.loc[tmp['Interf'] == True, 'strand'])
+        adapt_strands = set(tmp.loc[tmp['Adapt'] == True, 'strand'])
+
+        if len(interf_strands) == 1:
+            interf_strand = interf_strands.pop()
+        elif len(interf_strands) == 0:
+            interf_strand = "NA"
+        else:
+            interf_strand = 0
+
+        if len(adapt_strands) == 1:
+            adapt_strand = adapt_strands.pop()
+        elif len(adapt_strands) == 0:
+            adapt_strand = "NA"
+        else:
+            adapt_strand = 0
+        
+        # Collect
         outdict = {"Contig": list(tmp['Acc'])[0],
                    "Operon": operon,
                    "Start": start_operon,
@@ -165,7 +190,9 @@ class Typer(object):
                        "Positions": list(tmp['Pos']),
                        "E-values": ['{:0.2e}'.format(x) for x in list(tmp['Eval'])],
                        "CoverageSeq": [round(x,3) for x in list(tmp['Cov_seq'])],
-                       "CoverageHMM": [round(x,3) for x in list(tmp['Cov_hmm'])]}
+                       "CoverageHMM": [round(x,3) for x in list(tmp['Cov_hmm'])],
+                       "Strand_Interference": interf_strand,
+                       "Strand_Adaptation": adapt_strand}
         
         return outdict
 
