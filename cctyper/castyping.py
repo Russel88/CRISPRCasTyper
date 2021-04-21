@@ -153,8 +153,8 @@ class Typer(object):
             compl_adapt = compl_adapt[0]
 
         # Strand
-        interf_genes = list(chain.from_iterable(chain.from_iterable(self.compl_interf.values())))
-        adapt_genes = list(chain.from_iterable(chain.from_iterable(self.compl_adapt.values())))
+        interf_genes = list(chain.from_iterable(chain.from_iterable([v for k, v in self.compl_interf.items() if k in best_type_list])))
+        adapt_genes = list(chain.from_iterable(chain.from_iterable([v for k, v in self.compl_adapt.items() if k in best_type_list])))
 
         tmp['Interf'] = tmp.apply(lambda x: any([i in x['Hmm'] for i in interf_genes]), axis=1)
         tmp['Adapt'] = tmp.apply(lambda x: any([i in x['Hmm'] for i in adapt_genes]), axis=1)

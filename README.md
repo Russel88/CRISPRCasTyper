@@ -145,6 +145,8 @@ cctyper -h
     * E-values: List of E-values for the genes
     * CoverageSeq: List of sequence coverages for the genes
     * CoverageHMM: List of HMM coverages for the genes
+    * Strand_Interference: Strand of interference module. 1 is positive strand, -1 is negative strand, 0 is mixed, NA if no interference gene found
+    * Strand_Adaptation: Strand of adaptation module. 1 is positive strand, -1 is negative strand, 0 is mixed, NA if no adaptation gene found
 * **crisprs_all.tab:**          All CRISPR arrays, also false positives
     * Contig: Sequence accession
     * CRISPR: CRISPR ID (Sequence accession _ NUMBER)
