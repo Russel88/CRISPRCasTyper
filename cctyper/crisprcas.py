@@ -1,5 +1,7 @@
 import logging
 import re
+import os
+import itertools
 
 import pandas as pd
 
@@ -208,3 +210,4 @@ class CRISPRCas(object):
                     crispr_put.to_csv(self.out+'crisprs_putative.tab', sep='\t', index=False)
                 if len(crispr) > 0:
                     crispr.to_csv(self.out+'crisprs_orphan.tab', sep='\t', index=False)
+

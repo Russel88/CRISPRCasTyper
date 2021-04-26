@@ -329,3 +329,41 @@ class Typer(object):
             if len(operons_put) > 0:    
                 operons_put.to_csv(self.out+'cas_operons_putative.tab', sep='\t', index=False)
             
+            # Get positions of Cas
+            cas_positions = list(zip(self.preddf['Contig'], self.preddf['Start'], self.preddf['End']))
+          
+            self.flank_dict = {}
+            self.flank_dict_pos = {}
+
+            # For each contig
+            for acc in set([x[0] for x in cas_positions]):
+                cas_pos = [(x[1], x[2]) for x in cas_positions if x[0] == acc]
+
+                # Expand by chosen distance cutoff between CRISPR and cas
+                cas_pos = [(x[0]-self.crispr_cas_dist, x[1]+self.crispr_cas_dist) for x in cas_pos] 
+                cas_pos = [x if x[0]>0 else (1, x[1]) for x in cas_pos]
+
+                # Check if any overlap, and merge if true
+                if len(cas_pos) > 1:
+                    def recursive_merge(ll, start_index = 0):
+                        for i in range(start_index, len(ll) - 1):
+                            if ll[i][1] > ll[i+1][0]:
+                                new_start = ll[i][0]
+                                new_end = ll[i+1][1]
+                                ll[i] = (new_start, new_end)
+                                del ll[i+1]
+                                return recursive_merge(ll.copy(), start_index=i)
+                        return ll
+
+                    cas_pos_sort = sorted(cas_pos)
+                    cas_pos = recursive_merge(cas_pos_sort.copy())
+
+                n = 0
+                for i in cas_pos:
+                    n += 1
+                    with open(self.out+'Flank.fna', 'a') as handle:
+                        handle.write('>'+acc+'-'+str(n)+'\n')
+                        handle.write(str(self.seq_dict[acc][(i[0]-1):i[1]])+'\n')
+                        self.flank_dict[acc+'-'+str(n)] = str(self.seq_dict[acc][(i[0]-1):i[1]])
+                        self.flank_dict_pos[acc+'-'+str(n)] = (i[0], i[1])
+                        

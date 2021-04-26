@@ -5,14 +5,14 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="cctyper", 
-    version="1.3.0",
+    version="1.4.0",
     author="Jakob Russel",
     author_email="russel2620@gmail.com",
     description="CRISPRCasTyper: Automatic detection and subtyping of CRISPR-Cas operons",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/Russel88/CRISPRCasTyper",
-    download_url="https://github.com/Russel88/CRISPRCasTyper/archive/v1.3.0.tar.gz",
+    download_url="https://github.com/Russel88/CRISPRCasTyper/archive/v1.4.0.tar.gz",
     packages=setuptools.find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",

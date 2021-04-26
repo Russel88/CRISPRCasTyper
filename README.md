@@ -8,7 +8,7 @@ Detect CRISPR-Cas genes and arrays, and predict the subtype based on both Cas ge
 [CRISPRCasTyper and RepeatType are also available through a webserver](http://crisprcastyper.crispr.dk)
 
 This software finds Cas genes with a large suite of HMMs, then groups these HMMs into operons, and predicts the subtype of the operons based on a scoring scheme.
-Furthermore, it finds CRISPR arrays with [minced](https://github.com/ctSkennerton/minced), and using a kmer-based machine learning approach (extreme gradient boosting trees) it predicts the subtype of the CRISPR arrays based on the consensus repeat. 
+Furthermore, it finds CRISPR arrays with [minced](https://github.com/ctSkennerton/minced) and by BLASTing a large suite of known repeats, and using a kmer-based machine learning approach (extreme gradient boosting trees) it predicts the subtype of the CRISPR arrays based on the consensus repeat. 
 It then connects the Cas operons and CRISPR arrays, producing as output:
 * CRISPR-Cas loci, with consensus subtype prediction based on both Cas genes (mostly) and CRISPR consensus repeats
 * Orphan Cas operons, and their predicted subtype
@@ -104,7 +104,7 @@ conda activate cctyper
 cctyper genome.fa my_output
 ```
 
-#### If you have a complete circular genome
+#### If you have a complete circular genome (each entry in the fasta will be treated as having circular topology)
 ```sh
 cctyper genome.fa my_output --circular
 ```
@@ -149,7 +149,7 @@ cctyper -h
     * Strand_Adaptation: Strand of adaptation module. 1 is positive strand, -1 is negative strand, 0 is mixed, NA if no adaptation gene found
 * **crisprs_all.tab:**          All CRISPR arrays, also false positives
     * Contig: Sequence accession
-    * CRISPR: CRISPR ID (Sequence accession _ NUMBER)
+    * CRISPR: CRISPR ID (minced: Sequence accession _ NUMBER; repeatBLAST: Sequence accession - NUMBER _ NUMBER)
     * Start: Start of CRISPR
     * End: End of CRISPR
     * Consensus_repeat: Consensus repeat sequence
@@ -204,6 +204,8 @@ cctyper -h
 * **proteins.faa**              Protein sequences
 * **hmmer/*.tab**               Alignment output from HMMER for each Cas HMM
 * **minced.out:**               CRISPR array output from minced
+* **blast.tab:**                BLAST output from repeat alignment against flanking regions of cas operons
+* **Flank....:**                Fasta of flanking regions near cas operons and BLAST database of this  
 
 #### Notes on output
 Files are only created if there is any data. For example, the CRISPR_Cas.tab file is only created if there are any CRISPR-Cas loci. 

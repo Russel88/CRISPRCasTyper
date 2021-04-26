@@ -41,6 +41,7 @@ class Controller(object):
         self.spacer_sem = args.spacer_sem
         self.exact_stats = args.exact_stats
         self.seed = args.seed
+        self.skip_blast = args.skip_blast
 
         self.any_cas = False
         self.any_operon = False
@@ -105,11 +106,13 @@ class Controller(object):
         # Get sequence lengths
         with open(self.fasta, 'r') as handle:
             self.len_dict = {}
+            self.seq_dict = {}
             for fa in SeqIO.parse(handle, 'fasta'):
                 if fa.id in self.len_dict:
                     logging.error('Duplicate fasta headers detected')
                     sys.exit()
                 self.len_dict[fa.id] = len(fa.seq)
+                self.seq_dict[fa.id] = fa.seq
             
         # Check for numeric headers
         self.num_headers = False
@@ -127,6 +130,7 @@ class Controller(object):
             new_fasta.close()
             self.fasta = self.out+'fixed_input.fna'
             self.len_dict = {'Contig'+str(key): val for key, val in self.len_dict.items()}
+            self.seq_dict = {'Contig'+str(key): val for key, val in self.seq_dict.items()}
 
     def clean(self):
         if not self.redo:
@@ -151,6 +155,13 @@ class Controller(object):
                 os.remove(self.out+'prodigal.log')
                 os.remove(self.out+'proteins.faa')
 
+                if os.path.exists(self.out+'blast.tab'):
+                    os.remove(self.out+'blast.tab')
+                    os.remove(self.out+'Flank.fna')
+                    os.remove(self.out+'Flank.nhr')
+                    os.remove(self.out+'Flank.nin')
+                    os.remove(self.out+'Flank.nsq')
+
     def check_db(self):
         
         if self.db == '':
@@ -167,6 +178,7 @@ class Controller(object):
         self.cutoffdb = os.path.join(self.db, "cutoffs.tab")
         self.ifdb = os.path.join(self.db, "interference.json")
         self.addb = os.path.join(self.db, "adaptation.json")
+        self.repeatdb = os.path.join(self.db, "repeats.fa")
 
         # Load CasScoring table
         if os.path.isfile(self.scoring):
