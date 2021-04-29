@@ -125,7 +125,8 @@ class CRISPRCas(object):
            
                 # CRISPRs near cas are trusted
                 crispr.loc[crispr['CRISPR'].isin(set([x for x in crispr_cas['CRISPRs'] for x in x])), 'Trusted'] = True
-                
+                crispr.to_csv(self.out+'crisprs_all.tab', sep='\t', index=False)
+
                 # Only trusted for the plot
                 self.crisprsall = crispr[crispr['Trusted']]
 

@@ -93,6 +93,8 @@ class RepeatMatch(object):
             self.cluster_adj()
 
             count_dict = self.df_cluster.groupby('Cluster')['Cluster'].count().to_dict()
+            
+            # At least 3 repeats
             cluster_array = [x for x in count_dict if count_dict[x] > 2]
          
             # If any arrays
@@ -264,67 +266,84 @@ class RepeatMatch(object):
             # Save the instance
             crisprs.append(crisp_tmp)
 
-        # Update CRISPR object
-        crisprs_new = []
-        if hasattr(self, 'crisprs'):
-            for crisp in crisprs:
-                # Check if overlapping
-                crisp_in_seq = [x for x in self.crisprs if x.sequence == crisp.sequence]
-                if not any([x.start <= crisp.end and x.end >= crisp.start for x in crisp_in_seq]):
-                    # Append if not overlapping
-                    self.crisprs.append(crisp)
-                    crisprs_new.append(crisp)
-        else:
-            self.crisprs = crisprs
-        crisprs = crisprs_new
+        # Remove very irregular arrays
+        crisprs_good = []
+        for crisp_tmp in crisprs:
+            ok = 0
+            if crisp_tmp.spacer_identity < 60:
+                ok += 1
+            if crisp_tmp.repeat_identity > 65:
+                ok += 1
+            if crisp_tmp.spacer_sem < 6:
+                ok += 1
+            if ok == 3:
+                crisprs_good.append(crisp_tmp)
+        crisprs = crisprs_good
         
-        header = '{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format('Contig',
-                                                                    'CRISPR',
-                                                                    'Start',
-                                                                    'End',
-                                                                    'Consensus_repeat',
-                                                                    'N_repeats',
-                                                                    'Repeat_len',
-                                                                    'Spacer_len_avg',
-                                                                    'Repeat_identity',
-                                                                    'Spacer_identity',
-                                                                    'Spacer_len_sem',
-                                                                    'Trusted')
-       
-        def write_crisp(handle, cris):
-            handle.write('{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(cris.sequence,
-                                                   cris.crispr,
-                                                   cris.start,
-                                                   cris.end,
-                                                   cris.cons,
-                                                   len(cris.repeats),
-                                                   cris.repeat_len,
-                                                   cris.spacer_len,
-                                                   cris.repeat_identity,
-                                                   cris.spacer_identity,
-                                                   cris.spacer_sem,
-                                                   cris.trusted))
-    
-        # Update CRISPR file
-        if os.path.exists(self.out+'crisprs_all.tab'):
-            f = open(self.out+'crisprs_all.tab', 'a')
-        else:
-            f = open(self.out+'crisprs_all.tab', 'w')
-            f.write(header)
-        for crisp in crisprs:
-            write_crisp(f, crisp)
-        f.close()
+        # Continue if any left
+        if len(crisprs) > 0:
 
-        # Write spacers
-        if not os.path.exists(self.out+'spacers'):
-            os.mkdir(self.out+'spacers')
-
-        for crisp in crisprs:
-            f = open(self.out+'spacers/{}.fa'.format(crisp.crispr), 'w')
-            n = 0
-            for sq in crisp.spacers:
-                n += 1
-                f.write('>{}:{}\n'.format(crisp.crispr, n))
-                f.write('{}\n'.format(sq))
+            # Update CRISPR object
+            crisprs_new = []
+            if hasattr(self, 'crisprs'):
+                for crisp in crisprs:
+                    # Check if overlapping
+                    crisp_in_seq = [x for x in self.crisprs if x.sequence == crisp.sequence]
+                    if not any([x.start <= crisp.end and x.end >= crisp.start for x in crisp_in_seq]):
+                        # Append if not overlapping
+                        self.crisprs.append(crisp)
+                        crisprs_new.append(crisp)
+            else:
+                self.crisprs = crisprs
+            crisprs = crisprs_new
+            
+            header = '{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format('Contig',
+                                                                        'CRISPR',
+                                                                        'Start',
+                                                                        'End',
+                                                                        'Consensus_repeat',
+                                                                        'N_repeats',
+                                                                        'Repeat_len',
+                                                                        'Spacer_len_avg',
+                                                                        'Repeat_identity',
+                                                                        'Spacer_identity',
+                                                                        'Spacer_len_sem',
+                                                                        'Trusted')
+           
+            def write_crisp(handle, cris):
+                handle.write('{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(cris.sequence,
+                                                       cris.crispr,
+                                                       cris.start,
+                                                       cris.end,
+                                                       cris.cons,
+                                                       len(cris.repeats),
+                                                       cris.repeat_len,
+                                                       cris.spacer_len,
+                                                       cris.repeat_identity,
+                                                       cris.spacer_identity,
+                                                       cris.spacer_sem,
+                                                       cris.trusted))
+        
+            # Update CRISPR file
+            if os.path.exists(self.out+'crisprs_all.tab'):
+                f = open(self.out+'crisprs_all.tab', 'a')
+            else:
+                f = open(self.out+'crisprs_all.tab', 'w')
+                f.write(header)
+            for crisp in crisprs:
+                write_crisp(f, crisp)
             f.close()
+
+            # Write spacers
+            if not os.path.exists(self.out+'spacers'):
+                os.mkdir(self.out+'spacers')
+
+            for crisp in crisprs:
+                f = open(self.out+'spacers/{}.fa'.format(crisp.crispr), 'w')
+                n = 0
+                for sq in crisp.spacers:
+                    n += 1
+                    f.write('>{}:{}\n'.format(crisp.crispr, n))
+                    f.write('{}\n'.format(sq))
+                f.close()
 
