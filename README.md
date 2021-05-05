@@ -14,14 +14,15 @@ It then connects the Cas operons and CRISPR arrays, producing as output:
 * Orphan Cas operons, and their predicted subtype
 * Orphan CRISPR arrays, and their predicted associated subtype
 
-#### It includes the following 44 subtypes/variants [(find typing scheme here)](https://typer.crispr.dk/#/typing):
-* I-A, I-B, I-C, I-D, I-E, I-F, I-F (transposon), I-G, II-A, II-B, II-C, III-A, III-B, III-C, III-D, III-E, III-F, IV-A1, IV-A2, IV-A3, IV-B, IV-C, IV-D, IV-E, V-A, V-B1, V-B2, V-C, V-D, V-E, V-F1, V-F2, V-F3, V-F (the rest), V-G, V-H, V-I, V-J, V-K, VI-A, VI-B1, VI-B2, VI-C, VI-D. 
+#### It includes the following 46 subtypes/variants [(find typing scheme here)](https://typer.crispr.dk/#/typing):
+* I-A, I-B, I-C, I-D, I-E, I-F, I-F (transposon), I-G, II-A, II-B, II-C, III-A, III-B, III-C, III-D, III-E, III-F, IV-A1, IV-A2, IV-A3, IV-B, IV-C, IV-D, IV-E, V-A, V-B1, V-B2, V-C, V-D, V-E, V-F1, V-F2, V-F3, V-F (the rest), V-G, V-H, V-I, V-J, V-K, VI-A, VI-B1, VI-B2, VI-C, VI-D, VI-X, VI-Y. 
 
 * All subtypes from the most recent Nature Reviews Microbiology (Makarova et al. 2020): [Evolutionary classification of CRISPR–Cas systems: a burst of class 2 and derived variants](https://doi.org/10.1038/s41579-019-0299-x)
 * Updated type IV subtypes and variants based on: [Type IV CRISPR–Cas systems are highly diverse and involved in competition between plasmids](https://doi.org/10.1093/nar/gkz1197)
 * Type V-K: [RNA-guided DNA insertion with CRISPR-associated transposases](https://doi.org/10.1126/science.aax9181)
 * Transposon associated type I-F: [Transposon-encoded CRISPR–Cas systems direct RNA-guided DNA integration](https://doi.org/10.1038/s41586-019-1323-z)
 * New V-A variants: [Novel Type V-A CRISPR Effectors Are Active Nucleases with Expanded Targeting Capabilities](https://doi.org/10.1089/crispr.2020.0043)
+* New Cas13s: [Programmable RNA editing with compact CRISPR–Cas13 systems from uncultivated microbes](https://doi.org/10.1038/s41592-021-01124-4)
 
 #### It can automatically draw gene maps of CRISPR-Cas systems and orphan Cas operons and CRISPR arrays
 <img src='img/plot.png' align="left" height="200" />
@@ -248,7 +249,9 @@ The script prints:
 
 #### Notes on output
 * Predictions with probabilities below 0.75 are uncertain, and should be taken with a grain of salt.
-* The classifier was only trained on the subtypes for which there were enough (>20) repeats. It can therefore only predict subtypes of repeats associated with the following subtypes:
+* Prior to version 1.4.0 the curated repeatTyper model was included in CCTyper
+* From version 1.4.0 and onwards updated repeatTyper models are included in CCTyper (see more information in the section below)
+* The curated version can only predict subtypes of repeats associated with the following subtypes:
     * I-A, I-B, I-C, I-D, I-E, I-F, I-G
     * II-A, II-B, II-C
     * III-A, III-B, III-C, III-D
@@ -279,6 +282,8 @@ The script prints:
 ### Updated RepeatTyper models <a name="repeatnew"></a>
 The [CCTyper webserver](https://typer.crispr.dk) is crowdsourcing subtyped repeats and includes an updated RepeatTyper model based on a much larger set of repeats and contains additional subtypes compared to the curated RepeatTyper model. 
 This updated model is automatically retrained each month and the models can be downloaded [here](http://mibi.galaxy.bio.ku.dk/russel/repeattyper/).
+
+From version 1.4.0 and onwards of CCTyper the newest repeatTyper model is included upon release of the version.
 
 Each model contains a training report (xgb_report), where you can find the training log, and in the bottom the accuracy, both overall and per subtype.
 
