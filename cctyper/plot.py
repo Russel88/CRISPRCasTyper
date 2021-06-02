@@ -4,9 +4,7 @@ import re
 
 import pandas as pd
 
-from PIL import Image
-from PIL import ImageDraw
-from PIL import ImageFont
+import drawSvg as draw
 
 class Map(object):
     
@@ -15,10 +13,6 @@ class Map(object):
         for key, val in vars(obj).items():
             setattr(self, key, val)
         
-        self.font = ImageFont.truetype(os.path.join(self.db, 'arial.ttf'), 30)
-        self.fontB = ImageFont.truetype(os.path.join(self.db, 'arial.ttf'), 50)
-        self.fontS = ImageFont.truetype(os.path.join(self.db, 'arial.ttf'), 20)
-
     def draw_gene(self, start, end, strand, name, n, z, put):
 
         if isinstance(name, str):
@@ -26,57 +20,65 @@ class Map(object):
             name = re.sub('_[0-9]*_.*', '', name)
             if name_full in self.cas_hmms:
                 if 'Cas6' in name:
-                    col = (255, 0, 0)
+                    col = 'red'
                 elif 'Cas3-Cas2' in name:
-                    col = (0, 150, 0)
+                    col = 'green'
                 elif any([True if x in name else False for x in self.interf_genes]):
-                    col = (240, 200, 0)
+                    col = 'gold'
                 elif any([True if x in name+'_' else False for x in self.adapt_genes]):
-                    col = (0, 0, 255)
+                    col = 'blue'
                 else:
-                    col = (240, 0, 240)
+                    col = 'magenta'
             else:
-                col = (200, 200, 200)
+                col = 'grey'
 
         else:
             name = str(name)
-            col = (200, 200, 200)
+            col = 'grey'
 
+        # Set scale
+        self.scale = 10
+        
+        opa = 1
         if put:
             name = '('+name+')'
-            col = tuple(x+150 for x in col)
+            opa = 0.3
 
         if strand > 0:
-            self.draw.polygon(((self.scale/50*start, n*20*self.scale),
-                          (self.scale/50*end-5*self.scale, n*20*self.scale),
-                          (self.scale/50*end, 2.5*self.scale+n*20*self.scale),
-                          (self.scale/50*end-5*self.scale, 5*self.scale+n*20*self.scale),
-                          (self.scale/50*start, 5*self.scale+n*20*self.scale)),
-                     fill=col, outline=(255, 255, 255))
+            self.im.append(draw.Lines(
+                10+self.scale/50*start, self.imheight-(n*20*self.scale),
+                10+self.scale/50*end-5*self.scale, self.imheight-(n*20*self.scale),
+                10+self.scale/50*end, self.imheight-(2.5*self.scale+n*20*self.scale),
+                10+self.scale/50*end-5*self.scale, self.imheight-(5*self.scale+n*20*self.scale),
+                10+self.scale/50*start, self.imheight-(5*self.scale+n*20*self.scale),
+                10+self.scale/50*start, self.imheight-(n*20*self.scale),
+                     fill=col, close=False, fill_opacity=opa, stroke='black', stroke_width=1))
         else:
-            self.draw.polygon(((self.scale/50*start+5*self.scale, n*20*self.scale),
-                          (self.scale/50*end, n*20*self.scale),
-                          (self.scale/50*end, 5*self.scale+n*20*self.scale),
-                          (self.scale/50*start+5*self.scale, 5*self.scale+n*20*self.scale),
-                          (self.scale/50*start, 2.5*self.scale+n*20*self.scale)),
-                     fill=col, outline=(255, 255, 255))
+            self.im.append(draw.Lines(
+                10+self.scale/50*start+5*self.scale, self.imheight-(n*20*self.scale),
+                10+self.scale/50*end, self.imheight-(n*20*self.scale),
+                10+self.scale/50*end, self.imheight-(5*self.scale+n*20*self.scale),
+                10+self.scale/50*start+5*self.scale, self.imheight-(5*self.scale+n*20*self.scale),
+                10+self.scale/50*start, self.imheight-(2.5*self.scale+n*20*self.scale),
+                10+self.scale/50*start+5*self.scale, self.imheight-(n*20*self.scale),
+                     fill=col, close=False, fill_opacity=opa, stroke='black', stroke_width=1))
         
         if z % 2 == 1:
-            self.draw.text((self.scale/50*start+5, n*20*self.scale-3*self.scale), name, (0,0,0), font=self.font)
+            self.im.append(draw.Text(name, 26, self.scale/50*start+10, self.imheight-(n*20*self.scale-1*self.scale), fill='black'))
         else:
-            self.draw.text((self.scale/50*start+5, n*20*self.scale+5*self.scale), name, (0,0,0), font=self.font)
+            self.im.append(draw.Text(name, 26, self.scale/50*start+10, self.imheight-(n*20*self.scale+8*self.scale), fill='black'))
 
     def draw_array(self, start, end, subtype, n, z):
-        self.draw.polygon(((self.scale/50*start, n*20*self.scale), 
-                      (self.scale/50*end, n*20*self.scale), 
-                      (self.scale/50*end, 5*self.scale+n*20*self.scale), 
-                      (self.scale/50*start, 5*self.scale+n*20*self.scale)), 
-                     fill=(0, 0, 0), outline=(255, 255, 255))
-        self.draw.text((self.scale/50*start+self.scale/10, n*20*self.scale-3*self.scale), subtype, (0,0,0), font=self.font)
+        self.im.append(draw.Lines(
+                    10+self.scale/50*start, self.imheight-(n*20*self.scale), 
+                    10+self.scale/50*end, self.imheight-(n*20*self.scale), 
+                    10+self.scale/50*end, self.imheight-(5*self.scale+n*20*self.scale), 
+                    10+self.scale/50*start, self.imheight-(5*self.scale+n*20*self.scale),
+                     close=False, fill='black'))
+        self.im.append(draw.Text(subtype, 26, 10+self.scale/50*start, self.imheight-(n*20*self.scale-1*self.scale), fill='black'))
 
     def draw_name(self, n, pred, contig, start, end):
-        self.draw.text((self.scale/10, n*20*self.scale-10*self.scale), '{}: {}({}-{})'.format(pred, contig, start, end),
-                  (0,0,0), font=self.fontB)
+        self.im.append(draw.Text('{}: {}({}-{})'.format(pred, contig, start, end), 38, 15+self.scale/10, self.imheight-(n*20*self.scale-6*self.scale), fill='black'))
 
     def draw_system(self, cas, crispr, n):
         z = 0
@@ -104,12 +106,12 @@ class Map(object):
             if not (row['Operon'] in self.cc_circ_start.keys() or row['Operon'] in self.cc_circ_end.keys()):
                 start = min(start, min(cca[cca['CRISPR'].isin(row['CRISPRs'])]['Start']))
                 end = max(end, max(cca[cca['CRISPR'].isin(row['CRISPRs'])]['End']))
-            # If CRISPR-Cas span loci and array is in start of sequence
+            # If CRISPR-Cas span ends and array is in start of sequence
             if row['Operon'] in self.cc_circ_start.keys():
                 ccs = cca[cca['CRISPR'].isin(self.cc_circ_start[row['Operon']])]
                 end = max(ccs['End'])
                 span_ends = True
-            # If CRISPR-Cas span loci and array is in end of sequence
+            # If CRISPR-Cas span ends and array is in end of sequence
             if row['Operon'] in self.cc_circ_end.keys():
                 ccs = cca[cca['CRISPR'].isin(self.cc_circ_end[row['Operon']])]
                 start = min(ccs['Start'])
@@ -267,20 +269,19 @@ class Map(object):
             self.genes = pd.read_csv(self.out+'genes.tab', sep='\t') 
             
             width = width + (self.expand * 2)
+            self.imheight = int(round((total+1)*20*self.scale))
 
-            self.im = Image.new('RGB', (int(round(self.scale/50*width+self.scale*10)), int(round((total+1)*20*self.scale))), (255, 255, 255))
-            self.draw = ImageDraw.Draw(self.im)
+            self.im = draw.Drawing(int(round(self.scale/50*width+self.scale*10)), self.imheight, displayInline=False, origin=(0,0))
 
             if not self.nogrid:
                 # Draw grid
-                y_start = 8*self.scale
-                y_end = self.im.height
+                y_start = 20
+                y_end = self.imheight-8*self.scale
                 step_size = int(round(1000*self.scale/50))
 
                 for x in range(step_size, self.im.width, step_size):
-                    line = ((x, y_start), (x, y_end))
-                    self.draw.line(line, fill=(150,150,150), width=int(self.scale/20))
-                    self.draw.text((x-self.scale*4, self.scale*5), str(int(x/(self.scale/50))), (100,100,100), font=self.fontS)
+                    self.im.append(draw.Lines(x+10, y_start, x+10, y_end, stroke='grey', stroke_width=1, fill='none'))
+                    self.im.append(draw.Text(str(int(x/(self.scale/50))), 22, x-40, self.imheight-7*self.scale, fill='grey'))
 
             # Init count of loci
             k = 0
@@ -324,9 +325,11 @@ class Map(object):
                         endsCas = [self.expand + 1 + x - startPos if x>startPos else self.expand + 1 + x + seq_size - startPos for x in endsCas]
                         startsCris = [self.expand + 1 + x - startPos if x>=startPos else self.expand + 1 + x + seq_size - startPos for x in startsCris]
                         endsCris = [self.expand + 1 + x - startPos if x>startPos else self.expand + 1 + x + seq_size - startPos for x in endsCris]
-                        self.draw.line((((self.expand+1+seq_size-startPos)*self.scale/50, k*self.scale*20-self.scale*5),
-                            ((self.expand+1+seq_size-startPos)*self.scale/50, k*self.scale*20+self.scale*10)), 
-                            fill=(0,0,0), width=int(self.scale/2)) 
+                        self.im.append(draw.Lines(
+                               10+(self.expand+1+seq_size-startPos)*self.scale/50, self.imheight-(k*20*self.scale-5*self.scale),
+                               10+(self.expand+1+seq_size-startPos)*self.scale/50, self.imheight-(k*20*self.scale+10*self.scale),
+                               stroke='black', stroke_width=5, fill='none'))
+                        
                     else:
                         startsCas = [self.expand + 1 + x - startPos for x in startsCas]
                         endsCas = [self.expand + 1 + x - startPos for x in endsCas]
@@ -376,9 +379,10 @@ class Map(object):
                         span_ends = True
                         starts = [self.expand + 1 + x - startPos if x>=startPos else self.expand + 1 + x + seq_size - startPos for x in starts]
                         ends = [self.expand + 1 + x - startPos if x>startPos else self.expand + 1 + x + seq_size - startPos for x in ends]
-                        self.draw.line((((self.expand+1+seq_size-startPos)*self.scale/50, k*self.scale*20-self.scale*5),
-                            ((self.expand+1+seq_size-startPos)*self.scale/50, k*self.scale*20+self.scale*10)), 
-                            fill=(0,0,0), width=int(self.scale/2)) 
+                        self.im.append(draw.Lines(
+                               10+(self.expand+1+seq_size-startPos)*self.scale/50, self.imheight-(self.scale*k*20-5*self.scale),
+                               10+(self.expand+1+seq_size-startPos)*self.scale/50, self.imheight-(self.scale*k*20+10*self.scale),
+                               stroke='black', stroke_width=5, fill='none'))
 
                     cas_list = list(zip(starts, ends, strands, casName, list((False,)*len(casName))))
                     
@@ -420,5 +424,7 @@ class Map(object):
                     self.draw_array(self.expand + 1, self.expand + 1 + end - start, pred, k, 1)
                     self.draw_name(k, pred, i, start, end)
                     
-            self.im.save(self.out+'plot.png')
+            self.im.setPixelScale(3)
+            self.im.saveSvg(self.out+'plot.svg')
+            self.im.savePng(self.out+'plot.png')
                     

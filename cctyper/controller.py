@@ -31,7 +31,6 @@ class Controller(object):
         self.crispr_cas_dist = args.ccd
         self.pred_prob = args.pred_prob
         self.noplot = args.no_plot
-        self.scale = args.scale
         self.nogrid = args.no_grid
         self.expand = args.expand
         self.simplelog = args.simplelog

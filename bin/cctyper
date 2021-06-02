@@ -57,11 +57,10 @@ apc.add_argument('--skip_blast', help='Disable BLAST search of CRISPRs near cas 
 
 # Plot
 app = ap.add_argument_group('plotting arguments')
-app.add_argument('--no_plot', help='Do not draw a map of CRISPR-Cas.', action='store_true')
-app.add_argument('--scale', help='Scaling of plot [%(default)s].', default=10, type=int)
-app.add_argument('--no_grid', help='Do not add grid to plot.', action='store_true')
 app.add_argument('--expand', help='Expand operons with un-annotated genes. The value determines by how many bp in each end to expand. 0 only fills gaps [%(default)s].', default=0, type=int)
 app.add_argument('--custom_hmm', help='Path to custom HMM database to decorate plot. Warning: This overwrites plotting of low-quality matches to Cas HMMs', default='', type=str)
+app.add_argument('--no_plot', help='Do not draw a map of CRISPR-Cas.', action='store_true')
+app.add_argument('--no_grid', help='Do not add grid to plot.', action='store_true')
 
 # Workflow starts here
 
