@@ -140,7 +140,7 @@ class HMMER(object):
 
         if self.any_cas:
         
-            logging.info('Parsing HMMER output')
+            logging.debug('Parsing HMMER output')
 
             # Pick best hit
             self.hmm_df.sort_values('score', ascending=False, inplace=True)
