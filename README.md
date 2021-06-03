@@ -218,7 +218,7 @@ These maps can be expanded (`--expand N`) by adding unknown genes and genes with
 
 The plot below is run with `--expand 5000`
 
-* Arrays are in black, with their predicted subtype association based on the consensus repeat sequence.
+* Arrays are in alternating black/white displaying the actual number of repeats/spacers, and with their predicted subtype association based on the consensus repeat sequence.
 * The interference module is in yellow.
 * The adaptation module is in blue.
 * Cas6 is in red.
