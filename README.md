@@ -25,6 +25,7 @@ It then connects the Cas operons and CRISPR arrays, producing as output:
 * New Cas13s: [Programmable RNA editing with compact CRISPR–Cas13 systems from uncultivated microbes](https://doi.org/10.1038/s41592-021-01124-4)
 
 #### It can automatically draw gene maps of CRISPR-Cas systems and orphan Cas operons and CRISPR arrays
+##### in vector graphics format for direct use in scientific manuscripts
 <img src='img/plot.svg' align="left" height="200" />
 
 #### Citation
@@ -226,7 +227,7 @@ The plot below is run with `--expand 5000`
 * Genes with alignment scores below the thresholds are lighter and with parentheses around names.
 * Unknown genes are in gray (the number matches the genes.tab file)
 
-<img src='img/plot2.png' align="left" height="350" />
+<img src='img/plot2.svg' align="left" height="350" />
 
 ## RepeatTyper - How to <a name="repeattype"></a>
 With an input of CRISPR repeats (one per line, in a simple textfile) RepeatTyper will predict the subtype, based on the kmer composition of the repeat
