@@ -25,7 +25,7 @@ It then connects the Cas operons and CRISPR arrays, producing as output:
 * New Cas13s: [Programmable RNA editing with compact CRISPR–Cas13 systems from uncultivated microbes](https://doi.org/10.1038/s41592-021-01124-4)
 
 #### It can automatically draw gene maps of CRISPR-Cas systems and orphan Cas operons and CRISPR arrays
-<img src='img/plot.png' align="left" height="200" />
+<img src='img/plot.svg' align="left" height="200" />
 
 #### Citation
 [Jakob Russel, Rafael Pinilla-Redondo, David Mayo-Muñoz, Shiraz A. Shah, Søren J. Sørensen - CRISPRCasTyper: Automated Identification, Annotation and Classification of CRISPR-Cas loci. The CRISPR Journal Dec 2020](https://doi.org/10.1089/crispr.2020.0059)
