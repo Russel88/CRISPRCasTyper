@@ -31,7 +31,7 @@ setuptools.setup(
         "scikit-learn >= 0.22.0",
         "xgboost >= 1",
         "tqdm >= 4",
-        "drawSvg >= 1.8.0",
+        "drawSvg_conda >= 1.8.0",
         "setuptools"],
     scripts=['bin/cctyper',
              'bin/repeatType',
