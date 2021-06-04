@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="cctyper", 
-    version="1.4.3",
+    version="1.4.4",
     author="Jakob Russel",
     author_email="russel2620@gmail.com",
     description="CRISPRCasTyper: Automatic detection and subtyping of CRISPR-Cas operons",
@@ -31,7 +31,7 @@ setuptools.setup(
         "scikit-learn >= 0.22.0",
         "xgboost >= 1",
         "tqdm >= 4",
-        "drawSvg_conda >= 1.8.0",
+        "drawSvg >= 1.8.0",
         "setuptools"],
     scripts=['bin/cctyper',
              'bin/repeatType',

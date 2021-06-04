@@ -4,7 +4,7 @@ import re
 
 import pandas as pd
 
-import drawSvg_conda as draw
+import drawSvg as draw
 
 class Map(object):
     
