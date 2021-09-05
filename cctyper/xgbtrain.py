@@ -131,6 +131,8 @@ class XGBTrain(object):
 
         X = pd.DataFrame([dict(zip(self.can_kmer, np.zeros(len(self.can_kmer))))] + [self.count_kmer(x) for x in self.dat['Seq']]).fillna(0)
         X = X.iloc[1:]
+        X['Length'] = [len(x) for x in self.dat['Seq']]
+        X['GC'] = [(x.count('G') + x.count('C'))/len(x) for x in self.dat['Seq']]
 
         y = [self.label_dict[x] for x in self.dat['Type']]
 
@@ -222,7 +224,7 @@ class XGBTrain(object):
         
     def test(self):
 
-        y_pred = self.model.predict(self.dtest, ntree_limit=self.boost_rounds)
+        y_pred = self.model.predict(self.dtest, iteration_range=(0, self.boost_rounds))
 
         conf = confusion_matrix(self.y_test, [x.argmax() for x in y_pred])
         conf_df = pd.DataFrame(conf, columns = self.incl, index = self.incl)

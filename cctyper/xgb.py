@@ -101,10 +101,12 @@ class XGB(object):
 
         # Count kmers (first index is a to ensure all kmers are in the df)
         z_df = pd.DataFrame([dict(zip(self.can_kmer, np.zeros(len(self.can_kmer))))] + [self.count_kmer(x) for x in self.repeats]).fillna(0)
+        z_df['Length'] = [len(x) for x in self.repeats]
+        z_df['GC'] = [(x.count('G') + x.count('C'))/len(x) for x in self.repeats]
         z_df = z_df.reindex(sorted(z_df.columns), axis=1)
         
         # Predict
-        self.z_pred = self.bst.predict(xgb.DMatrix(z_df), ntree_limit=int(self.bst.attr('best_iteration')))
+        self.z_pred = self.bst.predict(xgb.DMatrix(z_df), iteration_range=(0,int(self.bst.attr('best_iteration'))))
         
         # Get type and max probability
         self.z_best = [x.argmax() for x in self.z_pred][1:len(self.z_pred)]
