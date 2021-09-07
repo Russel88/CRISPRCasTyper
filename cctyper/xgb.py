@@ -1,5 +1,6 @@
 import logging
 import os
+import sys
 
 import pandas as pd
 import numpy as np
@@ -101,13 +102,17 @@ class XGB(object):
 
         # Count kmers (first index is a to ensure all kmers are in the df)
         z_df = pd.DataFrame([dict(zip(self.can_kmer, np.zeros(len(self.can_kmer))))] + [self.count_kmer(x) for x in self.repeats]).fillna(0)
-        z_df['Length'] = [len(x) for x in self.repeats]
-        z_df['GC'] = [(x.count('G') + x.count('C'))/len(x) for x in self.repeats]
+        z_df['Length'] = [0] + [len(x) for x in self.repeats]
+        z_df['GC'] = [0] + [(x.count('G') + x.count('C'))/len(x) for x in self.repeats]
         z_df = z_df.reindex(sorted(z_df.columns), axis=1)
         
         # Predict
-        self.z_pred = self.bst.predict(xgb.DMatrix(z_df), iteration_range=(0,int(self.bst.attr('best_iteration'))))
-        
+        try:
+            self.z_pred = self.bst.predict(xgb.DMatrix(z_df), iteration_range=(0,int(self.bst.attr('best_iteration'))))
+        except:
+            logging.error('XGBoost model incompatible')
+            sys.exit()
+
         # Get type and max probability
         self.z_best = [x.argmax() for x in self.z_pred][1:len(self.z_pred)]
         self.z_max = [x.max() for x in self.z_pred][1:len(self.z_pred)]
