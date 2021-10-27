@@ -27,7 +27,9 @@ class CRISPR(object):
     def addRepeat(self, repeat):
         self.repeats.append(repeat.rstrip())
     def addSpacer(self, spacer):
-        self.spacers.append(spacer.rstrip())
+        put_spacer = spacer.rstrip()
+        if len(put_spacer) > 0:
+            self.spacers.append(put_spacer)
     def getConsensus(self):
         self.cons = max(set(self.repeats), key = self.repeats.count) 
     def identity(self, i, j, sqlst):
