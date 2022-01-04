@@ -27,6 +27,7 @@ ap.add_argument('--nfold', help='Cros-validation folds [%(default)s].', default=
 ap.add_argument('--max_depth', help='List of max_depth to train with [%(default)s].', default=(4,6,8), type=int, nargs='+')
 ap.add_argument('--subsample', help='List of subsample to train with [%(default)s].', default=(0.6,0.8,1), type=float, nargs='+')
 ap.add_argument('--colsample_bytree', help='List of colsample_bytree to train with [%(default)s].', default=(0.6,0.8,1), type=float, nargs='+')
+ap.add_argument('--undersample', help='Undersample prevalent subtypes. Off if zero. [%(default)s].', default=0, type=int)
 
 # Workflow starts here
 xgb = XGBTrain(ap.parse_args())

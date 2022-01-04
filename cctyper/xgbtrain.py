@@ -30,6 +30,7 @@ class XGBTrain(object):
         self.subsample = args.subsample
         self.colsample_bytree = args.colsample_bytree
         self.nfold = args.nfold
+        self.undersample = args.undersample
 
         # Alphabet
         base_for = "ACGT"
@@ -100,6 +101,10 @@ class XGBTrain(object):
         f.close()
 
         self.dat = self.dat[self.dat['Type'].isin(self.incl)]
+
+        if self.undersample > 0:
+            print('Undersampling to '+str(self.undersample)+' repeats for each subtype')
+            self.dat = self.dat.groupby('Type').apply(lambda x: x.sample(min(self.undersample,len(x)))).reset_index(drop=True)
 
     def count_kmer(self, seq):
         kmer_d = {}
