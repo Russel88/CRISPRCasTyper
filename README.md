@@ -5,7 +5,7 @@
 
 Detect CRISPR-Cas genes and arrays, and predict the subtype based on both Cas genes and CRISPR repeat sequence.
 
-[CRISPRCasTyper and RepeatType are also available through a webserver](http://crisprcastyper.crispr.dk)
+[CRISPRCasTyper and RepeatType are also available through a webserver](https://crisprcastyper.crispr.dk)
 
 This software finds Cas genes with a large suite of HMMs, then groups these HMMs into operons, and predicts the subtype of the operons based on a scoring scheme.
 Furthermore, it finds CRISPR arrays with [minced](https://github.com/ctSkennerton/minced) and by BLASTing a large suite of known repeats, and using a kmer-based machine learning approach (extreme gradient boosting trees) it predicts the subtype of the CRISPR arrays based on the consensus repeat. 
