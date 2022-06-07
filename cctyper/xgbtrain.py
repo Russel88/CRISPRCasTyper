@@ -235,6 +235,17 @@ class XGBTrain(object):
         conf_df = pd.DataFrame(conf, columns = self.incl, index = self.incl)
         conf_df.to_csv(self.out+'confusion_matrix.tab', sep='\t')
 
+        label_dict_rev = dict(zip(range(len(self.incl)), self.incl))
+
+        true_false_preds = [1 if x==y else 0 for x,y in zip(self.y_test, [x.argmax() for x in y_pred])]
+        probs = [x.max() for x in y_pred]
+
+        probs_df = pd.DataFrame(true_false_preds, columns = ['Correct'])
+        probs_df['Probability'] = probs
+        probs_df['Subtype_true'] = [label_dict_rev[y] for y in [x.argmax() for x in y_pred]]
+        probs_df['Subtype_pred'] = [label_dict_rev[y] for y in self.y_test]
+        probs_df.to_csv(self.out+'probability_test.tab', sep='\t', index=False)
+        
         type_acc = np.diag(conf_df) / conf_df.sum(axis=1)
 
         print('\033[92m' + 'Overall accuracy:' + '\033[0m')
@@ -245,4 +256,5 @@ class XGBTrain(object):
 
         print('\033[92m' + 'Adjusted accuracy:' + '\033[0m')
         print(type_acc.mean())
+
 

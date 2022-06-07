@@ -33,6 +33,9 @@ class RepeatMatch(object):
             self.align()
             self.clust()
 
+        # Write CRISPR gff
+        self.write_gff()
+
     def make_db(self):
         '''
         Make a BLAST database
@@ -346,4 +349,59 @@ class RepeatMatch(object):
                     f.write('>{}:{}\n'.format(crisp.crispr, n))
                     f.write('{}\n'.format(sq))
                 f.close()
+
+
+    def write_gff(self):
+        if len(self.crisprs) > 0:
+            with open(self.out+'crisprs.gff', 'w') as fh:
+                
+                for cr in self.crisprs:
+                    # Write the parent
+                    fh.write('{}\tCCTyper\trepeat_region\t{}\t{}\t{}\t+\t.\tID={};Note={};Dbxref=SO:0001459;Ontology_term=CRISPR\n'.format(cr.sequence,
+                                                                                                                       cr.start,
+                                                                                                                       cr.end,
+                                                                                                                       int(cr.end)-int(cr.start)+1,
+                                                                                                                       cr.crispr,
+                                                                                                                       cr.cons))
+                    
+                    # Interleave repeats and spacers
+                    all_seqs = cr.repeats + cr.spacers
+                    all_seqs[::2] = cr.repeats
+                    all_seqs[1::2] = cr.spacers
+                    
+                    # Write repeats and spacers
+                    k = 0
+                    for seq in all_seqs:
+                        k += 1
+
+                        if k == 1:
+                            seq_start = int(cr.start)
+                            seq_end = int(cr.start) + len(seq) - 1
+                        else:
+                            seq_start = seq_end + 1
+                            seq_end = seq_end + len(seq)
+
+                        # If repeat
+                        if k % 2:
+                            fh.write('{}\tCCTyper\tdirect_repeat\t{}\t{}\t{}\t+\t.\tID={}_REPEAT{};Parent={};Note={};Dbxref=SO:0001459;Ontology_term=CRISPR\n'.format(cr.sequence,
+                                                                                                                               seq_start,
+                                                                                                                               seq_end,
+                                                                                                                               len(seq),
+                                                                                                                               cr.crispr,
+                                                                                                                               int(k/2+0.5),
+                                                                                                                               cr.crispr,
+                                                                                                                               seq))
+                            
+
+                        # If spacer
+                        if not k % 2:
+                            fh.write('{}\tCCTyper\tbinding_site\t{}\t{}\t{}\t+\t.\tID={}_SPACER{};Parent={};Note={};Dbxref=SO:0001459;Ontology_term=CRISPR\n'.format(cr.sequence,
+                                                                                                                               seq_start,
+                                                                                                                               seq_end,
+                                                                                                                               len(seq),
+                                                                                                                               cr.crispr,
+                                                                                                                               int(k/2),
+                                                                                                                               cr.crispr,
+                                                                                                                               seq))
+                                
 
