@@ -54,6 +54,12 @@ apc.add_argument('--spacer_sem', help='Maximum spacer length standard error of t
 apc.add_argument('--exact_stats', help='Repeat and spacer identity is exact (slow for large CRISPR) in contrast to approximate (default, fast, based on sample of repeats/spacers).', action='store_true')
 apc.add_argument('--seed', help='Seed for sampling when estimating CRISPR stats (see argument above) [%(default)s].', default=42, type=float)
 apc.add_argument('--skip_blast', help='Disable BLAST search of CRISPRs near cas operons.', action='store_true')
+apc.add_argument('--searchWL', help='MinCED option - Length of search window. Range: 6-9.', default=8, type=int)
+apc.add_argument('--minNR', help='MinCED option - Minimum number of repeats.', default=3, type=int)
+apc.add_argument('--minRL', help='MinCED option - Minimum repeat length.', default=23, type=int)
+apc.add_argument('--maxRL', help='MinCED option - Maximum repeat length.', default=47, type=int)
+apc.add_argument('--minSL', help='MinCED option - Minimum spacer length.', default=26, type=int)
+apc.add_argument('--maxSL', help='MinCED option - Maximum spacer length.', default=50, type=int)
 
 # Plot
 app = ap.add_argument_group('plotting arguments')

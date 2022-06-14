@@ -47,11 +47,16 @@ class CRISPR(object):
         idents = Parallel(n_jobs=threads)(delayed(self.identity)(k, l, seqs) for k in sqr for l in sqr if k > l)
         return(st.mean(idents))
     def stats(self, threads, rep_id, spa_id, spa_sem):
-        self.spacer_identity = round(self.identLoop(self.spacers, threads), 1)
+        if len(self.spacers) > 1:
+            self.spacer_identity = round(self.identLoop(self.spacers, threads), 1)
+            self.spacer_len = round(st.mean([len(x) for x in self.spacers]), 1)
+            self.spacer_sem = round(st.stdev([len(x) for x in self.spacers])/math.sqrt(len(self.spacers)), 1)
+        else:
+            self.spacer_identity = 0
+            self.spacer_len = len(self.spacers[0])
+            self.spacer_sem = 0
         self.repeat_identity = round(self.identLoop(self.repeats, threads), 1)
-        self.spacer_len = round(st.mean([len(x) for x in self.spacers]), 1)
         self.repeat_len = round(st.mean([len(x) for x in self.repeats]), 1)
-        self.spacer_sem = round(st.stdev([len(x) for x in self.spacers])/math.sqrt(len(self.spacers)), 1)
         self.trusted = (self.repeat_identity > rep_id) & (self.spacer_identity < spa_id) & (self.spacer_sem < spa_sem)
 
 class Minced(object):
@@ -67,7 +72,13 @@ class Minced(object):
             logging.info('Predicting CRISPR arrays with minced')
 
             # Run minced
-            subprocess.run(['minced', 
+            subprocess.run(['minced',
+                            '-searchWL', str(self.searchWL),
+                            '-minNR', str(self.minNR),
+                            '-minRL', str(self.minRL),
+                            '-maxRL', str(self.maxRL),
+                            '-minSL', str(self.minSL),
+                            '-maxSL', str(self.maxSL),
                             self.fasta, 
                             self.out+'minced.out'], 
                             stdout=subprocess.DEVNULL, 

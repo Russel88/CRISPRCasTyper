@@ -42,6 +42,14 @@ class Controller(object):
         self.seed = args.seed
         self.skip_blast = args.skip_blast
 
+        # MinCED
+        self.searchWL = args.searchWL
+        self.minNR = args.minNR
+        self.minRL = args.minRL
+        self.maxRL = args.maxRL
+        self.minSL = args.minSL
+        self.maxSL = args.maxSL
+
         self.any_cas = False
         self.any_operon = False
         self.any_crispr = False
