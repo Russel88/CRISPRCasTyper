@@ -22,8 +22,8 @@ class CRISPR(object):
         self.spacers = []
         self.exact = exact_stats
     def setPos(self, start, end):
-        self.start = start.rstrip()
-        self.end = end.rstrip()
+        self.start = int(start.rstrip())
+        self.end = int(end.rstrip())
     def addRepeat(self, repeat):
         self.repeats.append(repeat.rstrip())
     def addSpacer(self, spacer):

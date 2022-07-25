@@ -242,7 +242,7 @@ class RepeatMatch(object):
         for cl in cls:
             tmp = self.df_array[self.df_array['Cluster'] == cl]
             acc = list(tmp['Acc'])[0]
-
+            
             # Initiate CRISPR object
             crisp_tmp = CRISPR(acc, self.exact_stats)
 
@@ -256,6 +256,8 @@ class RepeatMatch(object):
 
             # Get spacers
             spacers = [str(self.get_sequence(acc, x[0]+1, x[1]-1)) for x in zip(tmp['Max'][:(len(tmp)-1)], tmp['Min'][1:])]
+            if any([len(x)==0 for x in spacers]):
+                continue
             for spaseq in spacers:
                 crisp_tmp.addSpacer(spaseq)
 
@@ -285,7 +287,6 @@ class RepeatMatch(object):
         
         # Continue if any left
         if len(crisprs) > 0:
-
             # Update CRISPR object
             crisprs_new = []
             if hasattr(self, 'crisprs'):
