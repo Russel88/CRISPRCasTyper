@@ -23,6 +23,7 @@ It then connects the Cas operons and CRISPR arrays, producing as output:
 * Transposon associated type I-F: [Transposon-encoded CRISPR–Cas systems direct RNA-guided DNA integration](https://doi.org/10.1038/s41586-019-1323-z)
 * New V-A variants: [Novel Type V-A CRISPR Effectors Are Active Nucleases with Expanded Targeting Capabilities](https://doi.org/10.1089/crispr.2020.0043)
 * New Cas13s: [Programmable RNA editing with compact CRISPR–Cas13 systems from uncultivated microbes](https://doi.org/10.1038/s41592-021-01124-4)
+* V-L (cas12l): [A new family of CRISPR-type V nucleases with C-rich PAM recognition](https://doi.org/10.15252/embr.202255481)
 
 #### It can automatically draw gene maps of CRISPR-Cas systems and orphan Cas operons and CRISPR arrays
 ##### in vector graphics format for direct use in scientific manuscripts
