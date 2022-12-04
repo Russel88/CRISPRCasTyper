@@ -15,7 +15,7 @@ It then connects the Cas operons and CRISPR arrays, producing as output:
 * Orphan CRISPR arrays, and their predicted associated subtype
 
 #### It includes the following 46 subtypes/variants [(find typing scheme here)](https://typer.crispr.dk/#/typing):
-* I-A, I-B, I-C, I-D, I-E, I-F, I-F (transposon), I-G, II-A, II-B, II-C, III-A, III-B, III-C, III-D, III-E, III-F, IV-A1, IV-A2, IV-A3, IV-B, IV-C, IV-D, IV-E, V-A, V-B1, V-B2, V-C, V-D, V-E, V-F1, V-F2, V-F3, V-F (the rest), V-G, V-H, V-I, V-J, V-K, VI-A, VI-B1, VI-B2, VI-C, VI-D, VI-X, VI-Y. 
+* I-A, I-B, I-C, I-D, I-E, I-F, I-F (transposon), I-G, II-A, II-B, II-C, III-A, III-B, III-C, III-D, III-E, III-F, IV-A1, IV-A2, IV-A3, IV-B, IV-C, IV-D, IV-E, V-A, V-B1, V-B2, V-C, V-D, V-E, V-F1, V-F2, V-F3, V-F (the rest), V-G, V-H, V-I, V-J, V-K, V-L, VI-A, VI-B1, VI-B2, VI-C, VI-D, VI-X, VI-Y. 
 
 * All subtypes from the most recent Nature Reviews Microbiology (Makarova et al. 2020): [Evolutionary classification of CRISPR–Cas systems: a burst of class 2 and derived variants](https://doi.org/10.1038/s41579-019-0299-x)
 * Updated type IV subtypes and variants based on: [Type IV CRISPR–Cas systems are highly diverse and involved in competition between plasmids](https://doi.org/10.1093/nar/gkz1197)
@@ -253,33 +253,52 @@ The script prints:
 * Predictions with probabilities below 0.75 are uncertain, and should be taken with a grain of salt.
 * Prior to version 1.4.0 the curated repeatTyper model was included in CCTyper
 * From version 1.4.0 and onwards updated repeatTyper models are included in CCTyper (see more information in the section below)
-* The curated version can only predict subtypes of repeats associated with the following subtypes:
-    * I-A, I-B, I-C, I-D, I-E, I-F, I-G
+* The followinig subtypes are included in the updated model as per December 2022:
+    * I-A, I-B, I-C, I-D, I-E, I-F, I-F (Transposon), I-G
     * II-A, II-B, II-C
-    * III-A, III-B, III-C, III-D
-    * IV-A1, IV-A2, IV-A3
-    * V-A
-    * VI-B
+    * III-A, III-B, III-C, III-D, III-E, III-F
+    * IV-A1, IV-A2, IV-A3, IV-D, IV-E
+    * V-A, V-B1, V-E, V-F1, V-F2, V-F3, V-F (the rest), V-G, V-I, V-J, V-K
+    * VI-A, VI-B1, VI-B2, VI-C, VI-D
 * This is the accuracy per subtype (on an unseen test dataset):
-    * **I-A**      0.60
-    * **I-B**      0.90
-    * **I-C**      0.98
-    * **I-D**      0.47
-    * **I-E**      1.00
-    * **I-F**      0.99
-    * **I-G**      0.83
-    * **II-A**     0.94
-    * **II-B**     1.00
-    * **II-C**     0.89
-    * **III-A**    0.89
-    * **III-B**    0.49
-    * **III-C**    0.60
-    * **III-D**    0.28
-    * **IV-A1**    0.79
-    * **IV-A2**    0.78
-    * **IV-A3**    0.98
-    * **V-A**      0.77
-    * **VI-B**     1.00
+* I-A      0.76
+* I-B      0.81
+* I-C      0.97
+* I-D      0.86
+* I-E      0.95
+* I-F      0.96
+* I-F_T    0.99
+* I-G      0.89
+* II-A     0.92
+* II-B     0.97
+* II-C     0.90
+* III-A    0.82
+* III-B    0.68
+* III-C    0.60
+* III-D    0.59
+* III-E    1.00
+* III-F    0.25
+* IV-A1    0.85
+* IV-A2    0.68
+* IV-A3    0.96
+* IV-D     0.85
+* IV-E     0.92
+* V-A      1.00
+* V-B1     0.90
+* V-E      0.30
+* V-F      0.87
+* V-F1     0.87
+* V-F2     0.90
+* V-F3     0.90
+* V-G      0.67
+* V-I      0.80
+* V-J      0.63
+* V-K      0.99
+* VI-A     0.96
+* VI-B1    0.96
+* VI-B2    1.00
+* VI-C     0.67
+* VI-D     0.97
 
 ### Updated RepeatTyper models <a name="repeatnew"></a>
 The [CCTyper webserver](https://typer.crispr.dk) is crowdsourcing subtyped repeats and includes an updated RepeatTyper model based on a much larger set of repeats and contains additional subtypes compared to the curated RepeatTyper model. 
