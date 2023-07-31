@@ -4,10 +4,11 @@ import argparse
 import logging
 import os
 import sys
-import pkg_resources
-
+from importlib.metadata import version
+import inspect
 from cctyper.controller import Controller
 from cctyper.prodigal import Prodigal
+from cctyper.gff import GFF
 from cctyper.hmmer import HMMER
 from cctyper.castyping import Typer
 from cctyper.minced import Minced
@@ -16,8 +17,9 @@ from cctyper.crisprcas import CRISPRCas
 from cctyper.plot import Map
 from cctyper.blast import RepeatMatch
 
+
 ########## Arguments ##########
-ap = argparse.ArgumentParser(description='CRISPRCasTyper version {}'.format(pkg_resources.require("cctyper")[0].version))
+ap = argparse.ArgumentParser(description=f'CRISPRCasTyper version {version("cctyper")}')
 
 # Required
 ap.add_argument('input', help='Input fasta file')
@@ -31,10 +33,12 @@ ap.add_argument('--keep_tmp', help='Keep temporary files (prodigal, hmmer, mince
 ap.add_argument('--log_lvl', help='Logging level [%(default)s].', default='INFO', type=str, choices=['DEBUG','INFO','WARNING','ERROR'])
 ap.add_argument('--redo_typing', help='Redo the typing. Skip prodigal and HMMER and load the hmmer.tab from the output dir.', action='store_true')
 ap.add_argument('--simplelog', help='No color or progress bar in log.', action='store_true')
-
+ap.add_argument('--gff', help='Path to GFF file.', default=None, type=str)
+ap.add_argument('--prot', help='Path to protein FASTA file.', default=None, type=str)
 # Data
 apd = ap.add_argument_group('data arguments')
 apd.add_argument('--db', help='Path to database. Only needed if CCTYPER_DB environment variable is not set.', default='', type=str)
+
 
 # Thresholds
 apt = ap.add_argument_group('cas arguments')
@@ -69,14 +73,18 @@ app.add_argument('--no_plot', help='Do not draw a map of CRISPR-Cas.', action='s
 app.add_argument('--no_grid', help='Do not add grid to plot.', action='store_true')
 
 # Workflow starts here
-
+args = ap.parse_args()
 
 ########## Initialize ##########
-master = Controller(ap.parse_args())
+master = Controller(args)
 
-########## Prodigal ##########
-proteins = Prodigal(master)
-proteins.run_prod()
+########## Prodigal/GFF read ##########
+if args.gff and args.prot:
+    proteins = GFF(master)
+    proteins.get_genes()
+else:
+    proteins = Prodigal(master)
+    proteins.run_prod()
 
 ########## Hmmer ##########
 hmmeri = HMMER(proteins)

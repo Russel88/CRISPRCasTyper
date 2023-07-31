@@ -75,29 +75,39 @@ class HMMER(object):
         
         # Get files
         hmm_files = glob.glob(os.path.join(self.out+'hmmer', '*.tab'))
-        
         # Parse externally
         with open(self.out+'hmmer.tab', 'w') as hmmer_tab:
             subprocess.run(['grep', '-v', '^#']+hmm_files, stdout=hmmer_tab)
             subprocess.run(['sed', '-i', 's/:/ /', self.out+'hmmer.tab'])
 
         # Load
+        usecols = [0,1,3,6,7,
+                    8,16,17,18,19,
+                    20,21,22]
+        names = ['Hmm','ORF','tlen','qlen','Eval',
+                'score','hmm_from','hmm_to','ali_from','ali_to',
+                'env_from','env_to','pprop']
+        if not (self.gff and self.prot):
+            usecols = usecols + [24,26,28]
+            names= names + ['start','end','strand'] 
+        print(names)
         hmm_df = pd.read_csv(self.out+'hmmer.tab', sep='\s+', header=None,
-            usecols=(0,1,3,6,7,
-                     8,16,17,18,19,
-                     20,21,22,24,26,28),
-            names=('Hmm','ORF','tlen','qlen','Eval',
-                   'score','hmm_from','hmm_to','ali_from','ali_to',
-                   'env_from','env_to','pprop','start','end','strand'))
-
+            usecols=usecols,
+            names=names)
+        print(hmm_df)
         # Parse HMM names
         hmm_df['Hmm'] = [re.sub('\.tab', '', 
                         re.sub(os.path.join(self.out, 'hmmer', ''), '', x)) 
                         for x in hmm_df['Hmm']]
-               
-        # Add columns
-        hmm_df['Acc'] = [re.sub("_[0-9]*$","",x) for x in hmm_df['ORF']]
-        hmm_df['Pos'] = [int(re.sub(".*_","",x)) for x in hmm_df['ORF']]
+        
+        if self.gff and self.prot:
+            self.genes = pd.read_csv(self.out+'genes.tab', sep='\t')
+            hmm_df = pd.merge(hmm_df,self.genes[["Start","End","Strand","Contig","Pos","protein_id"]],
+                                            left_on="ORF",right_on="protein_id",how="left").drop("protein_id",axis=1)
+            hmm_df.rename(columns={'Contig': 'Acc','Strand': 'strand', 'Start': 'start', 'End': 'end'}, inplace=True)
+        else:
+            hmm_df['Acc'] = [re.sub("_[0-9]*$","",x) for x in hmm_df['ORF']]
+            hmm_df['Pos'] = [int(re.sub(".*_","",x)) for x in hmm_df['ORF']]
 
         # Coverages of aligments
         def covs(df_sub):
@@ -115,7 +125,6 @@ class HMMER(object):
         hmm_df = hmm_df.groupby(['Hmm','ORF']).apply(covs)
         hmm_df.reset_index(drop=True, inplace=True)
         self.hmm_df = hmm_df.drop_duplicates()
-
     # Write to file
     def write_hmm(self):
         self.hmm_df.to_csv(self.out+'hmmer.tab', sep='\t', index=False)
@@ -182,6 +191,11 @@ class HMMER(object):
             self.custom_hmm_df.drop_duplicates('Target', inplace=True)
 
             # New columns
-            self.custom_hmm_df['Contig'] = [re.sub("_[0-9]*$","",x) for x in self.custom_hmm_df['Target']]
-            self.custom_hmm_df['Pos'] = [int(re.sub(".*_","",x)) for x in self.custom_hmm_df['Target']]
+            if self.gff and self.prot:
+                self.genes = pd.read_csv(self.out+'genes.tab', sep='\t')
+                self.custom_hmm_df = pd.merge(self.custom_hmm_df,self.genes[["Contig","Pos","protein_id"]],
+                                              left_on="Target",right_on="protein_id",how="left").drop("protein_id",axis=1)
+            else:
+                self.custom_hmm_df['Contig'] = [re.sub("_[0-9]*$","",x) for x in self.custom_hmm_df['Target']]
+                self.custom_hmm_df['Pos'] = [int(re.sub(".*_","",x)) for x in self.custom_hmm_df['Target']]
 

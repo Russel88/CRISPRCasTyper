@@ -9,7 +9,6 @@ import random
 import pandas as pd
 import statistics as st
 
-from Bio import pairwise2
 from Bio import SeqIO
 from Bio.Seq import Seq
 from joblib import Parallel, delayed
