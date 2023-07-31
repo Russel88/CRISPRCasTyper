@@ -90,11 +90,9 @@ class HMMER(object):
         if not (self.gff and self.prot):
             usecols = usecols + [24,26,28]
             names= names + ['start','end','strand'] 
-        print(names)
         hmm_df = pd.read_csv(self.out+'hmmer.tab', sep='\s+', header=None,
             usecols=usecols,
             names=names)
-        print(hmm_df)
         # Parse HMM names
         hmm_df['Hmm'] = [re.sub('\.tab', '', 
                         re.sub(os.path.join(self.out, 'hmmer', ''), '', x)) 

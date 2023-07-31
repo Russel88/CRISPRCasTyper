@@ -187,6 +187,7 @@ class Typer(object):
                        "Best_type": best_type,
                        "Best_score": best_score,
                        "Genes": list(tmp['Hmm']),
+                       "Prot_IDs": list(tmp['ORF']),
                        "Positions": list(tmp['Pos']),
                        "E-values": ['{:0.2e}'.format(x) for x in list(tmp['Eval'])],
                        "CoverageSeq": [round(x,3) for x in list(tmp['Cov_seq'])],
