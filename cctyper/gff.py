@@ -58,8 +58,12 @@ class GFF(object):
             elif gff["ID"].str.match(r'^\d+_\d+$').all():
                 gff["protein_id"] = gff["Contig"] + "_" +gff["ID"].str.split("_").apply(lambda x: x[1])
             else:
-                logging.error("GFF file does not match expected format. Please check that it meets the format requirements.")
-                sys.exit()
+                prot_ids = subprocess.run(['sed', '-n', 's/^>//p', self.prot_path],capture_output=True).stdout.decode().splitlines()
+                if set(prot_ids).issubset(gff['ID']):
+                    gff["protein_id"]=gff["ID"]
+                else:
+                    logging.error("GFF file does not match expected format. Please check that it meets the format requirements.")
+                    sys.exit()
         gff=gff[cols+["protein_id"]].dropna(subset=["protein_id"])
         gff = gff.sort_values(['Contig', 'Start'])
         gff['Pos'] = gff.groupby('Contig').cumcount() + 1
