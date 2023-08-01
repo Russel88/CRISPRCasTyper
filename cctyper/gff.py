@@ -13,12 +13,14 @@ class GFF(object):
         for key, val in vars(obj).items():
             setattr(self, key, val)
 
+
+
     def get_genes(self):
 
         def unwrap_attributes(df):
             attribute_names = set()
             for attributes in df['attributes']:
-                attributes_list = attributes.split(';')
+                attributes_list = [n for n in attributes.split(';') if n and n!='']
                 for attr in attributes_list:
                     attribute_name = attr.split('=')[0]
                     attribute_names.add(attribute_name)
@@ -29,7 +31,7 @@ class GFF(object):
 
             # Function to extract attribute values and assign them to columns
             def extract_attribute_values(row):
-                attributes_list = row['attributes'].split(';')
+                attributes_list = [n for n in row['attributes'].split(';') if n and n!=''] 
                 for attr in attributes_list:
                     attribute_name, attribute_value = attr.split('=')
                     row[attribute_name] = attribute_value
@@ -50,6 +52,15 @@ class GFF(object):
 
         gff=unwrap_attributes(gff)
         cols = [col for col in gff.columns if col in [n for n in custom_header if n[0].isupper()]]
+        if "protein_id" not in gff.columns:
+            if "ID" in gff.columns:
+                if gff["ID"].str.match(r'^\D+_\d+$').all():
+                    gff["protein_id"]=gff["ID"]
+                elif gff["ID"].str.match(r'^\d+_\d+$').all():
+                    gff["protein_id"] = gff["Contig"] + "_" +gff["ID"].str.split("_").apply(lambda x: x[1])
+                else:
+                    logging.error("GFF file does not match expected format. Please check that it meets the format requirements.")
+                    sys.exit()
         gff=gff[cols+["protein_id"]].dropna(subset=["protein_id"])
         gff = gff.sort_values(['Contig', 'Start'])
         gff['Pos'] = gff.groupby('Contig').cumcount() + 1
