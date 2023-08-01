@@ -13,8 +13,6 @@ class GFF(object):
         for key, val in vars(obj).items():
             setattr(self, key, val)
 
-
-
     def get_genes(self):
 
         def unwrap_attributes(df):
@@ -52,15 +50,16 @@ class GFF(object):
 
         gff=unwrap_attributes(gff)
         cols = [col for col in gff.columns if col in [n for n in custom_header if n[0].isupper()]]
-        if "protein_id" not in gff.columns:
-            if "ID" in gff.columns:
-                if gff["ID"].str.match(r'^\D+_\d+$').all():
-                    gff["protein_id"]=gff["ID"]
-                elif gff["ID"].str.match(r'^\d+_\d+$').all():
-                    gff["protein_id"] = gff["Contig"] + "_" +gff["ID"].str.split("_").apply(lambda x: x[1])
-                else:
-                    logging.error("GFF file does not match expected format. Please check that it meets the format requirements.")
-                    sys.exit()
+        if "ID" in gff.columns:
+            if gff['ID'].str.startswith('cds-').all():
+                gff["protein_id"]=gff["ID"].str.split("-").apply(lambda x: x[1])
+            elif gff["ID"].str.match(r'^\D+_\d+$').all():
+                gff["protein_id"]=gff["ID"]
+            elif gff["ID"].str.match(r'^\d+_\d+$').all():
+                gff["protein_id"] = gff["Contig"] + "_" +gff["ID"].str.split("_").apply(lambda x: x[1])
+            else:
+                logging.error("GFF file does not match expected format. Please check that it meets the format requirements.")
+                sys.exit()
         gff=gff[cols+["protein_id"]].dropna(subset=["protein_id"])
         gff = gff.sort_values(['Contig', 'Start'])
         gff['Pos'] = gff.groupby('Contig').cumcount() + 1
