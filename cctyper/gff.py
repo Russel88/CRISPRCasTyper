@@ -44,7 +44,7 @@ class GFF(object):
 
         custom_header = ['Contig', 'source', 'type','Start','End','score','Strand','phase','attributes']
 
-        gff = pd.read_csv("genomic.gff",sep="\t",comment="#",names=custom_header,engine="c")
+        gff = pd.read_csv(self.gff,sep="\t",comment="#",names=custom_header,engine="c")
         gff = gff[gff['type'] == 'CDS']
         gff['Strand'] = gff['Strand'].map({'+': 1, '-': -1})
 
