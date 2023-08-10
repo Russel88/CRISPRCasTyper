@@ -18,6 +18,8 @@ class Controller(object):
         self.out = args.output
         self.threads = args.threads
         self.dist = args.dist
+        self.gff = args.gff
+        self.prot = args.prot
         self.prod = args.prodigal
         self.db = args.db
         self.circular = args.circular
@@ -107,6 +109,15 @@ class Controller(object):
         else:
             logging.error('Could not find input file')
             sys.exit()
+        if self.prot and self.gff:
+            shutil.copy(self.prot, self.prot_path)
+            subprocess.run(['sed', '-i', 's/ .*$//', self.prot_path])
+        elif self.gff and (not self.gff):
+            logging.error('Gff file provided but no protein file. Please provide both')
+            sys.exit()
+        elif (not self.gff) and self.gff:
+            logging.error('Protein file provided but no GFF file. Please provide both')
+            sys.exit()
 
     def check_fasta(self):
         
@@ -159,7 +170,6 @@ class Controller(object):
                 shutil.rmtree(self.out+'hmmer')
                 
                 os.remove(self.out+'minced.out')
-                os.remove(self.out+'prodigal.log')
                 os.remove(self.out+'proteins.faa')
 
                 if os.path.exists(self.out+'blast.tab'):
@@ -168,6 +178,9 @@ class Controller(object):
                     os.remove(self.out+'Flank.nhr')
                     os.remove(self.out+'Flank.nin')
                     os.remove(self.out+'Flank.nsq')
+                
+                if os.path.exists(self.out+'prodigal.log'):
+                    os.remove(self.out+'prodigal.log')
 
     def check_db(self):
         
