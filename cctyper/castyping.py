@@ -33,9 +33,9 @@ class Typer(object):
         tmpX['Hmm'] = [re.sub("_.*","",x) for x in tmpX['Hmm']]
         tmpX.drop_duplicates('Hmm', inplace=True)
 
-        start = list(tmp['start'])
-        end = list(tmp['end'])
-
+        start = list(tmp['start'].astype(int))
+        end = list(tmp['end'].astype(int))
+        
         if operon in self.circ_operons:
             gene_end = np.argmax(np.diff(list(tmp['Pos'])))
             start_operon = start[gene_end+1]
@@ -187,6 +187,7 @@ class Typer(object):
                        "Best_type": best_type,
                        "Best_score": best_score,
                        "Genes": list(tmp['Hmm']),
+                       "Prot_IDs": list(tmp['ORF']),
                        "Positions": list(tmp['Pos']),
                        "E-values": ['{:0.2e}'.format(x) for x in list(tmp['Eval'])],
                        "CoverageSeq": [round(x,3) for x in list(tmp['Cov_seq'])],
