@@ -311,7 +311,7 @@ class Typer(object):
         self.hmm_df_all = pd.merge(self.hmm_df, self.scores, on="Hmm")
 
         # Assign subtype for each operon
-        operons_unq = set(self.hmm_df_all['operon'])
+        operons_unq = sorted(set(self.hmm_df_all['operon']))
         dictlst = [self.type_operon(operonID) for operonID in operons_unq]
         
         # Return

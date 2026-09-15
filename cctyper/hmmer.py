@@ -51,7 +51,7 @@ class HMMER(object):
         self.alphabet = alphabet
         self.sequences = sequences
 
-        seq_lookup = {seq.name.decode(): seq for seq in sequences}
+        seq_lookup = {seq.name: seq for seq in sequences}
 
         hits_out = []
         hmms = list(self._iter_hmms(alphabet))
@@ -66,10 +66,10 @@ class HMMER(object):
         )
 
         for hits in progress(pyhmmer.hmmsearch(hmms, sequences, cpus=cpus)):
-            hmm_name = hits.query.name.decode()
+            hmm_name = hits.query.name
             qlen = hits.query.M
             for hit in hits.included:
-                target_name = hit.name.decode()
+                target_name = hit.name
                 seq = seq_lookup.get(target_name)
                 if seq is None:
                     continue
@@ -207,7 +207,7 @@ class HMMER(object):
             yield from load_plain(pathlib.Path(self.hmm_db))
 
     def _parse_prodigal_header(self, seq):
-        desc = (seq.description or b"").decode()
+        desc = (seq.description or "")
         start = end = strand = 0
         if '#' in desc:
             parts = [p.strip() for p in desc.split('#')]
@@ -337,10 +337,10 @@ class HMMER(object):
                 hmms = list(hmm_file)
 
             for hits in pyhmmer.hmmsearch(hmms, self.sequences, cpus=cpus):
-                hmm_name = (hits.query.name or b"").decode()
-                hmm_acc = (hits.query.accession or b"").decode()
+                hmm_name = (hits.query.name or "")
+                hmm_acc = (hits.query.accession or "")
                 for hit in hits.included:
-                    target_name = hit.name.decode()
+                    target_name = hit.name
                     for domain in hit.domains.included:
                         aln = domain.alignment
                         if aln is not None:

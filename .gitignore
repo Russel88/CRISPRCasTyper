@@ -10,3 +10,5 @@ meta.yaml
 conda_builds/
 *.txt
 **/cctyper_profiles.hmm
+.pytest_cache/
+test/results/

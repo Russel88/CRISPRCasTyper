@@ -465,13 +465,11 @@ class Map(object):
                     self.draw_name(k, pred, i, start, end)
                     
             self.im.save_svg(self.out+'plot.svg')
-            try: 
-                self.im.set_pixel_scale(int(round(self.im.width/(250*self.scale))))
+            try:
+                # Cairo limits surfaces to 32767 px per side
+                pixel_scale = max(1, round(self.im.width/(250*self.scale)))
+                pixel_scale = min(pixel_scale, 32767 / max(self.im.width, self.im.height))
+                self.im.set_pixel_scale(pixel_scale)
                 self.im.save_png(self.out+'plot.png')
             except:
-                logging.warning('PNG plot failed. Trying lower resolution')
-                try:
-                    self.im.set_pixel_scale(3)
-                    self.im.save_png(self.out+'plot.png')
-                except:
-                    logging.warning('PNG plot failed')
+                logging.warning('PNG plot failed')

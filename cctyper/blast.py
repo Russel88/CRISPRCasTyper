@@ -1,70 +1,79 @@
 import os
-import subprocess
 import logging
-import sys
+import subprocess
 import re
-import math
-import random
+
+from itertools import chain, zip_longest
 
 import pandas as pd
-import statistics as st
 
-from Bio import SeqIO
-from Bio.Seq import Seq
-from joblib import Parallel, delayed
+from cctyper.minced import CRISPR, write_crispr_table, write_spacer_files
+from cctyper.editdist import load_repeats, search_repeats_edlib, search_repeats_myers
 
-from cctyper.minced import CRISPR
+GFF_ONTOLOGY = 'Dbxref=SO:0001459;Ontology_term=CRISPR'
+
+
+def gff_line(seqid, kind, start, end, score, attributes):
+    '''
+    One GFF3 record. Score holds the feature length, as CCTyper has always written it
+    '''
+    return '\t'.join((seqid, 'CCTyper', kind, str(start), str(end), str(score),
+                      '+', '.', attributes+';'+GFF_ONTOLOGY))+'\n'
+
 
 class RepeatMatch(object):
-    
+
     def __init__(self, obj):
         self.master = obj
         for key, val in vars(obj).items():
             setattr(self, key, val)
-    
+
     def run(self):
-        
+
         if self.any_operon and not self.skip_blast:
-            
-            logging.info("BLASTing for CRISPR near cas operons")
-            
-            self.make_db()
+
+            logging.info("Searching for CRISPR near cas operons")
+
             self.align()
             self.clust()
 
         # Write CRISPR gff
         self.write_gff()
 
-    def make_db(self):
-        '''
-        Make a BLAST database
-        '''
-
-        logging.debug('Making BLAST database')
-
-        subprocess.run(['makeblastdb', 
-                        '-dbtype', 'nucl', 
-                        '-in', self.out+'Flank.fna',
-                        '-out', self.out+'Flank'], 
-                        stdout=subprocess.DEVNULL)
-    
     def align(self):
         '''
-        BLASTing repeat database
+        Search the repeat database against flanking regions of cas operons,
+        with the backend selected by --repeat_search_backend
         '''
 
-        logging.debug('BLASTing repeats')
+        logging.debug('Aligning repeats (%s backend)', self.repeat_search_backend)
 
-        # BLASTn
-        subprocess.run(['blastn', 
-                        '-task', 'blastn-short', 
-                        '-query', self.repeatdb,
-                        '-db', self.out+'Flank',
-                        '-outfmt', '6',
-                        '-out', self.out+'blast.tab',
-                        '-num_threads', str(self.threads),
-                        '-perc_identity', str(90),
-                        '-qcov_hsp_perc', str(90)])
+        if self.repeat_search_backend == 'blast':
+            subprocess.run(['makeblastdb',
+                            '-dbtype', 'nucl',
+                            '-in', self.out+'Flank.fna',
+                            '-out', self.out+'Flank'],
+                            stdout=subprocess.DEVNULL)
+            subprocess.run(['blastn',
+                            '-task', 'blastn-short',
+                            '-query', self.repeatdb,
+                            '-db', self.out+'Flank',
+                            '-outfmt', '6',
+                            '-out', self.out+'blast.tab',
+                            '-num_threads', str(self.threads),
+                            '-perc_identity', str(90),
+                            '-qcov_hsp_perc', str(90)])
+            return
+
+        repeats = load_repeats(self.repeatdb)
+        flanks = {fid: seq.upper() for fid, seq in self.flank_dict.items()}
+        search = search_repeats_myers if self.repeat_search_backend == 'myers' else search_repeats_edlib
+        rows = search(repeats, flanks, self.threads)
+
+        with open(self.out+'blast.tab', 'w') as f:
+            # deterministic order: score ties in remove_overlap resolve by input order
+            for row in sorted(rows):
+                f.write('\t'.join(str(x) for x in row)+'\n')
 
 
     def clust(self):
@@ -73,7 +82,10 @@ class RepeatMatch(object):
         '''
 
         logging.debug('Clustering matches into arrays')
-        
+
+        if os.path.getsize(self.out+'blast.tab') == 0:
+            return
+
         # Load blast table and add lengths
         self.df = pd.read_csv(self.out+'blast.tab', sep='\t', header=None,
             names=('Repeat', 'Acc', 'Identity', 'Alignment', 'Mismatches', 'Gaps',
@@ -136,8 +148,8 @@ class RepeatMatch(object):
 
         logging.debug('Removing overlapping matches')
 
-        # Sort by alignment quality
-        self.df = self.df.sort_values(['Acc', 'Score'], ascending=False) 
+        # Sort by alignment quality (stable, so score ties keep input order)
+        self.df = self.df.sort_values(['Acc', 'Score'], ascending=False, kind='stable')
 
         overlap_lst = []
         for i in set(self.df['Acc']):
@@ -173,7 +185,7 @@ class RepeatMatch(object):
         logging.debug('Clustering matches')
 
         # Sort by position
-        self.df_overlap = self.df_overlap.sort_values('Min')
+        self.df_overlap = self.df_overlap.sort_values('Min', kind='stable')
 
         cluster_df_lst = []
         cluster = 0
@@ -300,107 +312,32 @@ class RepeatMatch(object):
                 self.crisprs = crisprs
             crisprs = crisprs_new
             
-            header = '{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format('Contig',
-                                                                        'CRISPR',
-                                                                        'Start',
-                                                                        'End',
-                                                                        'Consensus_repeat',
-                                                                        'N_repeats',
-                                                                        'Repeat_len',
-                                                                        'Spacer_len_avg',
-                                                                        'Repeat_identity',
-                                                                        'Spacer_identity',
-                                                                        'Spacer_len_sem',
-                                                                        'Trusted')
-           
-            def write_crisp(handle, cris):
-                handle.write('{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(cris.sequence,
-                                                       cris.crispr,
-                                                       cris.start,
-                                                       cris.end,
-                                                       cris.cons,
-                                                       len(cris.repeats),
-                                                       cris.repeat_len,
-                                                       cris.spacer_len,
-                                                       cris.repeat_identity,
-                                                       cris.spacer_identity,
-                                                       cris.spacer_sem,
-                                                       cris.trusted))
-        
-            # Update CRISPR file
-            if os.path.exists(self.out+'crisprs_all.tab'):
-                f = open(self.out+'crisprs_all.tab', 'a')
-            else:
-                f = open(self.out+'crisprs_all.tab', 'w')
-                f.write(header)
-            for crisp in crisprs:
-                write_crisp(f, crisp)
-            f.close()
-
-            # Write spacers
-            if not os.path.exists(self.out+'spacers'):
-                os.mkdir(self.out+'spacers')
-
-            for crisp in crisprs:
-                f = open(self.out+'spacers/{}.fa'.format(crisp.crispr), 'w')
-                n = 0
-                for sq in crisp.spacers:
-                    n += 1
-                    f.write('>{}:{}\n'.format(crisp.crispr, n))
-                    f.write('{}\n'.format(sq))
-                f.close()
+            write_crispr_table(self.out+'crisprs_all.tab', crisprs, append=True)
+            write_spacer_files(self.out+'spacers', crisprs)
 
 
     def write_gff(self):
-        if len(self.crisprs) > 0:
-            with open(self.out+'crisprs.gff', 'w') as fh:
-                
-                for cr in self.crisprs:
-                    # Write the parent
-                    fh.write('{}\tCCTyper\trepeat_region\t{}\t{}\t{}\t+\t.\tID={};Note={};Dbxref=SO:0001459;Ontology_term=CRISPR\n'.format(cr.sequence,
-                                                                                                                       cr.start,
-                                                                                                                       cr.end,
-                                                                                                                       int(cr.end)-int(cr.start)+1,
-                                                                                                                       cr.crispr,
-                                                                                                                       cr.cons))
-                    
-                    # Interleave repeats and spacers
-                    all_seqs = cr.repeats + cr.spacers
-                    all_seqs[::2] = cr.repeats
-                    all_seqs[1::2] = cr.spacers
-                    
-                    # Write repeats and spacers
-                    k = 0
-                    for seq in all_seqs:
-                        k += 1
+        if not self.crisprs:
+            return
 
-                        if k == 1:
-                            seq_start = int(cr.start)
-                            seq_end = int(cr.start) + len(seq) - 1
-                        else:
-                            seq_start = seq_end + 1
-                            seq_end = seq_end + len(seq)
+        with open(self.out+'crisprs.gff', 'w') as fh:
+            for cr in self.crisprs:
+                fh.write(gff_line(cr.sequence, 'repeat_region', cr.start, cr.end,
+                                  int(cr.end)-int(cr.start)+1,
+                                  'ID={};Note={}'.format(cr.crispr, cr.cons)))
 
-                        # If repeat
-                        if k % 2:
-                            fh.write('{}\tCCTyper\tdirect_repeat\t{}\t{}\t{}\t+\t.\tID={}_REPEAT{};Parent={};Note={};Dbxref=SO:0001459;Ontology_term=CRISPR\n'.format(cr.sequence,
-                                                                                                                               seq_start,
-                                                                                                                               seq_end,
-                                                                                                                               len(seq),
-                                                                                                                               cr.crispr,
-                                                                                                                               int(k/2+0.5),
-                                                                                                                               cr.crispr,
-                                                                                                                               seq))
-                            
+                # Repeats and spacers alternate, starting and ending with a repeat
+                all_seqs = [s for s in chain.from_iterable(zip_longest(cr.repeats, cr.spacers))
+                            if s is not None]
 
-                        # If spacer
-                        if not k % 2:
-                            fh.write('{}\tCCTyper\tbinding_site\t{}\t{}\t{}\t+\t.\tID={}_SPACER{};Parent={};Note={};Dbxref=SO:0001459;Ontology_term=CRISPR\n'.format(cr.sequence,
-                                                                                                                               seq_start,
-                                                                                                                               seq_end,
-                                                                                                                               len(seq),
-                                                                                                                               cr.crispr,
-                                                                                                                               int(k/2),
-                                                                                                                               cr.crispr,
-                                                                                                                               seq))
+                seq_end = int(cr.start) - 1
+                for k, seq in enumerate(all_seqs, 1):
+                    seq_start = seq_end + 1
+                    seq_end = seq_start + len(seq) - 1
+
+                    kind, label = ('direct_repeat', 'REPEAT') if k % 2 else ('binding_site', 'SPACER')
+
+                    fh.write(gff_line(cr.sequence, kind, seq_start, seq_end, len(seq),
+                                      'ID={}_{}{};Parent={};Note={}'.format(cr.crispr, label,
+                                                                            (k+1)//2, cr.crispr, seq)))
                                 

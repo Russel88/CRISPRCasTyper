@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import glob
 import logging
 import sys
 import shutil
@@ -45,6 +46,7 @@ class Controller(object):
         self.exact_stats = args.exact_stats
         self.seed = args.seed
         self.skip_blast = args.skip_blast
+        self.repeat_search_backend = args.repeat_search_backend
 
         # MinCED
         self.searchWL = args.searchWL
@@ -69,6 +71,9 @@ class Controller(object):
         else:
             logging.basicConfig(format='\033[36m'+'[%(asctime)s] %(levelname)s:'+'\033[0m'+' %(message)s', datefmt='%Y-%m-%d %H:%M:%S', level=self.lvl)
         logging.info('Running CRISPRCasTyper version {}'.format(cctyper_version))
+
+        # Pick repeat search backend now that logging is up
+        self.resolve_backend(args)
 
         # kmer warning
         if self.kmer != 4:
@@ -99,6 +104,23 @@ class Controller(object):
         for k, v in da.items():
             f.write('{}:\t{}\n'.format(k, v))
         f.close()
+
+    def resolve_backend(self, args):
+        '''
+        Prefer blast when installed, else fall back to the bundled edit distance backend
+        '''
+
+        has_blast = shutil.which('blastn') is not None and shutil.which('makeblastdb') is not None
+
+        if self.repeat_search_backend == 'auto':
+            self.repeat_search_backend = 'blast' if has_blast else 'myers'
+            logging.debug('Repeat search backend: %s', self.repeat_search_backend)
+        elif self.repeat_search_backend == 'blast' and not has_blast:
+            logging.error('--repeat_search_backend blast requires blastn and makeblastdb in PATH')
+            sys.exit(1)
+
+        # Record what actually ran, not 'auto', so arguments.tab is reproducible
+        args.repeat_search_backend = self.repeat_search_backend
 
     def check_out(self):
 
@@ -189,10 +211,8 @@ class Controller(object):
 
                 if os.path.exists(self.out+'blast.tab'):
                     os.remove(self.out+'blast.tab')
-                    os.remove(self.out+'Flank.fna')
-                    os.remove(self.out+'Flank.nhr')
-                    os.remove(self.out+'Flank.nin')
-                    os.remove(self.out+'Flank.nsq')
+                    for fl in glob.glob(self.out+'Flank.*'):
+                        os.remove(fl)
 
     def check_db(self):
 

@@ -28,7 +28,8 @@ class CRISPR(object):
         if len(put_spacer) > 0:
             self.spacers.append(put_spacer)
     def getConsensus(self):
-        self.cons = max(set(self.repeats), key = self.repeats.count) 
+        # sorted so count ties (e.g. degenerate arrays) resolve deterministically
+        self.cons = max(sorted(set(self.repeats)), key = self.repeats.count)
     def identity(self, i, j, sqlst):
         # Equivalent to pairwise2.globalxx: identity based on LCS length over max length
         a = sqlst[i]
@@ -70,6 +71,39 @@ class CRISPR(object):
         self.repeat_identity = round(self.identLoop(self.repeats, threads), 1)
         self.repeat_len = round(st.mean([len(x) for x in self.repeats]), 1)
         self.trusted = (self.repeat_identity > rep_id) & (self.spacer_identity < spa_id) & (self.spacer_sem < spa_sem)
+
+CRISPR_COLUMNS = ('Contig', 'CRISPR', 'Start', 'End', 'Consensus_repeat', 'N_repeats',
+                  'Repeat_len', 'Spacer_len_avg', 'Repeat_identity', 'Spacer_identity',
+                  'Spacer_len_sem', 'Trusted')
+
+
+def write_crispr_table(path, crisprs, append=False):
+    '''
+    Write CRISPR objects as rows of crisprs_all.tab, with header if starting fresh
+    '''
+    add_to = append and os.path.exists(path)
+    with open(path, 'a' if add_to else 'w') as f:
+        if not add_to:
+            f.write('\t'.join(CRISPR_COLUMNS)+'\n')
+        for c in crisprs:
+            f.write('\t'.join(str(x) for x in (c.sequence, c.crispr, c.start, c.end, c.cons,
+                                               len(c.repeats), c.repeat_len, c.spacer_len,
+                                               c.repeat_identity, c.spacer_identity,
+                                               c.spacer_sem, c.trusted))+'\n')
+
+
+def write_spacer_files(outdir, crisprs):
+    '''
+    Write one fasta of spacers per CRISPR array
+    '''
+    if not crisprs:
+        return
+    os.makedirs(outdir, exist_ok=True)
+    for c in crisprs:
+        with open(os.path.join(outdir, c.crispr+'.fa'), 'w') as f:
+            for n, sq in enumerate(c.spacers, 1):
+                f.write('>{}:{}\n{}\n'.format(c.crispr, n, sq))
+
 
 class Minced(object):
     
@@ -154,50 +188,7 @@ class Minced(object):
             self.write_spacers()
 
     def write_crisprs(self) -> None:
-       
-        header = '{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format('Contig',
-                                                                    'CRISPR',
-                                                                    'Start',
-                                                                    'End',
-                                                                    'Consensus_repeat',
-                                                                    'N_repeats',
-                                                                    'Repeat_len',
-                                                                    'Spacer_len_avg',
-                                                                    'Repeat_identity',
-                                                                    'Spacer_identity',
-                                                                    'Spacer_len_sem',
-                                                                    'Trusted')
-       
-        def write_crisp(handle, cris):
-            handle.write('{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(cris.sequence,
-                                                   cris.crispr,
-                                                   cris.start,
-                                                   cris.end,
-                                                   cris.cons,
-                                                   len(cris.repeats),
-                                                   cris.repeat_len,
-                                                   cris.spacer_len,
-                                                   cris.repeat_identity,
-                                                   cris.spacer_identity,
-                                                   cris.spacer_sem,
-                                                   cris.trusted))
-            
-        f = open(self.out+'crisprs_all.tab', 'w')
-        f.write(header)
-        for crisp in self.crisprs:
-            write_crisp(f, crisp)
-        f.close()
+        write_crispr_table(self.out+'crisprs_all.tab', self.crisprs)
 
     def write_spacers(self) -> None:
-        
-        if len(self.crisprs) > 0:
-            os.mkdir(self.out+'spacers')
-            for crisp in self.crisprs:
-                f = open(self.out+'spacers/{}.fa'.format(crisp.crispr), 'w')
-                n = 0
-                for sq in crisp.spacers:
-                    n += 1
-                    f.write('>{}:{}\n'.format(crisp.crispr, n))
-                    f.write('{}\n'.format(sq))
-
-                f.close()
+        write_spacer_files(self.out+'spacers', self.crisprs)

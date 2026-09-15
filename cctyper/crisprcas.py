@@ -68,12 +68,12 @@ class CRISPRCas(object):
             self.cc_circ_end = {}
 
             # Loop over contig
-            for contig in set(cas['Contig']):
+            for contig in sorted(set(cas["Contig"])):
                 cas_sub = cas[cas['Contig'] == contig]
                 crispr_sub = crispr[crispr['Contig'] == contig]
                 
                 # Loop over operons
-                for operon in set(cas_sub['Operon']):
+                for operon in sorted(set(cas_sub["Operon"])):
                     cas_operon = cas_sub[cas_sub['Operon'] == operon]
                     operon_start = int(cas_operon['Start'].iloc[0])
                     operon_end = int(cas_operon['End'].iloc[0])

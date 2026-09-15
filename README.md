@@ -8,7 +8,7 @@ Detect CRISPR-Cas genes and arrays, and predict the subtype based on both Cas ge
 [CRISPRCasTyper and RepeatType are also available through a webserver](https://crisprcastyper.crispr.dk)
 
 This software finds Cas genes with a large suite of HMMs, then groups these HMMs into operons, and predicts the subtype of the operons based on a scoring scheme.
-Furthermore, it finds CRISPR arrays with [diced](https://pypi.org/project/diced/) and by BLASTing a large suite of known repeats, and using a kmer-based machine learning approach (extreme gradient boosting trees) it predicts the subtype of the CRISPR arrays based on the consensus repeat. 
+Furthermore, it finds CRISPR arrays with [diced](https://pypi.org/project/diced/) and by aligning a large suite of known repeats (BLAST+ if installed, else SIMD edit-distance search with [myers-batch](https://pypi.org/project/myers-batch/) + [edlib](https://pypi.org/project/edlib/)), and using a kmer-based machine learning approach (extreme gradient boosting trees) it predicts the subtype of the CRISPR arrays based on the consensus repeat. 
 It then connects the Cas operons and CRISPR arrays, producing as output:
 * CRISPR-Cas loci, with consensus subtype prediction based on both Cas genes (mostly) and CRISPR consensus repeats
 * Orphan Cas operons, and their predicted subtype
@@ -66,14 +66,14 @@ positional arguments:
 ## Installation <a name="install"></a>
 
 
-> **Note**: We no longer advise installing via conda. The full pipeline (CRISPR detection, HMM searches, ORF prediction) now runs inside Python via diced, pyhmmsearch/pyhmmer, and pyrodigal-gv, and the database/models ship with the wheel/sdist. The only external binary you need is BLAST+ (`makeblastdb`/`blastn`) available from bioconda or your OS package manager.
+> **Note**: We no longer advise installing via conda. The full pipeline (CRISPR detection, HMM searches, ORF prediction) now runs inside Python via diced, pyhmmer, and pyrodigal-gv, and the database/models ship with the wheel/sdist. The only optional external dependency is BLAST+: if `blastn`/`makeblastdb` are in PATH they are used for repeat matching near cas operons, otherwise a bundled native search (myers-batch + edlib) takes over automatically. Force either with `--repeat_search_backend {blast,myers,edlib}`; the backend that actually ran is recorded in `arguments.tab`.
 
 ### pip
-If you have the dependencies (Python >= 3.10) you can install with pip. External tools still needed: `blastn`/`makeblastdb` (install via `conda install -c bioconda blast`). The CRISPRCasTyper database and ML models are packaged under `cctyper/data` in the wheel/sdist (no manual download needed); use `--db` or `CCTYPER_DB` only to override the bundled data.
+If you have the dependencies (Python >= 3.10) you can install with pip. No external tools are required (BLAST+ is optional, see note above). The CRISPRCasTyper database and ML models are packaged under `cctyper/data` in the wheel/sdist (no manual download needed); use `--db` or `CCTYPER_DB` only to override the bundled data.
 
 Install from the repo:
 ```sh
-mamba create -n cctyper bioconda::blast "python>=3.10"
+mamba create -n cctyper "python>=3.10"
 mamba activate cctyper
 pip install git+https://github.com/Russel88/CRISPRCasTyper.git
 ```
@@ -137,7 +137,7 @@ cctyper -h
     * Strand_Adaptation: Strand of adaptation module. 1 is positive strand, -1 is negative strand, 0 is mixed, NA if no adaptation gene found
 * **crisprs_all.tab:**          All CRISPR arrays, also false positives
     * Contig: Sequence accession
-    * CRISPR: CRISPR ID (minced: Sequence accession _ NUMBER; repeatBLAST: Sequence accession - NUMBER _ NUMBER)
+    * CRISPR: CRISPR ID (minced: Sequence accession _ NUMBER; repeat match: Sequence accession - NUMBER _ NUMBER)
     * Start: Start of CRISPR
     * End: End of CRISPR
     * Consensus_repeat: Consensus repeat sequence
@@ -191,8 +191,8 @@ cctyper -h
 ##### If run with `--keep_tmp` the following is also produced
 * **proteins.faa**              Protein sequences
 * **hmmer/*.tab**               Alignment output from HMMER for each Cas HMM
-* **blast.tab:**                BLAST output from repeat alignment against flanking regions of cas operons
-* **Flank....:**                Fasta of flanking regions near cas operons and BLAST database of this  
+* **blast.tab:**                Repeat alignments against flanking regions of cas operons
+* **Flank.fna:**                Fasta of flanking regions near cas operons  
 
 #### Notes on output
 Files are only created if there is any data. For example, the CRISPR_Cas.tab file is only created if there are any CRISPR-Cas loci. 
