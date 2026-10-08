@@ -284,8 +284,10 @@ class Typer(object):
         self.hmm_df = self.hmm_df.sort_values('Acc')
         operons = (
             self.hmm_df
+            .set.index('Hmm')
             .groupby('Acc', group_keys=False)
-            .apply(lambda g: self.cluster_adj(g.assign(Acc=g.name)), include_groups=False)
+            .apply(lambda g: self.cluster_adj(g.assign(Acc=g.name)))
+            .reset_index(drop=True)
         )
         self.hmm_df.loc[:,'operon'] = list(chain.from_iterable([x[0] for x in list(operons)]))
 

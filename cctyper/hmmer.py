@@ -281,8 +281,9 @@ class HMMER(object):
 
         self.hmm_df = (
             self.hmm_df
+            .set_index('Hmm')
             .groupby(['Hmm','ORF'], group_keys=False)
-            .apply(merge_hits_with_keys, include_groups=False)
+            .apply(merge_hits_with_keys)
             .reset_index(drop=True)
         )
 
