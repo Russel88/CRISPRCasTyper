@@ -8,17 +8,19 @@ version = "1.9.0"
 description = "CRISPRCasTyper: Automatic detection and subtyping of CRISPR-Cas operons"
 readme = "README.md"
 requires-python = ">=3.10"
-authors = [{ name = "Jakob Russel"}]
-license = { file = "LICENSE" }
+authors = [
+    { name = "Jakob Russel"},
+    { name = "Mario Rodríguez Mestre"}
+    ]
+license = "MIT"
+license-files = ["LICENSE"]
 classifiers = [
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
-    "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     "Topic :: Scientific/Engineering :: Bio-Informatics",
-    "Topic :: Software Development :: Libraries :: Python Modules",
     "Development Status :: 4 - Beta",
 ]
 dependencies = [
@@ -43,6 +45,8 @@ dependencies = [
 
 [project.urls]
 Homepage = "https://github.com/Russel88/CRISPRCasTyper"
+Issues = "https://github.com/Russel88/CRISPRCasTyper/issues"
+Repository = "https://github.com/Russel88/CRISPRCasTyper.git"
 Download = "https://github.com/Russel88/CRISPRCasTyper/archive/v1.9.0.tar.gz"
 
 [tool.setuptools]
@@ -54,3 +58,6 @@ include = ["cctyper*"]
 
 [tool.setuptools.package-data]
 cctyper = ["data/**"]
+
+[tool.black]
+line-length=79

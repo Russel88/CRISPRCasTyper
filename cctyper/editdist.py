@@ -16,41 +16,57 @@ OVERLAP = 64
 
 
 def _all_hits(query, text, k):
-    '''
+    """
     All occurrences of query in text with edit distance <= k.
-    edlib only reports the best-scoring locations, so mask found hits and repeat
-    until nothing is left within the threshold.
-    '''
+    edlib only reports the best-scoring locations,
+    so mask found hits and repeat until nothing is left
+    within the threshold.
+    """
     hits = []
-    res = edlib.align(query, text, mode='HW', task='locations', k=k)
-    if res['editDistance'] < 0:
+    res = edlib.align(query, text, mode="HW", task="locations", k=k)
+    if res["editDistance"] < 0:
         return hits
-    masked = bytearray(text, 'ascii')
-    while res['editDistance'] >= 0:
-        for s, e in res['locations']:
-            hits.append((s, e, res['editDistance']))
-            masked[s:e+1] = b'N' * (e+1-s)
-        res = edlib.align(query, bytes(masked).decode(), mode='HW', task='locations', k=k)
+    masked = bytearray(text, "ascii")
+    while res["editDistance"] >= 0:
+        for s, e in res["locations"]:
+            hits.append((s, e, res["editDistance"]))
+            masked[s : e + 1] = b"N" * (e + 1 - s)
+        res = edlib.align(
+            query, bytes(masked).decode(), mode="HW", task="locations", k=k
+        )
     return hits
 
 
 def load_repeats(repeatdb):
     repeats = []
-    for rec in SeqIO.parse(repeatdb, 'fasta'):
+    for rec in SeqIO.parse(repeatdb, "fasta"):
         seq = str(rec.seq).upper()
         repeats.append((rec.id, seq, str(Seq(seq).reverse_complement())))
     return repeats
 
 
 def _row(rid, fid, s, e, dist, qlen):
-    return (rid, fid, round(100*(1-dist/qlen), 1), e-s+1,
-            dist, 0, 1, qlen, s+1, e+1, 0, qlen-dist)
+    return (
+        rid,
+        fid,
+        round(100 * (1 - dist / qlen), 1),
+        e - s + 1,
+        dist,
+        0,
+        1,
+        qlen,
+        s + 1,
+        e + 1,
+        0,
+        qlen - dist,
+    )
 
 
 def search_repeats_edlib(repeats, flanks, threads):
-    '''
+    """
     Brute-force scan: edlib alignment of every repeat against every flank.
-    '''
+    """
+
     def work(chunk):
         rows = []
         for fid, text in flanks.items():
@@ -68,17 +84,17 @@ def search_repeats_edlib(repeats, flanks, threads):
 
 
 def search_repeats_myers(repeats, flanks, threads):
-    '''
+    """
     Two-stage search: myers-batch SIMD prefilter over flank windows (distance
     only), then edlib on positive windows to recover exact coordinates.
-    '''
-    logging.debug('myers-batch SIMD backend: %s', myers_batch.simd_backend())
+    """
+    logging.debug("myers-batch SIMD backend: %s", myers_batch.simd_backend())
 
     windows = []
     for fid, text in flanks.items():
         step = WINDOW - OVERLAP
         for off in range(0, max(1, len(text) - OVERLAP), step):
-            windows.append((fid, off, text[off:off+WINDOW]))
+            windows.append((fid, off, text[off : off + WINDOW]))
     wtexts = [w[2].encode() for w in windows]
 
     def work(chunk):
@@ -91,7 +107,11 @@ def search_repeats_myers(repeats, flanks, threads):
                     if d <= k:
                         fid, off, text = windows[wi]
                         for s, e, dist in _all_hits(query, text, k):
-                            rows.add(_row(rid, fid, off+s, off+e, dist, len(fwd)))
+                            rows.add(
+                                _row(
+                                    rid, fid, off + s, off + e, dist, len(fwd)
+                                )
+                            )
         return rows
 
     n = min(threads, len(repeats))

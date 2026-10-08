@@ -1,17 +1,9 @@
 #!/usr/bin/env python3
 
 import argparse
-import logging
 import os
-import sys
 import warnings
 from importlib.metadata import PackageNotFoundError, version
-
-# Silence Rust panic printing from diced (PyO3) while still raising exceptions we catch
-os.environ.setdefault("PYO3_PRINT_PANICS", "0")
-
-# Silence known noisy dependency warnings
-warnings.filterwarnings("ignore", message="The value of the smallest subnormal.*", category=UserWarning)
 
 from cctyper.controller import Controller
 from cctyper.prodigal import Prodigal
@@ -24,73 +16,258 @@ from cctyper.plot import Map
 from cctyper.blast import RepeatMatch
 from cctyper.gff import GFF
 
+# Silence Rust panic printing from diced (PyO3) while still raising exceptions
+os.environ.setdefault("PYO3_PRINT_PANICS", "0")
+
+# Silence known noisy dependency warnings
+warnings.filterwarnings(
+    "ignore",
+    message="The value of the smallest subnormal.*",
+    category=UserWarning,
+)
+
 try:
     _CCTYPER_VERSION = version("cctyper")
 except PackageNotFoundError:
     _CCTYPER_VERSION = "unknown"
 
-########## Arguments ##########
-ap = argparse.ArgumentParser(description=f'CRISPRCasTyper version {_CCTYPER_VERSION}')
+# ========= Arguments =========
+ap = argparse.ArgumentParser(
+    description=f"CRISPRCasTyper version {_CCTYPER_VERSION}"
+)
 
 # Required
-ap.add_argument('input', help='Input fasta file')
-ap.add_argument('output', help='Prefix for output directory')
+ap.add_argument("input", help="Input fasta file")
+ap.add_argument("output", help="Prefix for output directory")
 
 # Optional
-ap.add_argument('-t', '--threads', help='Number of parallel processes [%(default)s].', default=4, type=int)
-ap.add_argument('--prodigal', help='Which mode to run prodigal in [%(default)s].', default='single', type=str, choices=['single','meta'])
-ap.add_argument('--gff', help='Optional GFF with CDS annotations (must be paired with --prot)', default='', type=str)
-ap.add_argument('--prot', help='Optional protein FASTA matching --gff (skips gene calling)', default='', type=str)
-ap.add_argument('--circular', help='Input should be treated as circular.', action='store_true')
-ap.add_argument('--keep_tmp', help='Keep temporary files (prodigal, hmmer, minced).', action='store_true')
-ap.add_argument('--log_lvl', help='Logging level [%(default)s].', default='INFO', type=str, choices=['DEBUG','INFO','WARNING','ERROR'])
-ap.add_argument('--redo_typing', help='Redo the typing. Skip prodigal and HMMER and load the hmmer.tab from the output dir.', action='store_true')
-ap.add_argument('--simplelog', help='No color or progress bar in log.', action='store_true')
+ap.add_argument(
+    "-t",
+    "--threads",
+    help="Number of parallel processes [%(default)s].",
+    default=4,
+    type=int,
+)
+ap.add_argument(
+    "--prodigal",
+    help="Which mode to run prodigal in [%(default)s].",
+    default="single",
+    type=str,
+    choices=["single", "meta"],
+)
+ap.add_argument(
+    "--gff",
+    help="Optional GFF with CDS annotations (must be paired with --prot)",
+    default="",
+    type=str,
+)
+ap.add_argument(
+    "--prot",
+    help="Optional protein FASTA matching --gff (skips gene calling)",
+    default="",
+    type=str,
+)
+ap.add_argument(
+    "--circular",
+    help="Input should be treated as circular.",
+    action="store_true",
+)
+ap.add_argument(
+    "--keep_tmp",
+    help="Keep temporary files (prodigal, hmmer, minced).",
+    action="store_true",
+)
+ap.add_argument(
+    "--log_lvl",
+    help="Logging level [%(default)s].",
+    default="INFO",
+    type=str,
+    choices=["DEBUG", "INFO", "WARNING", "ERROR"],
+)
+ap.add_argument(
+    "--redo_typing",
+    help="Redo the typing. Skip prodigal and HMMER and load the hmmer.tab"
+    " from the output dir.",
+    action="store_true",
+)
+ap.add_argument(
+    "--simplelog", help="No color or progress bar in log.", action="store_true"
+)
 
 # Data
-apd = ap.add_argument_group('data arguments')
-apd.add_argument('--db', help='Optional path to database (overrides packaged data and CCTYPER_DB).', default='', type=str)
+apd = ap.add_argument_group("data arguments")
+apd.add_argument(
+    "--db",
+    help="Optional path to database (overrides packaged data and CCTYPER_DB).",
+    default="",
+    type=str,
+)
 
 # Thresholds
-apt = ap.add_argument_group('cas arguments')
-apt.add_argument('--dist', help='Max allowed number of unknown genes between cas genes in operon [%(default)s].', default=3, type=int)
-apt.add_argument('--overall_eval', help='Overall E-value threshold [%(default)s].', default=0.01, type=float)
-apt.add_argument('--overall_cov_seq', help='Overall sequence coverage threshold [%(default)s].', default=0.3, type=float)
-apt.add_argument('--overall_cov_hmm', help='Overall HMM coverage threshold [%(default)s].', default=0.3, type=float)
+apt = ap.add_argument_group("cas arguments")
+apt.add_argument(
+    "--dist",
+    help="Max allowed number of unknown genes between cas genes"
+    " in operon [%(default)s].",
+    default=3,
+    type=int,
+)
+apt.add_argument(
+    "--overall_eval",
+    help="Overall E-value threshold [%(default)s].",
+    default=0.01,
+    type=float,
+)
+apt.add_argument(
+    "--overall_cov_seq",
+    help="Overall sequence coverage threshold [%(default)s].",
+    default=0.3,
+    type=float,
+)
+apt.add_argument(
+    "--overall_cov_hmm",
+    help="Overall HMM coverage threshold [%(default)s].",
+    default=0.3,
+    type=float,
+)
 
 # CRISPRs
-apc = ap.add_argument_group('crispr arguments')
-apc.add_argument('--ccd', help='Distance (bp) threshold to connect Cas operons and CRISPR arrays [%(default)s].', default=10000, type=int)
-apc.add_argument('--pred_prob', help='Prediction probability cut-off for assigning subtype to CRISPR repeats [%(default)s].', default=0.75, type=float)
-apc.add_argument('--kmer', help='kmer size. Has to match training kmer size! [%(default)s].', default=4, type=int)
-apc.add_argument('--repeat_id', help='Minimum average sequence identity between repeats for trusted arrays [%(default)s].', default=70, type=int)
-apc.add_argument('--spacer_id', help='Maximum average sequence identity between spacers for trusted arrays [%(default)s].', default=55, type=int)
-apc.add_argument('--spacer_sem', help='Maximum spacer length standard error of the mean for trusted arrays [%(default)s].', default=3.5, type=float)
-apc.add_argument('--exact_stats', help='Repeat and spacer identity is exact (slow for large CRISPR) in contrast to approximate (default, fast, based on sample of repeats/spacers).', action='store_true')
-apc.add_argument('--seed', help='Seed for sampling when estimating CRISPR stats (see argument above) [%(default)s].', default=42, type=float)
-apc.add_argument('--skip_blast', help='Disable search of CRISPRs near cas operons.', action='store_true')
-apc.add_argument('--repeat_search_backend', help='Backend for searching known repeats near cas operons. auto uses blast if makeblastdb/blastn are in PATH, else the bundled myers backend [%(default)s].', default='auto', choices=['auto', 'myers', 'edlib', 'blast'])
-apc.add_argument('--searchWL', help='MinCED option - Length of search window. Range: 6-9 [%(default)s].', default=8, type=int)
-apc.add_argument('--minNR', help='MinCED option - Minimum number of repeats [%(default)s].', default=3, type=int)
-apc.add_argument('--minRL', help='MinCED option - Minimum repeat length [%(default)s].', default=23, type=int)
-apc.add_argument('--maxRL', help='MinCED option - Maximum repeat length [%(default)s].', default=47, type=int)
-apc.add_argument('--minSL', help='MinCED option - Minimum spacer length [%(default)s].', default=26, type=int)
-apc.add_argument('--maxSL', help='MinCED option - Maximum spacer length [%(default)s].', default=50, type=int)
+apc = ap.add_argument_group("crispr arguments")
+apc.add_argument(
+    "--ccd",
+    help="Distance (bp) threshold to connect Cas operons and"
+    " CRISPR arrays [%(default)s].",
+    default=10000,
+    type=int,
+)
+apc.add_argument(
+    "--pred_prob",
+    help="Prediction probability cut-off for assigning subtype"
+    " to CRISPR repeats [%(default)s].",
+    default=0.75,
+    type=float,
+)
+apc.add_argument(
+    "--kmer",
+    help="kmer size. Has to match training kmer size! [%(default)s].",
+    default=4,
+    type=int,
+)
+apc.add_argument(
+    "--repeat_id",
+    help="Minimum average sequence identity between repeats for trusted"
+    " arrays [%(default)s].",
+    default=70,
+    type=int,
+)
+apc.add_argument(
+    "--spacer_id",
+    help="Maximum average sequence identity between spacers for trusted"
+    " arrays [%(default)s].",
+    default=55,
+    type=int,
+)
+apc.add_argument(
+    "--spacer_sem",
+    help="Maximum spacer length standard error of the mean for trusted"
+    " arrays [%(default)s].",
+    default=3.5,
+    type=float,
+)
+apc.add_argument(
+    "--exact_stats",
+    help="Repeat and spacer identity is exact (slow for large CRISPR)"
+    " in contrast to approximate (default, fast, based on sample of"
+    " repeats/spacers).",
+    action="store_true",
+)
+apc.add_argument(
+    "--seed",
+    help="Seed for sampling when estimating CRISPR stats (see argument above)"
+    " [%(default)s].",
+    default=42,
+    type=float,
+)
+apc.add_argument(
+    "--skip_blast",
+    help="Disable search of CRISPRs near cas operons.",
+    action="store_true",
+)
+apc.add_argument(
+    "--repeat_search_backend",
+    help="Backend for searching known repeats near cas operons."
+    " auto uses blast if makeblastdb/blastn are in PATH, else"
+    " the bundled myers backend [%(default)s].",
+    default="auto",
+    choices=["auto", "myers", "edlib", "blast"],
+)
+apc.add_argument(
+    "--searchWL",
+    help="MinCED option - Length of search window. Range: 6-9 [%(default)s].",
+    default=8,
+    type=int,
+)
+apc.add_argument(
+    "--minNR",
+    help="MinCED option - Minimum number of repeats [%(default)s].",
+    default=3,
+    type=int,
+)
+apc.add_argument(
+    "--minRL",
+    help="MinCED option - Minimum repeat length [%(default)s].",
+    default=23,
+    type=int,
+)
+apc.add_argument(
+    "--maxRL",
+    help="MinCED option - Maximum repeat length [%(default)s].",
+    default=47,
+    type=int,
+)
+apc.add_argument(
+    "--minSL",
+    help="MinCED option - Minimum spacer length [%(default)s].",
+    default=26,
+    type=int,
+)
+apc.add_argument(
+    "--maxSL",
+    help="MinCED option - Maximum spacer length [%(default)s].",
+    default=50,
+    type=int,
+)
 
 # Plot
-app = ap.add_argument_group('plotting arguments')
-app.add_argument('--expand', help='Expand operons with un-annotated genes. The value determines by how many bp in each end to expand. 0 only fills gaps [%(default)s].', default=0, type=int)
-app.add_argument('--custom_hmm', help='Path to custom HMM database to decorate plot. Warning: This overwrites plotting of low-quality matches to Cas HMMs', default='', type=str)
-app.add_argument('--no_plot', help='Do not draw a map of CRISPR-Cas.', action='store_true')
-app.add_argument('--no_grid', help='Do not add grid to plot.', action='store_true')
+app = ap.add_argument_group("plotting arguments")
+app.add_argument(
+    "--expand",
+    help="Expand operons with un-annotated genes. The value determines"
+    " by how many bp in each end to expand. 0 only fills gaps [%(default)s].",
+    default=0,
+    type=int,
+)
+app.add_argument(
+    "--custom_hmm",
+    help="Path to custom HMM database to decorate plot."
+    " Warning: This overwrites plotting of low-quality matches to Cas HMMs",
+    default="",
+    type=str,
+)
+app.add_argument(
+    "--no_plot", help="Do not draw a map of CRISPR-Cas.", action="store_true"
+)
+app.add_argument(
+    "--no_grid", help="Do not add grid to plot.", action="store_true"
+)
 
 # Workflow starts here
 args = ap.parse_args()
 
-########## Initialize ##########
+# ========= Initialize =========
 master = Controller(args)
 
-########## Prodigal/GFF ##########
+# ========= Prodigal/GFF =========
 if args.gff and args.prot:
     proteins = GFF(master)
     proteins.get_genes()
@@ -98,33 +275,33 @@ else:
     proteins = Prodigal(master)
     proteins.run_prod()
 
-########## Hmmer ##########
+# ========= Hmmer =========
 hmmeri = HMMER(proteins)
 hmmeri.main_hmm()
 
-########## Operons ##########
+# ========= Operons =========
 castyper = Typer(hmmeri)
 castyper.typing()
 
-########## CRISPRs ##########
+# ========= CRISPRs =========
 crispr_obj = Minced(castyper)
 crispr_obj.run_minced()
 
-######### RepeatMatch ########
+# ========= RepeatMatch =========
 repmatch = RepeatMatch(crispr_obj)
 repmatch.run()
 
-########## RepeatType ########
+# ========= RepeatType =========
 repeatPred = XGB(repmatch)
 repeatPred.xgb_run()
 
-######### CRISPR-Cas ########
+# ========= CRISPR-Cas =========
 criscas = CRISPRCas(repeatPred)
 criscas.crisprcas()
 
-######### Plot ###########
+# ========= Plot =========
 plotting = Map(criscas)
 plotting.plot()
 
-######### Clean ###########
+# ========= Clean =========
 master.clean()
