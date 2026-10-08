@@ -4,7 +4,9 @@ from importlib import resources
 from pathlib import Path
 
 
-def resolve_database_path(db_argument: str = "", logger: logging.Logger | None = None) -> str:
+def resolve_database_path(
+    db_argument: str = "", logger: logging.Logger | None = None
+) -> str:
     """
     Determine which database directory to use.
 
@@ -27,7 +29,9 @@ def resolve_database_path(db_argument: str = "", logger: logging.Logger | None =
         raise RuntimeError("Could not locate packaged database files") from exc
 
     if not data_root.exists():
-        raise RuntimeError(f"Packaged database directory missing at {data_root}")
+        raise RuntimeError(
+            f"Packaged database directory missing at {data_root}"
+        )
 
     if logger:
         logger.info("Using packaged database at %s", data_root)
