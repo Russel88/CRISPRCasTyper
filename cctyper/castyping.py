@@ -248,6 +248,15 @@ class Typer(object):
         Subtyping of putative Cas operons
         '''
 
+        if not self.any_cas:
+            # No protein passed the HMM search. That is a valid result (the
+            # input has no CRISPR-Cas system), so report it instead of failing
+            # in the code below, which expects at least one hit.
+            logging.info('No Cas proteins found, nothing to subtype')
+            self.preddf = pd.DataFrame()
+            self.circ_operons = []
+            return
+
         if self.any_cas:
             logging.info('Subtyping putative operons')
 
