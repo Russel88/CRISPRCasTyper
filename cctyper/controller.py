@@ -195,7 +195,8 @@ class Controller(object):
                 os.remove(self.out+'hmmer.log')
 
             if self.customhmm != '':
-                if os.stat(self.out+'hmmer_custom.log').st_size == 0:
+                # The pyhmmer based custom search does not write a log file
+                if os.path.exists(self.out+'hmmer_custom.log') and os.stat(self.out+'hmmer_custom.log').st_size == 0:
                     os.remove(self.out+'hmmer_custom.log')
                 
             if not self.keep_tmp:
