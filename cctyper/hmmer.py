@@ -226,7 +226,13 @@ class HMMER(object):
 
     # Load data
     def load_hmm(self):
-    
+
+        if self.hmm_df.empty:
+            # no hit at all: run_hmm() already wrote the empty table with the
+            # full column set, which the groupby below would collapse
+            logging.debug('No HMMER hits to load')
+            return
+
         logging.debug('Loading HMMER output')
         
         def merge_hits(df_sub):
